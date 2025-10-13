@@ -1,0 +1,22 @@
+{
+  "device_a": {
+    "id": "",
+    "name": ""
+  },
+  "device_b": {
+    "id": "",
+    "name": ""
+  },
+  "current_device": {
+    "id": "",
+    "name": ""
+  },
+  "auto_start": false,
+  "usage_stats": {},
+  "last_switch_time": 0,
+  "rss_feeds": {},
+  "read_articles": [],
+  "favorite_articles": {},
+  "music_volume": 100,
+  "music_root_path": ""
+}
