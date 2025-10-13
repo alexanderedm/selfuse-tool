@@ -14,6 +14,7 @@ from playlist_manager import PlaylistManager
 from music_file_manager import MusicFileManager
 from music_history_dialog import MusicHistoryDialog
 from music_playlist_dialog import MusicPlaylistDialog
+from music_download_dialog import MusicDownloadDialog
 from PIL import Image, ImageTk, ImageDraw
 import requests
 from io import BytesIO
@@ -84,6 +85,9 @@ class MusicWindow:
         # 播放列表對話框(延遲初始化,當 window 建立後)
         self.playlist_dialog = None
 
+        # 下載對話框(延遲初始化,當 window 建立後)
+        self.download_dialog = None
+
         # 初始化 pygame mixer
         try:
             pygame.mixer.init()
@@ -132,6 +136,14 @@ class MusicWindow:
             music_manager=self.music_manager,
             on_play_playlist=self._play_playlist,
             on_play_song=self._play_song_from_playlist
+        )
+
+        # 初始化下載對話框
+        self.download_dialog = MusicDownloadDialog(
+            parent=self.window,
+            music_manager=self.music_manager,
+            youtube_downloader=self.youtube_downloader,
+            on_download_complete=self._on_download_complete
         )
 
         # 深色主題顏色
@@ -1146,632 +1158,38 @@ class MusicWindow:
 
     def _open_download_dialog(self):
         """開啟 YouTube 下載對話框"""
-        # 檢查 yt-dlp 是否安裝
-        if not self.youtube_downloader.check_ytdlp_installed():
-            messagebox.showerror(
-                "錯誤",
-                "未安裝 yt-dlp!\n\n請在命令提示字元執行:\npip install yt-dlp"
+        self.download_dialog.show_download_dialog()
+
+    def _on_download_complete(self, success, message, category=None):
+        """下載完成回調
+
+        Args:
+            success (bool): 是否下載成功
+            message (str): 訊息
+            category (str): 下載分類
+        """
+        if success:
+            # 重新掃描音樂庫
+            self.music_manager.scan_music_library()
+
+            # 重新載入分類和歌曲列表
+            self._reload_music_library()
+
+            # 顯示成功訊息
+            messagebox.showinfo(
+                "✅ 下載完成",
+                f"音樂已下載到分類: {category}\n\n{message}"
             )
-            return
 
-        # 建立下載對話框
-        dialog = tk.Toplevel(self.window)
-        dialog.title("📥 下載 YouTube 音樂")
-        dialog.geometry("600x400")
-        dialog.configure(bg="#1e1e1e")
-        dialog.resizable(False, False)
-
-        # 置中顯示
-        dialog.transient(self.window)
-        dialog.grab_set()
-
-        main_frame = tk.Frame(dialog, bg="#1e1e1e")
-        main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
-
-        # 標題
-        tk.Label(
-            main_frame,
-            text="下載 YouTube 音樂",
-            font=("Microsoft JhengHei UI", 14, "bold"),
-            bg="#1e1e1e",
-            fg="#e0e0e0"
-        ).pack(pady=(0, 15))
-
-        # 搜尋/URL 輸入框架
-        input_frame = tk.Frame(main_frame, bg="#1e1e1e")
-        input_frame.pack(fill=tk.X, pady=(0, 15))
-
-        # URL 輸入
-        tk.Label(
-            input_frame,
-            text="YouTube 連結或搜尋關鍵字:",
-            font=("Microsoft JhengHei UI", 10),
-            bg="#1e1e1e",
-            fg="#e0e0e0"
-        ).pack(anchor=tk.W)
-
-        url_entry = tk.Entry(
-            input_frame,
-            font=("Microsoft JhengHei UI", 10),
-            bg="#2d2d2d",
-            fg="#e0e0e0",
-            insertbackground="#e0e0e0",
-            relief=tk.FLAT,
-            borderwidth=0
-        )
-        url_entry.pack(fill=tk.X, ipady=8, pady=(5, 0))
-
-        # 分類選擇
-        tk.Label(
-            main_frame,
-            text="下載到分類:",
-            font=("Microsoft JhengHei UI", 10),
-            bg="#1e1e1e",
-            fg="#e0e0e0"
-        ).pack(anchor=tk.W)
-
-        category_frame = tk.Frame(main_frame, bg="#1e1e1e")
-        category_frame.pack(fill=tk.X, pady=(5, 15))
-
-        categories = self.music_manager.get_all_categories()
-        if not categories:
-            categories = ["下載"]
-
-        category_var = tk.StringVar(value=categories[0] if categories else "下載")
-
-        category_combo = ttk.Combobox(
-            category_frame,
-            textvariable=category_var,
-            values=categories,
-            font=("Microsoft JhengHei UI", 10),
-            state="readonly"
-        )
-        category_combo.pack(side=tk.LEFT, fill=tk.X, expand=True)
-
-        # 或新增分類
-        new_category_button = tk.Button(
-            category_frame,
-            text="+ 新增分類",
-            font=("Microsoft JhengHei UI", 9),
-            bg="#353535",
-            fg="#e0e0e0",
-            activebackground="#505050",
-            activeforeground="white",
-            borderwidth=0,
-            padx=10,
-            pady=5,
-            command=lambda: self._add_new_category(category_combo, category_var)
-        )
-        new_category_button.pack(side=tk.LEFT, padx=(10, 0))
-
-        # 按鈕區
-        button_frame = tk.Frame(main_frame, bg="#1e1e1e")
-        button_frame.pack(pady=(10, 0))
-
-        download_btn = tk.Button(
-            button_frame,
-            text="🎵 開始",
-            font=("Microsoft JhengHei UI", 10),
-            bg="#0078d4",
-            fg="white",
-            activebackground="#005a9e",
-            activeforeground="white",
-            borderwidth=0,
-            padx=30,
-            pady=8,
-            command=lambda: self._smart_download_or_search(url_entry.get(), category_var.get(), dialog)
-        )
-        download_btn.pack(side=tk.LEFT, padx=5)
-
-        cancel_btn = tk.Button(
-            button_frame,
-            text="取消",
-            font=("Microsoft JhengHei UI", 10),
-            bg="#353535",
-            fg="white",
-            activebackground="#505050",
-            activeforeground="white",
-            borderwidth=0,
-            padx=20,
-            pady=8,
-            command=dialog.destroy
-        )
-        cancel_btn.pack(side=tk.LEFT, padx=5)
-
-    def _smart_download_or_search(self, input_text, category, parent_dialog):
-        """智能判斷輸入是 URL 還是搜尋關鍵字"""
-        if not input_text or not input_text.strip():
-            messagebox.showwarning("警告", "請輸入 YouTube 連結或搜尋關鍵字", parent=parent_dialog)
-            return
-
-        input_text = input_text.strip()
-
-        # 判斷是否為 YouTube URL
-        import re
-        youtube_patterns = [
-            r'(?:https?://)?(?:www\.)?youtube\.com',
-            r'(?:https?://)?(?:www\.)?youtu\.be',
-            r'(?:https?://)?music\.youtube\.com'
-        ]
-
-        is_url = any(re.search(pattern, input_text, re.IGNORECASE) for pattern in youtube_patterns)
-
-        if is_url:
-            # 是 URL,直接下載
-            logger.info(f"偵測到 YouTube 連結,直接下載: {input_text}")
-            self._start_download(input_text, category, parent_dialog)
+            logger.info("YouTube 下載成功")
         else:
-            # 不是 URL,進行搜尋(保存選擇的分類)
-            logger.info(f"偵測到搜尋關鍵字,開始搜尋: {input_text}")
-            self._search_youtube(input_text, category, parent_dialog)
-
-    def _search_youtube(self, query, category, parent_dialog):
-        """搜尋 YouTube 影片
-
-        Args:
-            query (str): 搜尋關鍵字
-            category (str): 預先選擇的下載分類
-            parent_dialog: 父對話框
-        """
-        if not query or not query.strip():
-            messagebox.showwarning("警告", "請輸入搜尋關鍵字", parent=parent_dialog)
-            return
-
-        # 顯示搜尋中訊息
-        search_msg = messagebox.showinfo(
-            "搜尋中",
-            "正在搜尋 YouTube 影片,請稍候...",
-            parent=parent_dialog
-        )
-
-        # 在背景執行緒中搜尋
-        def search_thread():
-            results = self.youtube_downloader.search_youtube(query, max_results=5)
-
-            if not results:
-                self.window.after(0, lambda: messagebox.showerror(
-                    "搜尋失敗",
-                    "沒有找到相關影片,請嘗試其他關鍵字。",
-                    parent=parent_dialog
-                ))
-                return
-
-            # 顯示搜尋結果選擇對話框,傳遞預選的分類
-            self.window.after(0, lambda: self._show_search_results(results, category, parent_dialog))
-
-        threading.Thread(target=search_thread, daemon=True).start()
-
-    def _show_search_results(self, results, category, parent_dialog):
-        """顯示搜尋結果對話框
-
-        Args:
-            results (list): 搜尋結果列表
-            category (str): 預先選擇的下載分類
-            parent_dialog: 父對話框
-        """
-        # 建立結果對話框
-        result_dialog = tk.Toplevel(parent_dialog)
-        result_dialog.title("🔍 搜尋結果")
-        result_dialog.geometry("700x500")
-        result_dialog.configure(bg="#1e1e1e")
-        result_dialog.resizable(False, False)
-
-        # 置中顯示
-        result_dialog.transient(parent_dialog)
-        result_dialog.grab_set()
-
-        main_frame = tk.Frame(result_dialog, bg="#1e1e1e")
-        main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
-
-        # 標題
-        tk.Label(
-            main_frame,
-            text=f"找到 {len(results)} 個結果,請選擇要下載的影片:",
-            font=("Microsoft JhengHei UI", 12, "bold"),
-            bg="#1e1e1e",
-            fg="#e0e0e0"
-        ).pack(pady=(0, 10))
-
-        # 顯示將下載到的分類
-        tk.Label(
-            main_frame,
-            text=f"下載分類: {category}",
-            font=("Microsoft JhengHei UI", 10),
-            bg="#1e1e1e",
-            fg="#a0a0a0"
-        ).pack(pady=(0, 15))
-
-        # 結果列表框架
-        list_frame = tk.Frame(main_frame, bg="#2d2d2d")
-        list_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 15))
-
-        # 滾動條
-        scrollbar = tk.Scrollbar(list_frame)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-
-        # 結果列表
-        result_listbox = tk.Listbox(
-            list_frame,
-            yscrollcommand=scrollbar.set,
-            bg="#2d2d2d",
-            fg="#e0e0e0",
-            selectbackground="#0078d4",
-            selectforeground="white",
-            font=("Microsoft JhengHei UI", 10),
-            borderwidth=0,
-            highlightthickness=0,
-            height=15
-        )
-        result_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=10, pady=10)
-        scrollbar.config(command=result_listbox.yview)
-
-        # 填充搜尋結果
-        for i, video in enumerate(results):
-            duration_str = self.music_manager.format_duration(video['duration'])
-            display_text = f"{i+1}. {video['title']}\n   👤 {video['uploader']} | ⏱ {duration_str}"
-            result_listbox.insert(tk.END, display_text)
-            # 添加空行分隔
-            if i < len(results) - 1:
-                result_listbox.insert(tk.END, "")
-
-        # 按鈕區
-        button_frame = tk.Frame(main_frame, bg="#1e1e1e")
-        button_frame.pack()
-
-        def on_select():
-            selection = result_listbox.curselection()
-            if not selection:
-                messagebox.showwarning("警告", "請選擇一個影片", parent=result_dialog)
-                return
-
-            # 因為有空行,需要計算實際的影片索引
-            selected_index = selection[0]
-            video_index = selected_index // 2  # 每個影片佔2行(內容+空行)
-
-            if video_index < len(results):
-                selected_video = results[video_index]
-
-                # 關閉對話框
-                result_dialog.destroy()
-                parent_dialog.destroy()
-
-                # 直接使用預選的分類開始下載
-                self._start_download(selected_video.get('webpage_url', ''), category, None)
-
-        select_btn = tk.Button(
-            button_frame,
-            text="選擇並下載",
-            font=("Microsoft JhengHei UI", 10),
-            bg="#0078d4",
-            fg="white",
-            activebackground="#005a9e",
-            activeforeground="white",
-            borderwidth=0,
-            padx=20,
-            pady=8,
-            command=on_select
-        )
-        select_btn.pack(side=tk.LEFT, padx=5)
-
-        cancel_btn = tk.Button(
-            button_frame,
-            text="取消",
-            font=("Microsoft JhengHei UI", 10),
-            bg="#353535",
-            fg="white",
-            activebackground="#505050",
-            activeforeground="white",
-            borderwidth=0,
-            padx=20,
-            pady=8,
-            command=result_dialog.destroy
-        )
-        cancel_btn.pack(side=tk.LEFT, padx=5)
-
-    def _show_category_selection_dialog(self, video_info, categories, search_result_dialog, download_dialog):
-        """顯示分類選擇對話框
-
-        Args:
-            video_info (dict): 影片資訊
-            categories (list): 可用分類列表
-            search_result_dialog: 搜尋結果對話框
-            download_dialog: 下載對話框
-        """
-        # 建立分類選擇對話框
-        category_dialog = tk.Toplevel(self.window)
-        category_dialog.title("選擇下載分類")
-        category_dialog.geometry("450x350")
-        category_dialog.configure(bg="#1e1e1e")
-        category_dialog.resizable(False, False)
-
-        # 置中顯示
-        category_dialog.transient(search_result_dialog)
-        category_dialog.grab_set()
-
-        main_frame = tk.Frame(category_dialog, bg="#1e1e1e")
-        main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
-
-        # 標題
-        tk.Label(
-            main_frame,
-            text="選擇下載分類",
-            font=("Microsoft JhengHei UI", 14, "bold"),
-            bg="#1e1e1e",
-            fg="#e0e0e0"
-        ).pack(pady=(0, 10))
-
-        # 影片資訊
-        video_title = video_info.get('title', '未知影片')
-        tk.Label(
-            main_frame,
-            text=f"影片: {video_title[:50]}{'...' if len(video_title) > 50 else ''}",
-            font=("Microsoft JhengHei UI", 9),
-            bg="#1e1e1e",
-            fg="#a0a0a0",
-            wraplength=400,
-            justify=tk.LEFT
-        ).pack(pady=(0, 20))
-
-        # 分類選擇區域
-        tk.Label(
-            main_frame,
-            text="選擇資料夾:",
-            font=("Microsoft JhengHei UI", 10),
-            bg="#1e1e1e",
-            fg="#e0e0e0"
-        ).pack(anchor=tk.W, pady=(0, 5))
-
-        # 下拉選單框架
-        combo_frame = tk.Frame(main_frame, bg="#1e1e1e")
-        combo_frame.pack(fill=tk.X, pady=(0, 15))
-
-        category_var = tk.StringVar(value=categories[0] if categories else "下載")
-
-        # 設定 ttk.Combobox 樣式
-        style = ttk.Style()
-        style.configure(
-            "Category.TCombobox",
-            fieldbackground="#2d2d2d",
-            background="#2d2d2d",
-            foreground="#e0e0e0",
-            borderwidth=0
-        )
-
-        category_combo = ttk.Combobox(
-            combo_frame,
-            textvariable=category_var,
-            values=categories,
-            font=("Microsoft JhengHei UI", 10),
-            state="readonly",
-            style="Category.TCombobox"
-        )
-        category_combo.pack(side=tk.LEFT, fill=tk.X, expand=True, ipady=5)
-
-        # "新增分類" 按鈕
-        def create_new_category():
-            new_category = simpledialog.askstring(
-                "新增分類",
-                "請輸入新分類名稱:",
-                parent=category_dialog
+            # 顯示錯誤訊息
+            messagebox.showerror(
+                "❌ 下載失敗",
+                message
             )
-            if new_category and new_category.strip():
-                new_category = new_category.strip()
-                # 建立分類資料夾
-                category_path = os.path.join(self.music_manager.music_root_path, new_category)
-                if os.path.exists(category_path):
-                    messagebox.showwarning("警告", f"分類 '{new_category}' 已存在", parent=category_dialog)
-                    return
 
-                os.makedirs(category_path, exist_ok=True)
-                logger.info(f"建立新分類: {new_category}")
-
-                # 更新下拉選單
-                updated_categories = self.music_manager.get_all_categories()
-                category_combo['values'] = updated_categories
-                category_var.set(new_category)
-
-        new_category_btn = tk.Button(
-            combo_frame,
-            text="+ 新增",
-            font=("Microsoft JhengHei UI", 9),
-            bg="#353535",
-            fg="#e0e0e0",
-            activebackground="#505050",
-            activeforeground="white",
-            borderwidth=0,
-            padx=15,
-            pady=5,
-            command=create_new_category
-        )
-        new_category_btn.pack(side=tk.LEFT, padx=(10, 0))
-
-        # 按鈕區
-        button_frame = tk.Frame(main_frame, bg="#1e1e1e")
-        button_frame.pack(pady=(20, 0))
-
-        def confirm_download():
-            selected_category = category_var.get()
-            if not selected_category:
-                messagebox.showwarning("警告", "請選擇一個分類", parent=category_dialog)
-                return
-
-            # 確保分類資料夾存在
-            category_path = os.path.join(self.music_manager.music_root_path, selected_category)
-            os.makedirs(category_path, exist_ok=True)
-
-            # 關閉所有對話框
-            category_dialog.destroy()
-            if search_result_dialog:
-                search_result_dialog.destroy()
-            if download_dialog:
-                download_dialog.destroy()
-
-            # 開始下載
-            self._start_download(video_info.get('webpage_url', ''), selected_category, None)
-
-        download_btn = tk.Button(
-            button_frame,
-            text="確認下載",
-            font=("Microsoft JhengHei UI", 10),
-            bg="#0078d4",
-            fg="white",
-            activebackground="#005a9e",
-            activeforeground="white",
-            borderwidth=0,
-            padx=30,
-            pady=8,
-            command=confirm_download
-        )
-        download_btn.pack(side=tk.LEFT, padx=5)
-
-        cancel_btn = tk.Button(
-            button_frame,
-            text="取消",
-            font=("Microsoft JhengHei UI", 10),
-            bg="#353535",
-            fg="white",
-            activebackground="#505050",
-            activeforeground="white",
-            borderwidth=0,
-            padx=20,
-            pady=8,
-            command=category_dialog.destroy
-        )
-        cancel_btn.pack(side=tk.LEFT, padx=5)
-
-    def _start_download_with_url(self, url):
-        """使用指定 URL 開始下載流程"""
-        # 取得分類列表
-        categories = self.music_manager.get_all_categories()
-        if not categories:
-            categories = ["下載"]
-
-        # 建立假的 video_info
-        video_info = {'webpage_url': url, 'title': url}
-
-        # 顯示分類選擇對話框
-        self._show_category_selection_dialog(video_info, categories, None, None)
-
-    def _add_new_category(self, combo, var):
-        """新增分類"""
-        new_category = simpledialog.askstring("新增分類", "請輸入新分類名稱:")
-        if new_category and new_category.strip():
-            new_category = new_category.strip()
-            # 建立分類資料夾
-            category_path = os.path.join(self.music_manager.music_root_path, new_category)
-            os.makedirs(category_path, exist_ok=True)
-
-            # 更新下拉選單
-            categories = self.music_manager.get_all_categories()
-            categories.append(new_category)
-            combo['values'] = categories
-            var.set(new_category)
-
-            logger.info(f"新增分類: {new_category}")
-
-    def _start_download(self, url, category, dialog):
-        """開始下載"""
-        if not url or not url.strip():
-            if dialog:
-                messagebox.showwarning("警告", "請輸入 YouTube 連結", parent=dialog)
-            else:
-                messagebox.showwarning("警告", "請輸入 YouTube 連結")
-            return
-
-        # 關閉對話框(如果存在)
-        if dialog:
-            dialog.destroy()
-
-        # 建立進度對話框
-        progress_dialog = tk.Toplevel(self.window)
-        progress_dialog.title("📥 下載中")
-        progress_dialog.geometry("450x200")
-        progress_dialog.configure(bg="#1e1e1e")
-        progress_dialog.resizable(False, False)
-        progress_dialog.transient(self.window)
-        progress_dialog.grab_set()
-
-        # 進度框架
-        progress_frame = tk.Frame(progress_dialog, bg="#1e1e1e")
-        progress_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
-
-        # 標題
-        tk.Label(
-            progress_frame,
-            text="正在下載音樂...",
-            font=("Microsoft JhengHei UI", 12, "bold"),
-            bg="#1e1e1e",
-            fg="#e0e0e0"
-        ).pack(pady=(0, 15))
-
-        # 狀態標籤
-        status_label = tk.Label(
-            progress_frame,
-            text="準備下載...",
-            font=("Microsoft JhengHei UI", 10),
-            bg="#1e1e1e",
-            fg="#a0a0a0",
-            wraplength=400,
-            justify=tk.CENTER
-        )
-        status_label.pack(pady=(0, 15))
-
-        # 不確定模式的進度條(因為 yt-dlp 不提供詳細進度)
-        progress_bar = ttk.Progressbar(
-            progress_frame,
-            orient=tk.HORIZONTAL,
-            mode='indeterminate',
-            length=400
-        )
-        progress_bar.pack(pady=(0, 15))
-        progress_bar.start(10)  # 開始動畫
-
-        # 小提示
-        tk.Label(
-            progress_frame,
-            text="這可能需要幾分鐘時間,請耐心等候...",
-            font=("Microsoft JhengHei UI", 8),
-            bg="#1e1e1e",
-            fg="#606060"
-        ).pack()
-
-        # 在背景執行緒中下載
-        def download_thread():
-            # 更新狀態
-            self.window.after(0, lambda: status_label.config(text="正在獲取影片資訊..."))
-
-            result = self.youtube_downloader.download_audio(url, category)
-
-            # 停止進度條動畫
-            self.window.after(0, lambda: progress_bar.stop())
-
-            # 關閉進度對話框
-            self.window.after(0, lambda: progress_dialog.destroy())
-
-            if result['success']:
-                # 重新掃描音樂庫
-                self.music_manager.scan_music_library()
-
-                # 重新載入分類和歌曲列表
-                self.window.after(0, self._reload_music_library)
-
-                # 顯示成功訊息
-                self.window.after(0, lambda: messagebox.showinfo(
-                    "✅ 下載完成",
-                    f"音樂已下載到分類: {category}\n\n{result['message']}"
-                ))
-
-                logger.info(f"YouTube 下載成功: {url}")
-            else:
-                # 顯示錯誤訊息
-                self.window.after(0, lambda: messagebox.showerror(
-                    "❌ 下載失敗",
-                    result['message']
-                ))
-
-                logger.error(f"YouTube 下載失敗: {url}, {result['message']}")
-
-        threading.Thread(target=download_thread, daemon=True).start()
+            logger.error(f"YouTube 下載失敗: {message}")
 
     def _reload_music_library(self):
         """重新載入音樂庫"""
