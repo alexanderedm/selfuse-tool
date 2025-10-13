@@ -1,6 +1,6 @@
 """設定視窗模組"""
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, filedialog
 
 
 class SettingsWindow:
@@ -27,7 +27,7 @@ class SettingsWindow:
             # 如果沒有提供根視窗,建立獨立的視窗
             self.window = tk.Tk()
         self.window.title("⚙ 音訊切換工具 - 設定")
-        self.window.geometry("600x450")
+        self.window.geometry("600x600")
         self.window.resizable(False, False)
 
         # 設定深色主題顏色
@@ -202,6 +202,83 @@ class SettingsWindow:
         )
         current_info.pack()
 
+        # === 音樂根目錄設定區 ===
+        music_path_frame = tk.Frame(main_frame, bg=card_bg, relief=tk.RIDGE, bd=1)
+        music_path_frame.pack(fill=tk.X, pady=(0, 20))
+
+        music_path_inner = tk.Frame(music_path_frame, bg=card_bg)
+        music_path_inner.pack(padx=20, pady=20)
+
+        # 標題
+        music_path_title_frame = tk.Frame(music_path_inner, bg=card_bg)
+        music_path_title_frame.pack(fill=tk.X, pady=(0, 10))
+
+        music_path_icon = tk.Label(
+            music_path_title_frame,
+            text="🎵",
+            font=("Segoe UI Emoji", 16),
+            bg=card_bg
+        )
+        music_path_icon.pack(side=tk.LEFT, padx=(0, 10))
+
+        music_path_label = tk.Label(
+            music_path_title_frame,
+            text="音樂根目錄",
+            font=("Microsoft JhengHei UI", 11, "bold"),
+            bg=card_bg,
+            fg=text_color,
+            anchor=tk.W
+        )
+        music_path_label.pack(side=tk.LEFT)
+
+        # 路徑顯示和瀏覽按鈕
+        path_control_frame = tk.Frame(music_path_inner, bg=card_bg)
+        path_control_frame.pack(fill=tk.X)
+
+        # 取得目前的音樂根目錄
+        current_music_path = self.config_manager.config.get('music_root_path', 'Z:/Shuvi')
+
+        self.music_path_var = tk.StringVar(value=current_music_path)
+        music_path_entry = tk.Entry(
+            path_control_frame,
+            textvariable=self.music_path_var,
+            font=("Microsoft JhengHei UI", 10),
+            bg="#353535",
+            fg=text_color,
+            insertbackground=text_color,
+            relief=tk.FLAT,
+            bd=5
+        )
+        music_path_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 10))
+
+        browse_button = tk.Button(
+            path_control_frame,
+            text="📁 瀏覽",
+            font=("Microsoft JhengHei UI", 10),
+            bg="#0078d4",
+            fg="white",
+            activebackground="#005a9e",
+            activeforeground="white",
+            relief=tk.FLAT,
+            bd=0,
+            padx=15,
+            pady=8,
+            cursor="hand2",
+            command=self._browse_music_directory
+        )
+        browse_button.pack(side=tk.RIGHT)
+
+        # 路徑說明
+        path_hint = tk.Label(
+            music_path_inner,
+            text="設定音樂檔案所在的根目錄 (例如: Z:/Shuvi)",
+            font=("Microsoft JhengHei UI", 9),
+            bg=card_bg,
+            fg=text_secondary,
+            anchor=tk.W
+        )
+        path_hint.pack(fill=tk.X, pady=(5, 0))
+
         # === 按鈕框架 ===
         button_frame = tk.Frame(main_frame, bg=bg_color)
         button_frame.pack(pady=(10, 0))
@@ -232,6 +309,18 @@ class SettingsWindow:
 
         self.window.mainloop()
 
+    def _browse_music_directory(self):
+        """瀏覽並選擇音樂根目錄"""
+        initial_dir = self.music_path_var.get()
+        directory = filedialog.askdirectory(
+            title="選擇音樂根目錄",
+            initialdir=initial_dir if initial_dir else "/"
+        )
+        if directory:
+            # 將路徑標準化為使用正斜線
+            directory = directory.replace('\\', '/')
+            self.music_path_var.set(directory)
+
     def _save_settings(self, devices, device_a_combo, device_b_combo):
         """儲存設定"""
         device_a_index = device_a_combo.current()
@@ -245,9 +334,15 @@ class SettingsWindow:
             messagebox.showwarning("警告", "請選擇兩個不同的裝置")
             return
 
-        # 儲存設定
+        # 儲存音訊裝置設定
         self.config_manager.set_device_a(devices[device_a_index])
         self.config_manager.set_device_b(devices[device_b_index])
+
+        # 儲存音樂根目錄設定
+        music_path = self.music_path_var.get().strip()
+        if music_path:
+            self.config_manager.config['music_root_path'] = music_path
+            self.config_manager.save_config()
 
         messagebox.showinfo("成功", "設定已儲存!")
 
