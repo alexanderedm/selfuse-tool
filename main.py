@@ -1,5 +1,7 @@
 """音訊切換工具主程式"""
 
+"""測試"""
+
 import sys
 import os
 from PIL import Image, ImageDraw
