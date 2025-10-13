@@ -3,6 +3,8 @@ import os
 import json
 import glob
 from pathlib import Path
+from constants import DEFAULT_MUSIC_ROOT_PATH
+from logger import logger
 
 
 class MusicManager:
@@ -16,7 +18,7 @@ class MusicManager:
             music_root_path (str): 音樂根目錄路徑
         """
         self.config_manager = config_manager
-        self.music_root_path = music_root_path or self.config_manager.config.get('music_root_path', 'Z:/Shuvi')
+        self.music_root_path = music_root_path or self.config_manager.config.get('music_root_path', DEFAULT_MUSIC_ROOT_PATH)
         self.categories = {}  # 分類字典 {category_name: [song_list]}
         self.all_songs = []  # 所有歌曲列表
 
@@ -128,13 +130,15 @@ class MusicManager:
 
                     songs.append(song_info)
 
-                except json.JSONDecodeError:
+                except json.JSONDecodeError as e:
+                    logger.warning(f"JSON 解析失敗: {json_file}, 錯誤: {e}")
                     continue
-                except Exception:
+                except Exception as e:
+                    logger.warning(f"讀取歌曲元數據失敗: {json_file}, 錯誤: {e}")
                     continue
 
-        except Exception:
-            pass
+        except Exception as e:
+            logger.error(f"掃描分類資料夾失敗: {category_path}, 錯誤: {e}", exc_info=True)
 
         return songs
 

@@ -3,6 +3,7 @@ import os
 import json
 import subprocess
 from logger import logger
+from constants import DEFAULT_DOWNLOAD_PATH, YTDLP_SEARCH_TIMEOUT, YTDLP_DOWNLOAD_TIMEOUT, YTDLP_MAX_SEARCH_RESULTS
 
 
 class YouTubeDownloader:
@@ -14,7 +15,9 @@ class YouTubeDownloader:
         Args:
             output_dir (str): 輸出目錄
         """
-        self.output_dir = output_dir or "Z:/Shuvi/下載"
+        self.output_dir = output_dir or DEFAULT_DOWNLOAD_PATH
+        # 確保輸出目錄存在
+        os.makedirs(self.output_dir, exist_ok=True)
 
     def extract_video_id(self, url):
         """從 URL 提取影片 ID
@@ -50,22 +53,30 @@ class YouTubeDownloader:
             list: 搜尋結果列表
         """
         try:
-            # 使用 yt-dlp 搜尋
+            # 使用 yt-dlp 搜尋,套用完整的 403 錯誤規避策略 (2025 最新建議)
             cmd = [
                 'yt-dlp',
                 f'ytsearch{max_results}:{query}',
                 '--dump-json',
                 '--skip-download',
                 '--no-warnings',
-                '--extractor-args', 'youtube:player_client=android',  # 使用 Android 客戶端避開 bot 檢測
-                '--no-check-certificate'  # 跳過 SSL 憑證檢查
+                # 🔑 關鍵設定 1: 使用 mweb 客戶端 (2025 推薦,最穩定)
+                '--extractor-args', 'youtube:player_client=mweb,android;skip=hls,dash',
+                # 🔑 關鍵設定 2: 網路優化
+                '--source-address', '0.0.0.0',
+                '--no-check-certificate',  # 避免 SSL 憑證問題
+                # 格式選擇優化
+                '--format', 'bestaudio/best',
+                # 添加重試機制
+                '--retries', '3',
+                '--fragment-retries', '3'
             ]
 
             result = subprocess.run(
                 cmd,
                 capture_output=True,
                 text=False,  # 改為 False,手動處理編碼
-                timeout=60,
+                timeout=YTDLP_SEARCH_TIMEOUT,  # 🔑 關鍵設定 3: 讓 yt-dlp 嘗試多種策略
                 creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
             )
 
@@ -123,14 +134,22 @@ class YouTubeDownloader:
             # 下載音訊和元數據
             logger.info(f"開始下載: {url}")
 
-            # 先獲取影片資訊
+            # 先獲取影片資訊,套用完整的 403 錯誤規避策略 (2025 最新建議)
             info_cmd = [
                 'yt-dlp',
                 '--dump-json',
                 '--skip-download',
                 '--no-warnings',
-                '--extractor-args', 'youtube:player_client=android',
-                '--no-check-certificate',
+                # 🔑 關鍵設定 1: 使用 mweb 客戶端 (2025 推薦,最穩定)
+                '--extractor-args', 'youtube:player_client=mweb,android;skip=hls,dash',
+                # 🔑 關鍵設定 2: 網路優化
+                '--source-address', '0.0.0.0',
+                '--no-check-certificate',  # 避免 SSL 憑證問題
+                # 格式選擇優化
+                '--format', 'bestaudio/best',
+                # 添加重試機制
+                '--retries', '3',
+                '--fragment-retries', '3',
                 url
             ]
 
@@ -138,7 +157,7 @@ class YouTubeDownloader:
                 info_cmd,
                 capture_output=True,
                 text=False,
-                timeout=60,
+                timeout=YTDLP_SEARCH_TIMEOUT,  # 🔑 關鍵設定 3: 讓 yt-dlp 嘗試多種策略
                 creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
             )
 
@@ -175,8 +194,7 @@ class YouTubeDownloader:
                     }
                 }
 
-            # 下載音訊
-            # 使用更新的策略避開 YouTube 的 bot 檢測
+            # 下載音訊,套用完整的 403 錯誤規避策略 (2025 最新建議)
             download_cmd = [
                 'yt-dlp',
                 '-x',  # 只下載音訊
@@ -186,19 +204,34 @@ class YouTubeDownloader:
                 '--embed-thumbnail',  # 嵌入縮圖
                 '--add-metadata',  # 添加元數據
                 '--no-warnings',
-                '--extractor-args', 'youtube:player_client=android',  # 使用 Android 客戶端
-                '--no-check-certificate',
-                # 添加更多避開 bot 檢測的參數
-                '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                # 🔑 關鍵設定 1: 使用 mweb 客戶端 (2025 推薦,最穩定)
+                '--extractor-args', 'youtube:player_client=mweb,android;skip=hls,dash',
+                # 🔑 關鍵設定 2: 網路優化
+                '--source-address', '0.0.0.0',
+                '--no-check-certificate',  # 避免 SSL 憑證問題
+                # 格式選擇優化
+                '--format', 'bestaudio/best',
                 url
             ]
 
-            # 嘗試使用瀏覽器 cookies (依序嘗試 Chrome, Edge, Firefox)
+            # 🔑 關鍵設定 4: Cookie 支援 (進階,依序嘗試 Chrome, Edge, Firefox)
             # cookies 是避開 403 錯誤的最有效方法
             browser_found = False
             try:
                 for browser in ['chrome', 'edge', 'firefox']:
-                    test_cmd = ['yt-dlp', '--cookies-from-browser', browser, '--skip-download', '--no-warnings', url]
+                    test_cmd = [
+                        'yt-dlp',
+                        '--cookies-from-browser', browser,
+                        '--skip-download',
+                        '--no-warnings',
+                        '--extractor-args', 'youtube:player_client=mweb,android;skip=hls,dash',
+                        '--source-address', '0.0.0.0',
+                        '--no-check-certificate',
+                        # 添加重試機制
+                        '--retries', '3',
+                        '--fragment-retries', '3',
+                        url
+                    ]
                     test_result = subprocess.run(
                         test_cmd,
                         capture_output=True,
@@ -207,21 +240,24 @@ class YouTubeDownloader:
                     )
                     if test_result.returncode == 0:
                         download_cmd.extend(['--cookies-from-browser', browser])
-                        logger.info(f"使用 {browser} 的 cookies 來避開 bot 檢測")
+                        logger.info(f"✅ 使用 {browser} 的 cookies 來進一步提升成功率")
                         browser_found = True
                         break
 
                 if not browser_found:
-                    logger.warning("無法從瀏覽器讀取 cookies,將使用基本模式下載")
+                    logger.info("ℹ️ 未使用瀏覽器 cookies,使用基本的多客戶端策略")
+                    # 即使沒有 cookies,也添加重試機制
+                    download_cmd.extend(['--retries', '3', '--fragment-retries', '3'])
             except Exception as e:
                 logger.warning(f"無法從瀏覽器讀取 cookies: {e}")
-                # 繼續執行下載,不使用 cookies
+                # 繼續執行下載,添加重試機制
+                download_cmd.extend(['--retries', '3', '--fragment-retries', '3'])
 
             download_result = subprocess.run(
                 download_cmd,
                 capture_output=True,
                 text=False,
-                timeout=300,  # 5 分鐘超時
+                timeout=YTDLP_DOWNLOAD_TIMEOUT,  # 下載超時時間
                 creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
             )
 
@@ -265,7 +301,7 @@ class YouTubeDownloader:
         except subprocess.TimeoutExpired:
             return {
                 'success': False,
-                'message': '下載超時(超過5分鐘)',
+                'message': f'下載超時(超過{YTDLP_DOWNLOAD_TIMEOUT}秒)',
                 'song_info': None
             }
         except Exception as e:

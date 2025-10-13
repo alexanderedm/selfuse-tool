@@ -63,14 +63,23 @@ python main.py
 
 ```
 selftool/
-├── main.py              # 主程式進入點
-├── audio_manager.py     # 音訊裝置管理模組
-├── config_manager.py    # 設定檔管理模組
-├── settings_window.py   # 設定視窗模組
-├── config.json          # 設定檔 (自動生成)
-├── requirements.txt     # Python 依賴套件
-├── README.md           # 本文件
-└── PRD.md              # 產品需求文件
+├── main.py                    # 主程式進入點
+├── audio_manager.py           # 音訊裝置管理模組
+├── config_manager.py          # 設定檔管理模組
+├── settings_window.py         # 設定視窗模組
+├── stats_window.py            # 統計視窗模組
+├── rss_manager.py             # RSS 管理模組
+├── rss_window.py              # RSS 視窗模組
+├── music_manager.py           # 音樂管理模組
+├── music_window.py            # 音樂播放器視窗
+├── youtube_downloader.py      # YouTube 下載器
+├── clipboard_monitor.py       # 剪貼簿監控模組
+├── logger.py                  # 日誌系統
+├── config.json                # 設定檔 (自動生成)
+├── requirements.txt           # Python 依賴套件
+├── README.md                  # 本文件
+├── CHANGELOG.md               # 更新日誌
+└── PRD.md                     # 產品需求文件
 ```
 
 ## 技術細節
@@ -82,6 +91,8 @@ selftool/
 - **tkinter**: 設定介面 (Python 內建)
 - **comtypes**: COM 介面操作
 - **pywin32**: Windows API
+- **feedparser**: RSS 訂閱解析
+- **pygame**: 音樂播放
 
 ### 運作原理
 
@@ -98,6 +109,27 @@ pyinstaller --onefile --windowed --icon=icon.ico --name=AudioSwitcher main.py
 
 生成的 `AudioSwitcher.exe` 會在 `dist` 資料夾中。
 
+## 📊 專案健康度
+
+根據最新的程式碼健康度分析 (2025-10-13):
+
+- **總體健康度**: 🟡 48/100 (需要改善)
+- **檔案總數**: 12 個 Python 檔案
+- **測試覆蓋率**: ❌ 0% (無測試)
+- **主要問題**:
+  - `music_window.py` 過於龐大 (1979 行) - 需要重構
+  - 缺乏單元測試
+  - 存在硬編碼路徑和空例外處理
+
+**改善計劃**:
+1. ✅ 完成程式碼健康度分析
+2. 🔜 建立測試框架 (pytest)
+3. 🔜 重構大型檔案 (music_window.py, rss_window.py)
+4. 🔜 修復硬編碼問題
+5. 🔜 改善例外處理與日誌記錄
+
+詳細分析報告請參考專案根目錄。
+
 ## 常見問題
 
 **Q: 為什麼切換後沒有反應?**
@@ -107,10 +139,28 @@ A: 請確認：
 3. 以管理員權限執行程式
 
 **Q: 能否支援超過兩個裝置?**
-A: 目前版本僅支援兩個裝置間切換，這是為了保持簡單易用。未來版本可能會加入更多裝置支援。
+A: 目前版本僅支援兩個裝置間切換,這是為了保持簡單易用。未來版本可能會加入更多裝置支援。
 
 **Q: 開機自啟動沒有作用?**
-A: 請檢查 Windows 工作管理員 → 啟動項目，確認 AudioSwitcher 是否已加入。
+A: 請檢查 Windows 工作管理員 → 啟動項目,確認 AudioSwitcher 是否已加入。
+
+**Q: YouTube 下載遇到 403 錯誤怎麼辦?**
+A: 這是 YouTube 的反爬蟲機制。專案已實作以下規避策略:
+
+**核心設定 (已內建於程式):**
+1. ✅ **yt-dlp 版本**: 使用 2025.09.26 最新版本
+2. ✅ **mweb 客戶端**: 使用 `player_client=mweb,android` (2025 年最新建議)
+3. ✅ **跳過串流格式**: `skip=hls,dash` 減少請求次數
+4. ✅ **網路優化**: `source_address=0.0.0.0` 綁定網路介面
+5. ✅ **重試機制**: 自動重試 3 次
+6. ✅ **Cookie 支援**: 自動嘗試使用 Chrome/Edge/Firefox cookies
+
+**如果仍失敗:**
+1. **更新 yt-dlp** (最重要!): `pip install --upgrade yt-dlp`
+2. **登入 YouTube**: 在 Chrome 瀏覽器登入 YouTube 帳號
+3. **定期更新**: YouTube 會不定期更新防護,建議每月更新一次 yt-dlp
+
+詳細技術說明請參考 `YOUTUBE_403_FIX_GUIDE.md`
 
 ## 授權
 

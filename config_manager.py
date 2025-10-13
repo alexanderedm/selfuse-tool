@@ -1,6 +1,7 @@
 """設定檔管理模組"""
 import json
 import os
+from constants import DEFAULT_MUSIC_VOLUME, DEFAULT_MUSIC_ROOT_PATH
 
 
 class ConfigManager:
@@ -40,7 +41,8 @@ class ConfigManager:
             'usage_stats': {},  # 格式: {'device_id': {'name': 'xxx', 'total_seconds': 0, 'switch_count': 0}}
             'last_switch_time': None,
             'rss_feeds': {},  # 格式: {'url': {'title': 'xxx', 'added_time': timestamp}}
-            'music_volume': 70  # 音樂播放器音量 (0-100)
+            'music_volume': DEFAULT_MUSIC_VOLUME,  # 音樂播放器音量 (0-100)
+            'music_root_path': DEFAULT_MUSIC_ROOT_PATH  # 音樂根目錄
         }
 
     def save_config(self):
@@ -345,7 +347,7 @@ class ConfigManager:
             int: 音量 (0-100)
         """
         if 'music_volume' not in self.config:
-            self.config['music_volume'] = 70
+            self.config['music_volume'] = DEFAULT_MUSIC_VOLUME
         return self.config['music_volume']
 
     def set_music_volume(self, volume):

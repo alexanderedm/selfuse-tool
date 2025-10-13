@@ -19,6 +19,7 @@ class AudioManager:
 
     def _init_device_enumerator(self):
         """初始化裝置列舉器"""
+        from logger import logger
         try:
             self.device_enumerator = CoCreateInstance(
                 CLSID_MMDeviceEnumerator,
@@ -26,7 +27,8 @@ class AudioManager:
                 CLSCTX_ALL
             )
         except Exception as e:
-            print(f"初始化音訊裝置失敗: {e}")
+            logger.error(f"初始化音訊裝置失敗: {e}", exc_info=True)
+            self.device_enumerator = None
 
     def get_all_output_devices(self):
         """取得所有音訊輸出裝置
@@ -55,11 +57,13 @@ class AudioManager:
                             'id': device.id,
                             'name': device.FriendlyName
                         })
-                except Exception as e:
+                except Exception:
+                    # 個別裝置讀取失敗時跳過,不影響其他裝置
                     continue
 
         except Exception as e:
-            pass
+            from logger import logger
+            logger.error(f"取得音訊裝置列表失敗: {e}", exc_info=True)
 
         return devices
 
@@ -96,9 +100,8 @@ class AudioManager:
                 'name': name
             }
         except Exception as e:
-            print(f"取得預設裝置失敗: {e}")
-            import traceback
-            traceback.print_exc()
+            from logger import logger
+            logger.error(f"取得預設裝置失敗: {e}", exc_info=True)
             return None
 
     def set_default_device(self, device_id):

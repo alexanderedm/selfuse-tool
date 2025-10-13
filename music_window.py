@@ -465,20 +465,24 @@ class MusicWindow:
         # 新增 "所有歌曲" 根節點
         all_songs_node = self.category_tree.insert('', 'end', text='📋 所有歌曲', values=('all',), open=True)
 
-        # 載入分類(資料夾)
+        # 載入分類(資料夾) - 包含空資料夾
         categories = self.music_manager.get_all_categories()
         for category in categories:
-            # 新增資料夾節點
+            # 新增資料夾節點(即使是空資料夾也顯示)
             folder_node = self.category_tree.insert('', 'end', text=f'📁 {category}', values=(f'folder:{category}',), open=False)
 
             # 載入該資料夾下的歌曲
             songs = self.music_manager.get_songs_by_category(category)
-            for song in songs:
-                duration_str = self.music_manager.format_duration(song['duration'])
-                song_text = f'🎵 {song["title"]} ({duration_str})'
-                # 將歌曲資訊編碼到 values 中
-                song_id = song.get('id', '')
-                self.category_tree.insert(folder_node, 'end', text=song_text, values=(f'song:{song_id}',))
+            if songs:
+                for song in songs:
+                    duration_str = self.music_manager.format_duration(song['duration'])
+                    song_text = f'🎵 {song["title"]} ({duration_str})'
+                    # 將歌曲資訊編碼到 values 中
+                    song_id = song.get('id', '')
+                    self.category_tree.insert(folder_node, 'end', text=song_text, values=(f'song:{song_id}',))
+            else:
+                # 空資料夾:新增一個提示節點
+                self.category_tree.insert(folder_node, 'end', text='   (空資料夾)', values=('empty',), tags=('empty',))
 
         # 預設選擇所有歌曲
         self.category_tree.selection_set(all_songs_node)
@@ -658,6 +662,8 @@ class MusicWindow:
             song = self.music_manager.get_song_by_id(song_id)
             if song:
                 menu.add_command(label="▶️ 播放", command=lambda: self._play_song_from_tree(song))
+                menu.add_separator()
+                menu.add_command(label="📁 移動到...", command=lambda: self._move_song_to_category(item_id, song))
                 menu.add_separator()
                 menu.add_command(label="🗑️ 刪除歌曲", command=lambda: self._delete_song(item_id, song))
 
@@ -1164,12 +1170,18 @@ class MusicWindow:
             logger.info(f"偵測到 YouTube 連結,直接下載: {input_text}")
             self._start_download(input_text, category, parent_dialog)
         else:
-            # 不是 URL,進行搜尋
+            # 不是 URL,進行搜尋(保存選擇的分類)
             logger.info(f"偵測到搜尋關鍵字,開始搜尋: {input_text}")
-            self._search_youtube(input_text, parent_dialog)
+            self._search_youtube(input_text, category, parent_dialog)
 
-    def _search_youtube(self, query, parent_dialog):
-        """搜尋 YouTube 影片"""
+    def _search_youtube(self, query, category, parent_dialog):
+        """搜尋 YouTube 影片
+
+        Args:
+            query (str): 搜尋關鍵字
+            category (str): 預先選擇的下載分類
+            parent_dialog: 父對話框
+        """
         if not query or not query.strip():
             messagebox.showwarning("警告", "請輸入搜尋關鍵字", parent=parent_dialog)
             return
@@ -1193,13 +1205,19 @@ class MusicWindow:
                 ))
                 return
 
-            # 顯示搜尋結果選擇對話框
-            self.window.after(0, lambda: self._show_search_results(results, parent_dialog))
+            # 顯示搜尋結果選擇對話框,傳遞預選的分類
+            self.window.after(0, lambda: self._show_search_results(results, category, parent_dialog))
 
         threading.Thread(target=search_thread, daemon=True).start()
 
-    def _show_search_results(self, results, parent_dialog):
-        """顯示搜尋結果對話框"""
+    def _show_search_results(self, results, category, parent_dialog):
+        """顯示搜尋結果對話框
+
+        Args:
+            results (list): 搜尋結果列表
+            category (str): 預先選擇的下載分類
+            parent_dialog: 父對話框
+        """
         # 建立結果對話框
         result_dialog = tk.Toplevel(parent_dialog)
         result_dialog.title("🔍 搜尋結果")
@@ -1221,6 +1239,15 @@ class MusicWindow:
             font=("Microsoft JhengHei UI", 12, "bold"),
             bg="#1e1e1e",
             fg="#e0e0e0"
+        ).pack(pady=(0, 10))
+
+        # 顯示將下載到的分類
+        tk.Label(
+            main_frame,
+            text=f"下載分類: {category}",
+            font=("Microsoft JhengHei UI", 10),
+            bg="#1e1e1e",
+            fg="#a0a0a0"
         ).pack(pady=(0, 15))
 
         # 結果列表框架
@@ -1273,14 +1300,12 @@ class MusicWindow:
             if video_index < len(results):
                 selected_video = results[video_index]
 
-                # 取得之前選擇的分類
-                # 從父對話框取得分類資訊
-                categories = self.music_manager.get_all_categories()
-                if not categories:
-                    categories = ["下載"]
+                # 關閉對話框
+                result_dialog.destroy()
+                parent_dialog.destroy()
 
-                # 顯示下載分類選擇對話框
-                self._show_category_selection_dialog(selected_video, categories, result_dialog, parent_dialog)
+                # 直接使用預選的分類開始下載
+                self._start_download(selected_video.get('webpage_url', ''), category, None)
 
         select_btn = tk.Button(
             button_frame,
@@ -1526,15 +1551,71 @@ class MusicWindow:
         if dialog:
             dialog.destroy()
 
-        # 顯示下載中的通知
-        self.window.after(0, lambda: messagebox.showinfo(
-            "下載中",
-            "正在下載音樂,請稍候...\n這可能需要幾分鐘時間。"
-        ))
+        # 建立進度對話框
+        progress_dialog = tk.Toplevel(self.window)
+        progress_dialog.title("📥 下載中")
+        progress_dialog.geometry("450x200")
+        progress_dialog.configure(bg="#1e1e1e")
+        progress_dialog.resizable(False, False)
+        progress_dialog.transient(self.window)
+        progress_dialog.grab_set()
+
+        # 進度框架
+        progress_frame = tk.Frame(progress_dialog, bg="#1e1e1e")
+        progress_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+
+        # 標題
+        tk.Label(
+            progress_frame,
+            text="正在下載音樂...",
+            font=("Microsoft JhengHei UI", 12, "bold"),
+            bg="#1e1e1e",
+            fg="#e0e0e0"
+        ).pack(pady=(0, 15))
+
+        # 狀態標籤
+        status_label = tk.Label(
+            progress_frame,
+            text="準備下載...",
+            font=("Microsoft JhengHei UI", 10),
+            bg="#1e1e1e",
+            fg="#a0a0a0",
+            wraplength=400,
+            justify=tk.CENTER
+        )
+        status_label.pack(pady=(0, 15))
+
+        # 不確定模式的進度條(因為 yt-dlp 不提供詳細進度)
+        progress_bar = ttk.Progressbar(
+            progress_frame,
+            orient=tk.HORIZONTAL,
+            mode='indeterminate',
+            length=400
+        )
+        progress_bar.pack(pady=(0, 15))
+        progress_bar.start(10)  # 開始動畫
+
+        # 小提示
+        tk.Label(
+            progress_frame,
+            text="這可能需要幾分鐘時間,請耐心等候...",
+            font=("Microsoft JhengHei UI", 8),
+            bg="#1e1e1e",
+            fg="#606060"
+        ).pack()
 
         # 在背景執行緒中下載
         def download_thread():
+            # 更新狀態
+            self.window.after(0, lambda: status_label.config(text="正在獲取影片資訊..."))
+
             result = self.youtube_downloader.download_audio(url, category)
+
+            # 停止進度條動畫
+            self.window.after(0, lambda: progress_bar.stop())
+
+            # 關閉進度對話框
+            self.window.after(0, lambda: progress_dialog.destroy())
 
             if result['success']:
                 # 重新掃描音樂庫
@@ -1545,7 +1626,7 @@ class MusicWindow:
 
                 # 顯示成功訊息
                 self.window.after(0, lambda: messagebox.showinfo(
-                    "下載完成",
+                    "✅ 下載完成",
                     f"音樂已下載到分類: {category}\n\n{result['message']}"
                 ))
 
@@ -1553,7 +1634,7 @@ class MusicWindow:
             else:
                 # 顯示錯誤訊息
                 self.window.after(0, lambda: messagebox.showerror(
-                    "下載失敗",
+                    "❌ 下載失敗",
                     result['message']
                 ))
 
@@ -1698,6 +1779,186 @@ class MusicWindow:
         except Exception as e:
             logger.error(f"刪除歌曲失敗: {e}")
             messagebox.showerror("錯誤", f"刪除歌曲失敗:\n{str(e)}")
+
+    def _move_song_to_category(self, item_id, song):
+        """移動歌曲到不同分類
+
+        Args:
+            item_id: 樹狀結構中的項目ID
+            song (dict): 歌曲資訊
+        """
+        # 取得所有分類
+        categories = self.music_manager.get_all_categories()
+        if not categories:
+            messagebox.showwarning("警告", "沒有可用的分類")
+            return
+
+        # 取得當前分類
+        current_category = song.get('category', '')
+
+        # 從分類列表中移除當前分類
+        available_categories = [c for c in categories if c != current_category]
+
+        if not available_categories:
+            messagebox.showinfo("提示", "沒有其他分類可以移動到。\n請先建立新的分類資料夾。")
+            return
+
+        # 建立分類選擇對話框
+        move_dialog = tk.Toplevel(self.window)
+        move_dialog.title("移動歌曲")
+        move_dialog.geometry("450x300")
+        move_dialog.configure(bg="#1e1e1e")
+        move_dialog.resizable(False, False)
+        move_dialog.transient(self.window)
+        move_dialog.grab_set()
+
+        main_frame = tk.Frame(move_dialog, bg="#1e1e1e")
+        main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+
+        # 標題
+        tk.Label(
+            main_frame,
+            text="移動歌曲到...",
+            font=("Microsoft JhengHei UI", 14, "bold"),
+            bg="#1e1e1e",
+            fg="#e0e0e0"
+        ).pack(pady=(0, 10))
+
+        # 歌曲資訊
+        tk.Label(
+            main_frame,
+            text=f"歌曲: {song['title'][:40]}{'...' if len(song['title']) > 40 else ''}",
+            font=("Microsoft JhengHei UI", 9),
+            bg="#1e1e1e",
+            fg="#a0a0a0",
+            wraplength=400,
+            justify=tk.LEFT
+        ).pack(pady=(0, 5))
+
+        tk.Label(
+            main_frame,
+            text=f"目前位置: {current_category}",
+            font=("Microsoft JhengHei UI", 9),
+            bg="#1e1e1e",
+            fg="#a0a0a0"
+        ).pack(pady=(0, 20))
+
+        # 選擇目標分類
+        tk.Label(
+            main_frame,
+            text="選擇目標資料夾:",
+            font=("Microsoft JhengHei UI", 10),
+            bg="#1e1e1e",
+            fg="#e0e0e0"
+        ).pack(anchor=tk.W, pady=(0, 5))
+
+        # 下拉選單
+        category_var = tk.StringVar(value=available_categories[0])
+
+        style = ttk.Style()
+        style.configure(
+            "Move.TCombobox",
+            fieldbackground="#2d2d2d",
+            background="#2d2d2d",
+            foreground="#e0e0e0"
+        )
+
+        category_combo = ttk.Combobox(
+            main_frame,
+            textvariable=category_var,
+            values=available_categories,
+            font=("Microsoft JhengHei UI", 10),
+            state="readonly",
+            style="Move.TCombobox"
+        )
+        category_combo.pack(fill=tk.X, ipady=5, pady=(0, 20))
+
+        # 按鈕區
+        button_frame = tk.Frame(main_frame, bg="#1e1e1e")
+        button_frame.pack()
+
+        def confirm_move():
+            target_category = category_var.get()
+            if not target_category:
+                messagebox.showwarning("警告", "請選擇目標資料夾", parent=move_dialog)
+                return
+
+            # 關閉對話框
+            move_dialog.destroy()
+
+            # 執行移動操作
+            try:
+                # 取得檔案路徑
+                audio_path = song['audio_path']
+                json_path = song['json_path']
+
+                # 取得檔名
+                audio_filename = os.path.basename(audio_path)
+                json_filename = os.path.basename(json_path)
+
+                # 建立目標路徑
+                target_audio_path = os.path.join(
+                    self.music_manager.music_root_path,
+                    target_category,
+                    audio_filename
+                )
+                target_json_path = os.path.join(
+                    self.music_manager.music_root_path,
+                    target_category,
+                    json_filename
+                )
+
+                # 檢查目標檔案是否已存在
+                if os.path.exists(target_audio_path):
+                    messagebox.showerror("錯誤", f"目標資料夾中已存在同名檔案:\n{audio_filename}")
+                    return
+
+                # 移動檔案
+                shutil.move(audio_path, target_audio_path)
+                logger.info(f"移動音訊檔案: {audio_path} -> {target_audio_path}")
+
+                if os.path.exists(json_path):
+                    shutil.move(json_path, target_json_path)
+                    logger.info(f"移動 JSON 檔案: {json_path} -> {target_json_path}")
+
+                # 重新載入音樂庫
+                self._reload_music_library()
+
+                messagebox.showinfo("成功", f"歌曲已移動到分類: {target_category}")
+
+            except Exception as e:
+                logger.error(f"移動歌曲失敗: {e}")
+                messagebox.showerror("錯誤", f"移動歌曲失敗:\n{str(e)}")
+
+        move_btn = tk.Button(
+            button_frame,
+            text="移動",
+            font=("Microsoft JhengHei UI", 10),
+            bg="#0078d4",
+            fg="white",
+            activebackground="#005a9e",
+            activeforeground="white",
+            borderwidth=0,
+            padx=30,
+            pady=8,
+            command=confirm_move
+        )
+        move_btn.pack(side=tk.LEFT, padx=5)
+
+        cancel_btn = tk.Button(
+            button_frame,
+            text="取消",
+            font=("Microsoft JhengHei UI", 10),
+            bg="#353535",
+            fg="white",
+            activebackground="#505050",
+            activeforeground="white",
+            borderwidth=0,
+            padx=20,
+            pady=8,
+            command=move_dialog.destroy
+        )
+        cancel_btn.pack(side=tk.LEFT, padx=5)
 
     def _close_window(self):
         """關閉視窗(不停止播放,音樂在背景繼續)"""

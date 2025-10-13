@@ -4,6 +4,7 @@ import time
 import re
 from datetime import datetime
 from urllib.parse import urlparse
+from constants import RSS_CACHE_TIMEOUT, RSS_MAX_ENTRIES
 
 
 class RSSManager:
@@ -12,7 +13,7 @@ class RSSManager:
     def __init__(self, config_manager):
         self.config_manager = config_manager
         self.cache = {}  # 快取 RSS 內容 {url: {'entries': [], 'last_update': timestamp}}
-        self.cache_timeout = 300  # 快取有效期 5 分鐘
+        self.cache_timeout = RSS_CACHE_TIMEOUT  # 快取有效期
 
     def is_valid_rss_url(self, url):
         """檢查 URL 是否可能是 RSS 連結
@@ -193,7 +194,7 @@ class RSSManager:
                 return []
 
             entries = []
-            for entry in feed.entries[:50]:  # 最多取 50 篇
+            for entry in feed.entries[:RSS_MAX_ENTRIES]:  # 最多取設定數量的文章
                 # 處理發布時間
                 published = '未知時間'
                 if hasattr(entry, 'published_parsed') and entry.published_parsed:
