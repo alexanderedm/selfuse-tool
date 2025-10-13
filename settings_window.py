@@ -348,22 +348,9 @@ class SettingsWindow:
 
     def _save_settings(self, devices, device_a_combo, device_b_combo):
         """儲存設定"""
-        device_a_index = device_a_combo.current()
-        device_b_index = device_b_combo.current()
+        settings_saved = False
 
-        if device_a_index == -1 or device_b_index == -1:
-            messagebox.showwarning("警告", "請選擇兩個裝置")
-            return
-
-        if device_a_index == device_b_index:
-            messagebox.showwarning("警告", "請選擇兩個不同的裝置")
-            return
-
-        # 儲存音訊裝置設定
-        self.config_manager.set_device_a(devices[device_a_index])
-        self.config_manager.set_device_b(devices[device_b_index])
-
-        # 儲存音樂根目錄設定
+        # 先儲存音樂根目錄設定(不依賴於裝置選擇)
         music_path = self.music_path_var.get().strip()
         if music_path:
             # 使用 path_utils 標準化網路路徑
@@ -371,6 +358,7 @@ class SettingsWindow:
             normalized_path = normalize_network_path(music_path)
             self.config_manager.config['music_root_path'] = normalized_path
             self.config_manager.save_config()
+            settings_saved = True
 
             # 如果路徑被轉換了,通知使用者
             if normalized_path != music_path:
@@ -382,13 +370,46 @@ class SettingsWindow:
                     f"這確保 Python 可以正確訪問網路路徑。"
                 )
 
-        messagebox.showinfo("成功", "設定已儲存!")
+        # 檢查音訊裝置設定
+        device_a_index = device_a_combo.current()
+        device_b_index = device_b_combo.current()
 
-        # 呼叫回調函數
-        if self.on_save_callback:
-            self.on_save_callback()
+        # 如果有選擇裝置,則驗證並儲存
+        if device_a_index != -1 or device_b_index != -1:
+            if device_a_index == -1 or device_b_index == -1:
+                if settings_saved:
+                    messagebox.showwarning(
+                        "部分儲存",
+                        "音樂路徑已儲存,但音訊裝置設定不完整。\n請選擇兩個裝置以儲存音訊設定。"
+                    )
+                else:
+                    messagebox.showwarning("警告", "請選擇兩個裝置")
+                    return
+            elif device_a_index == device_b_index:
+                if settings_saved:
+                    messagebox.showwarning(
+                        "部分儲存",
+                        "音樂路徑已儲存,但請選擇兩個不同的裝置以儲存音訊設定。"
+                    )
+                else:
+                    messagebox.showwarning("警告", "請選擇兩個不同的裝置")
+                    return
+            else:
+                # 儲存音訊裝置設定
+                self.config_manager.set_device_a(devices[device_a_index])
+                self.config_manager.set_device_b(devices[device_b_index])
+                settings_saved = True
 
-        self._close_window()
+        if settings_saved:
+            messagebox.showinfo("成功", "設定已儲存!")
+
+            # 呼叫回調函數
+            if self.on_save_callback:
+                self.on_save_callback()
+
+            self._close_window()
+        else:
+            messagebox.showwarning("警告", "沒有可儲存的設定變更")
 
     def _close_window(self):
         """關閉視窗"""
