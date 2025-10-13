@@ -15,6 +15,7 @@ from music_file_manager import MusicFileManager
 from music_history_dialog import MusicHistoryDialog
 from music_playlist_dialog import MusicPlaylistDialog
 from music_download_dialog import MusicDownloadDialog
+from music_metadata_fetcher import MusicMetadataFetcher
 from PIL import Image, ImageTk, ImageDraw
 import requests
 from io import BytesIO
@@ -78,6 +79,12 @@ class MusicWindow:
 
         # 檔案管理器
         self.file_manager = MusicFileManager(self.music_manager.music_root_path)
+
+        # 音樂元數據自動補全
+        self.metadata_fetcher = MusicMetadataFetcher(
+            self.music_manager,
+            self.music_manager.config_manager
+        )
 
         # 歷史對話框(延遲初始化,當 window 建立後)
         self.history_dialog = None
@@ -868,11 +875,41 @@ class MusicWindow:
             # 啟動進度更新執行緒
             threading.Thread(target=self._update_progress, daemon=True).start()
 
+            # 背景執行元數據補全
+            if self.metadata_fetcher.is_enabled():
+                def on_fetch_complete(success, metadata):
+                    if success and metadata:
+                        # 在主執行緒更新 UI
+                        self.window.after(0, lambda: self._on_metadata_updated(song, metadata))
+
+                self.metadata_fetcher.fetch_metadata_async(song, on_fetch_complete)
+
             logger.info(f"開始播放: {song['title']}")
 
         except Exception as e:
             logger.error(f"播放失敗: {e}")
             messagebox.showerror("播放錯誤", f"無法播放歌曲:\n{str(e)}")
+
+    def _on_metadata_updated(self, song, metadata):
+        """元數據更新完成的回調
+
+        Args:
+            song: 原始歌曲資料
+            metadata: 新的元數據
+        """
+        try:
+            # 重新載入當前歌曲資訊以顯示新封面
+            if metadata.get("thumbnail"):
+                # 更新專輯封面
+                threading.Thread(target=self._update_album_cover, args=(song,), daemon=True).start()
+
+            # 更新藝術家標籤
+            if metadata.get("artist") and self.artist_label:
+                self.artist_label.config(text=f"🎤 {metadata['artist']}")
+
+            logger.info("UI 已更新顯示新的元數據")
+        except Exception as e:
+            logger.error(f"更新 UI 失敗: {e}")
 
     def _toggle_play_pause(self):
         """切換播放/暫停"""

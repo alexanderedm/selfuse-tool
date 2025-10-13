@@ -303,6 +303,78 @@ class SettingsWindow:
         )
         network_warning.pack(fill=tk.X, pady=(2, 0))
 
+        # === 音樂資訊自動補全設定區 ===
+        metadata_frame = tk.Frame(main_frame, bg=card_bg, relief=tk.RIDGE, bd=1)
+        metadata_frame.pack(fill=tk.X, pady=(0, 20))
+
+        metadata_inner = tk.Frame(metadata_frame, bg=card_bg)
+        metadata_inner.pack(padx=20, pady=20)
+
+        # 標題
+        metadata_title_frame = tk.Frame(metadata_inner, bg=card_bg)
+        metadata_title_frame.pack(fill=tk.X, pady=(0, 10))
+
+        metadata_icon = tk.Label(
+            metadata_title_frame,
+            text="🔄",
+            font=("Segoe UI Emoji", 16),
+            bg=card_bg
+        )
+        metadata_icon.pack(side=tk.LEFT, padx=(0, 10))
+
+        metadata_label = tk.Label(
+            metadata_title_frame,
+            text="音樂資訊自動補全",
+            font=("Microsoft JhengHei UI", 11, "bold"),
+            bg=card_bg,
+            fg=text_color,
+            anchor=tk.W
+        )
+        metadata_label.pack(side=tk.LEFT)
+
+        # 啟用選項
+        self.auto_fetch_var = tk.BooleanVar(
+            value=self.config_manager.get("auto_fetch_metadata", True)
+        )
+
+        metadata_check_frame = tk.Frame(metadata_inner, bg=card_bg)
+        metadata_check_frame.pack(fill=tk.X)
+
+        metadata_checkbox = tk.Checkbutton(
+            metadata_check_frame,
+            text="啟用自動補全音樂資訊",
+            variable=self.auto_fetch_var,
+            font=("Microsoft JhengHei UI", 10),
+            bg=card_bg,
+            fg=text_color,
+            selectcolor=card_bg,
+            activebackground=card_bg,
+            activeforeground=text_color
+        )
+        metadata_checkbox.pack(anchor=tk.W)
+
+        # 功能說明
+        metadata_hint = tk.Label(
+            metadata_inner,
+            text="播放時自動抓取缺失的專輯封面、藝術家、專輯名稱等資訊",
+            font=("Microsoft JhengHei UI", 9),
+            bg=card_bg,
+            fg=text_secondary,
+            anchor=tk.W
+        )
+        metadata_hint.pack(fill=tk.X, pady=(5, 0))
+
+        # 資料來源說明
+        metadata_source = tk.Label(
+            metadata_inner,
+            text="資料來源: iTunes Search API",
+            font=("Microsoft JhengHei UI", 8),
+            bg=card_bg,
+            fg="#808080",
+            anchor=tk.W
+        )
+        metadata_source.pack(fill=tk.X, pady=(2, 0))
+
         # === 按鈕框架 ===
         button_frame = tk.Frame(main_frame, bg=bg_color)
         button_frame.pack(pady=(10, 0))
@@ -377,7 +449,7 @@ class SettingsWindow:
         logger.info("[設定視窗] 開始儲存設定...")
         settings_saved = False
 
-        # 先儲存音樂根目錄設定(不依賴於裝置選擇)
+        # 儲存音樂根目錄設定(不依賴於裝置選擇)
         music_path = self.music_path_var.get().strip()
         logger.info(f"[設定視窗] 音樂路徑: {music_path}")
         if music_path:
@@ -388,15 +460,21 @@ class SettingsWindow:
             self.config_manager.save_config()
             settings_saved = True
 
-            # 如果路徑被轉換了,通知使用者
-            if normalized_path != music_path:
-                messagebox.showinfo(
-                    "路徑已標準化",
-                    f"網路磁碟機路徑已自動轉換為 UNC 格式:\n\n"
-                    f"原始: {music_path}\n"
-                    f"轉換後: {normalized_path}\n\n"
-                    f"這確保 Python 可以正確訪問網路路徑。"
-                )
+        # 儲存自動補全設定
+        auto_fetch_enabled = self.auto_fetch_var.get()
+        self.config_manager.set("auto_fetch_metadata", auto_fetch_enabled)
+        logger.info(f"[設定視窗] 自動補全音樂資訊: {auto_fetch_enabled}")
+        settings_saved = True
+
+        # 如果路徑被轉換了,通知使用者
+        if music_path and music_path != normalized_path:
+            messagebox.showinfo(
+                "路徑已標準化",
+                f"網路磁碟機路徑已自動轉換為 UNC 格式:\n\n"
+                f"原始: {music_path}\n"
+                f"轉換後: {normalized_path}\n\n"
+                f"這確保 Python 可以正確訪問網路路徑。"
+            )
 
         # 檢查音訊裝置設定
         device_a_index = device_a_combo.current()
