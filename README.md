@@ -115,18 +115,21 @@ pyinstaller --onefile --windowed --icon=icon.ico --name=AudioSwitcher main.py
 
 - **總體健康度**: 🟢 ~65/100 (持續改善中)
 - **檔案總數**: 12 個 Python 檔案
-- **測試覆蓋率**: ✅ ~35% (39 個單元測試,100% 通過)
+- **測試覆蓋率**: ✅ ~35% (85 個單元測試,100% 通過)
 - **已完成改善**:
   - ✅ 建立完整測試框架 (pytest)
   - ✅ 修復所有硬編碼路徑問題
   - ✅ 改善例外處理與日誌記錄
   - ✅ 建立 constants.py 統一管理常數
   - ✅ 設置 Overnight Development (Git hooks + TDD)
+  - ✅ 配置 flake8 程式碼檢查器
+  - ✅ 抽離 MusicPlayerController 模組
+  - ✅ 新增 main.py 與 audio_manager.py 單元測試
 
 **持續改善**:
-- 🔜 重構大型檔案 (music_window.py: 1979 行)
-- 🔜 提升測試覆蓋率至 80%
-- 🔜 配置 linter (flake8/pylint)
+- 🔜 持續重構大型檔案 (music_window.py: 1979 行)
+- 🔜 提升測試覆蓋率至 50-80%
+- 🔜 進一步模組化與解耦合
 
 詳細更新日誌請參考 `CHANGELOG.md`。
 
