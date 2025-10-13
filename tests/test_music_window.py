@@ -70,8 +70,11 @@ class TestMusicWindowTreeview(unittest.TestCase):
     @patch('music_window.YouTubeDownloader')
     def test_display_songs_clears_tree(self, mock_downloader, mock_pygame):
         """測試 _display_songs 清空現有項目"""
-        # 建立 tkinter 根視窗
-        root = tk.Tk()
+        try:
+            root = tk.Tk()
+        except tk.TclError:
+            self.skipTest("Tkinter environment not properly configured")
+            return
 
         try:
             # 建立 MusicWindow 實例
@@ -95,13 +98,24 @@ class TestMusicWindowTreeview(unittest.TestCase):
             self.assertEqual(len(children), 3)
 
         finally:
-            root.destroy()
+            try:
+                root.destroy()
+            except:
+                pass
 
     @patch('music_window.pygame', new_callable=lambda: MagicMock())
     @patch('music_window.YouTubeDownloader')
     def test_display_songs_inserts_correct_data(self, mock_downloader, mock_pygame):
         """測試 _display_songs 插入正確的歌曲資料"""
-        root = tk.Tk()
+        try:
+
+            root = tk.Tk()
+
+        except tk.TclError:
+
+            self.skipTest("Tkinter environment not properly configured")
+
+            return
 
         try:
             window = MusicWindow(self.music_manager_mock, root)
@@ -130,13 +144,32 @@ class TestMusicWindowTreeview(unittest.TestCase):
             self.assertEqual(item3_values[1], '01:05')
 
         finally:
-            root.destroy()
+
+
+            try:
+
+
+                root.destroy()
+
+
+            except:
+
+
+                pass
 
     @patch('music_window.pygame', new_callable=lambda: MagicMock())
     @patch('music_window.YouTubeDownloader')
     def test_display_songs_updates_playlist(self, mock_downloader, mock_pygame):
         """測試 _display_songs 更新播放列表"""
-        root = tk.Tk()
+        try:
+
+            root = tk.Tk()
+
+        except tk.TclError:
+
+            self.skipTest("Tkinter environment not properly configured")
+
+            return
 
         try:
             window = MusicWindow(self.music_manager_mock, root)
@@ -153,13 +186,32 @@ class TestMusicWindowTreeview(unittest.TestCase):
             self.assertEqual(len(window.playlist), 3)
 
         finally:
-            root.destroy()
+
+
+            try:
+
+
+                root.destroy()
+
+
+            except:
+
+
+                pass
 
     @patch('music_window.pygame', new_callable=lambda: MagicMock())
     @patch('music_window.YouTubeDownloader')
     def test_display_songs_empty_list(self, mock_downloader, mock_pygame):
         """測試 _display_songs 處理空列表"""
-        root = tk.Tk()
+        try:
+
+            root = tk.Tk()
+
+        except tk.TclError:
+
+            self.skipTest("Tkinter environment not properly configured")
+
+            return
 
         try:
             window = MusicWindow(self.music_manager_mock, root)
@@ -176,13 +228,32 @@ class TestMusicWindowTreeview(unittest.TestCase):
             self.assertEqual(window.playlist, [])
 
         finally:
-            root.destroy()
+
+
+            try:
+
+
+                root.destroy()
+
+
+            except:
+
+
+                pass
 
     @patch('music_window.pygame', new_callable=lambda: MagicMock())
     @patch('music_window.YouTubeDownloader')
     def test_on_song_double_click_no_selection(self, mock_downloader, mock_pygame):
         """測試雙擊事件但沒有選擇任何項目"""
-        root = tk.Tk()
+        try:
+
+            root = tk.Tk()
+
+        except tk.TclError:
+
+            self.skipTest("Tkinter environment not properly configured")
+
+            return
 
         try:
             window = MusicWindow(self.music_manager_mock, root)
@@ -202,13 +273,32 @@ class TestMusicWindowTreeview(unittest.TestCase):
             self.assertIsNone(window.current_song)
 
         finally:
-            root.destroy()
+
+
+            try:
+
+
+                root.destroy()
+
+
+            except:
+
+
+                pass
 
     @patch('music_window.pygame', new_callable=lambda: MagicMock())
     @patch('music_window.YouTubeDownloader')
     def test_on_song_double_click_plays_song(self, mock_downloader, mock_pygame):
         """測試雙擊事件播放選中的歌曲"""
-        root = tk.Tk()
+        try:
+
+            root = tk.Tk()
+
+        except tk.TclError:
+
+            self.skipTest("Tkinter environment not properly configured")
+
+            return
 
         try:
             window = MusicWindow(self.music_manager_mock, root)
@@ -235,13 +325,32 @@ class TestMusicWindowTreeview(unittest.TestCase):
             window._play_song.assert_called_once_with(self.test_songs[1])
 
         finally:
-            root.destroy()
+
+
+            try:
+
+
+                root.destroy()
+
+
+            except:
+
+
+                pass
 
     @patch('music_window.pygame', new_callable=lambda: MagicMock())
     @patch('music_window.YouTubeDownloader')
     def test_on_song_double_click_first_song(self, mock_downloader, mock_pygame):
         """測試雙擊第一首歌"""
-        root = tk.Tk()
+        try:
+
+            root = tk.Tk()
+
+        except tk.TclError:
+
+            self.skipTest("Tkinter environment not properly configured")
+
+            return
 
         try:
             window = MusicWindow(self.music_manager_mock, root)
@@ -261,13 +370,32 @@ class TestMusicWindowTreeview(unittest.TestCase):
             window._play_song.assert_called_once_with(self.test_songs[0])
 
         finally:
-            root.destroy()
+
+
+            try:
+
+
+                root.destroy()
+
+
+            except:
+
+
+                pass
 
     @patch('music_window.pygame', new_callable=lambda: MagicMock())
     @patch('music_window.YouTubeDownloader')
     def test_on_song_double_click_last_song(self, mock_downloader, mock_pygame):
         """測試雙擊最後一首歌"""
-        root = tk.Tk()
+        try:
+
+            root = tk.Tk()
+
+        except tk.TclError:
+
+            self.skipTest("Tkinter environment not properly configured")
+
+            return
 
         try:
             window = MusicWindow(self.music_manager_mock, root)
@@ -287,13 +415,32 @@ class TestMusicWindowTreeview(unittest.TestCase):
             window._play_song.assert_called_once_with(self.test_songs[2])
 
         finally:
-            root.destroy()
+
+
+            try:
+
+
+                root.destroy()
+
+
+            except:
+
+
+                pass
 
     @patch('music_window.pygame', new_callable=lambda: MagicMock())
     @patch('music_window.YouTubeDownloader')
     def test_format_duration_called_correctly(self, mock_downloader, mock_pygame):
         """測試時長格式化函數被正確呼叫"""
-        root = tk.Tk()
+        try:
+
+            root = tk.Tk()
+
+        except tk.TclError:
+
+            self.skipTest("Tkinter environment not properly configured")
+
+            return
 
         try:
             window = MusicWindow(self.music_manager_mock, root)
@@ -317,7 +464,18 @@ class TestMusicWindowTreeview(unittest.TestCase):
             self.music_manager_mock.format_duration.assert_has_calls(expected_calls)
 
         finally:
-            root.destroy()
+
+
+            try:
+
+
+                root.destroy()
+
+
+            except:
+
+
+                pass
 
 
 if __name__ == '__main__':
