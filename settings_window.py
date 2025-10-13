@@ -236,7 +236,9 @@ class SettingsWindow:
         path_control_frame.pack(fill=tk.X)
 
         # 取得目前的音樂根目錄
-        current_music_path = self.config_manager.config.get('music_root_path', 'Z:/Shuvi')
+        # 優先使用 config 中的設定,如果沒有則使用 DEFAULT_MUSIC_ROOT_PATH
+        from constants import DEFAULT_MUSIC_ROOT_PATH
+        current_music_path = self.config_manager.config.get('music_root_path', DEFAULT_MUSIC_ROOT_PATH)
 
         self.music_path_var = tk.StringVar(value=current_music_path)
         music_path_entry = tk.Entry(
@@ -271,13 +273,35 @@ class SettingsWindow:
         # 路徑說明
         path_hint = tk.Label(
             music_path_inner,
-            text="設定音樂檔案所在的根目錄 (例如: Z:/Shuvi)",
+            text="設定音樂檔案所在的根目錄",
             font=("Microsoft JhengHei UI", 9),
             bg=card_bg,
             fg=text_secondary,
             anchor=tk.W
         )
         path_hint.pack(fill=tk.X, pady=(5, 0))
+
+        # 網路路徑格式提示
+        network_path_hint = tk.Label(
+            music_path_inner,
+            text="支援格式: 本地路徑 (C:/Music)、網路磁碟機 (Z:/Shuvi) 或 UNC 路徑 (//Server/Share)",
+            font=("Microsoft JhengHei UI", 8),
+            bg=card_bg,
+            fg="#808080",
+            anchor=tk.W
+        )
+        network_path_hint.pack(fill=tk.X, pady=(2, 0))
+
+        # 網路路徑提醒
+        network_warning = tk.Label(
+            music_path_inner,
+            text="網路磁碟機 (如 Z:) 將自動轉換為 UNC 路徑格式以確保 Python 可正確訪問",
+            font=("Microsoft JhengHei UI", 8),
+            bg=card_bg,
+            fg="#4a90e2",
+            anchor=tk.W
+        )
+        network_warning.pack(fill=tk.X, pady=(2, 0))
 
         # === 按鈕框架 ===
         button_frame = tk.Frame(main_frame, bg=bg_color)

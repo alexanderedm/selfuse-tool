@@ -5,6 +5,7 @@ import glob
 from pathlib import Path
 from constants import DEFAULT_MUSIC_ROOT_PATH
 from logger import logger
+from path_utils import normalize_network_path, path_exists_safe, is_network_path
 
 
 class MusicManager:
@@ -18,7 +19,9 @@ class MusicManager:
             music_root_path (str): 音樂根目錄路徑
         """
         self.config_manager = config_manager
-        self.music_root_path = music_root_path or self.config_manager.config.get('music_root_path', DEFAULT_MUSIC_ROOT_PATH)
+        raw_path = music_root_path or self.config_manager.config.get('music_root_path', DEFAULT_MUSIC_ROOT_PATH)
+        # 標準化網路路徑 (將 Z: 轉換為 UNC 格式)
+        self.music_root_path = normalize_network_path(raw_path)
         self.categories = {}  # 分類字典 {category_name: [song_list]}
         self.all_songs = []  # 所有歌曲列表
 
@@ -28,8 +31,11 @@ class MusicManager:
         Args:
             path (str): 音樂根目錄路徑
         """
-        self.music_root_path = path
-        self.config_manager.config['music_root_path'] = path
+        # 標準化網路路徑
+        normalized_path = normalize_network_path(path)
+        self.music_root_path = normalized_path
+        # 儲存標準化後的路徑到配置
+        self.config_manager.config['music_root_path'] = normalized_path
         self.config_manager.save_config()
 
     def get_music_root_path(self):
@@ -47,12 +53,21 @@ class MusicManager:
             dict: {'success': bool, 'categories': dict, 'message': str}
         """
         try:
-            if not os.path.exists(self.music_root_path):
-                return {
-                    'success': False,
-                    'categories': {},
-                    'message': f'音樂目錄不存在: {self.music_root_path}'
-                }
+            # 使用安全的路徑檢查函數,支援網路路徑
+            if not path_exists_safe(self.music_root_path):
+                # 如果是網路路徑,提供更友善的錯誤訊息
+                if is_network_path(self.music_root_path):
+                    return {
+                        'success': False,
+                        'categories': {},
+                        'message': f'無法訪問網路音樂目錄: {self.music_root_path}\n請確認網路連線和權限設定'
+                    }
+                else:
+                    return {
+                        'success': False,
+                        'categories': {},
+                        'message': f'音樂目錄不存在: {self.music_root_path}'
+                    }
 
             self.categories = {}
             self.all_songs = []
