@@ -19,6 +19,15 @@
   - 提供詳細改善建議與優先順序
   - 總體健康度評分: 48/100 → **預估提升至 65/100**
 
+### 新增 (2025-10-13) - 🌙 Overnight Development 設置
+- **✨ Overnight Dev 功能**:
+  - 建立 `.overnight-dev.json` 配置檔
+  - 安裝 Git pre-commit hook (自動執行測試)
+  - 安裝 Git commit-msg hook (強制 Conventional Commits 格式)
+  - 測試框架完整整合
+  - 每次 commit 自動執行 39 個測試
+  - 支援 TDD 開發流程
+
 ### 新增 (2025-10-13) - 緊急程式碼品質改善
 - **🧪 測試框架建立**:
   - 建立完整的 pytest 測試框架

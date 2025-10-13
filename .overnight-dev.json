@@ -1,0 +1,18 @@
+{
+  "projectName": "AudioSwitcher",
+  "testCommand": "pytest tests/ -v",
+  "lintCommand": "echo 'Linting skipped (no linter configured yet)'",
+  "autoFix": false,
+  "requireCoverage": false,
+  "minCoverage": 35,
+  "maxAttempts": 50,
+  "stopOnMorning": true,
+  "morningHour": 7,
+  "language": "python",
+  "testFramework": "pytest",
+  "notes": [
+    "測試覆蓋率目前約 35%,未來目標 80%",
+    "建議安裝 flake8 或 pylint 作為 linter",
+    "所有核心模組都有測試保護"
+  ]
+}
