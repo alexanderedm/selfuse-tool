@@ -6,6 +6,15 @@
 
 ## [未發布]
 
+### 🔧 修復 (2025-10-13) - 設定視窗路徑儲存問題
+- **修復設定視窗無法儲存音樂路徑問題** (`settings_window.py`):
+  - 移除 `self.window.mainloop()` 呼叫,避免與主程式的 mainloop 衝突
+  - 修復 `RuntimeError: Calling Tcl from different apartment` 錯誤
+  - 儲存路徑時自動使用 `normalize_network_path()` 標準化網路路徑
+  - 當路徑被轉換時顯示通知,告知使用者轉換細節
+  - 確保使用者在設定視窗中更改的路徑能正確保存到 config.json
+  - 所有測試通過 (146/146)
+
 ### 🔧 修復 (2025-10-13) - 網路磁碟機路徑支援
 - **網路路徑自動轉換功能** (`path_utils.py` 新增):
   - 建立路徑工具模組處理 Windows 映射磁碟機與 UNC 路徑轉換

@@ -331,7 +331,8 @@ class SettingsWindow:
         # 關閉視窗時的處理
         self.window.protocol("WM_DELETE_WINDOW", self._close_window)
 
-        self.window.mainloop()
+        # 不要在這裡呼叫 mainloop(),因為主程式已經在執行 mainloop 了
+        # self.window.mainloop()
 
     def _browse_music_directory(self):
         """瀏覽並選擇音樂根目錄"""
@@ -365,8 +366,21 @@ class SettingsWindow:
         # 儲存音樂根目錄設定
         music_path = self.music_path_var.get().strip()
         if music_path:
-            self.config_manager.config['music_root_path'] = music_path
+            # 使用 path_utils 標準化網路路徑
+            from path_utils import normalize_network_path
+            normalized_path = normalize_network_path(music_path)
+            self.config_manager.config['music_root_path'] = normalized_path
             self.config_manager.save_config()
+
+            # 如果路徑被轉換了,通知使用者
+            if normalized_path != music_path:
+                messagebox.showinfo(
+                    "路徑已標準化",
+                    f"網路磁碟機路徑已自動轉換為 UNC 格式:\n\n"
+                    f"原始: {music_path}\n"
+                    f"轉換後: {normalized_path}\n\n"
+                    f"這確保 Python 可以正確訪問網路路徑。"
+                )
 
         messagebox.showinfo("成功", "設定已儲存!")
 
