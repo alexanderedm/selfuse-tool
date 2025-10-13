@@ -121,6 +121,10 @@ class MusicManager:
                     with open(json_file, 'r', encoding='utf-8') as f:
                         song_data = json.load(f)
 
+                    # 跳過不是字典的 JSON (如陣列)
+                    if not isinstance(song_data, dict):
+                        continue
+
                     # 檢查是否有音訊檔案
                     audio_filename = song_data.get('audio_filename')
                     if not audio_filename:

@@ -27,7 +27,7 @@ class SettingsWindow:
             # 如果沒有提供根視窗,建立獨立的視窗
             self.window = tk.Tk()
         self.window.title("⚙ 音訊切換工具 - 設定")
-        self.window.geometry("600x600")
+        self.window.geometry("600x750")
         self.window.resizable(False, False)
 
         # 設定深色主題顏色
@@ -336,6 +336,7 @@ class SettingsWindow:
 
     def _browse_music_directory(self):
         """瀏覽並選擇音樂根目錄"""
+        from logger import logger
         initial_dir = self.music_path_var.get()
         directory = filedialog.askdirectory(
             title="選擇音樂根目錄",
@@ -346,12 +347,39 @@ class SettingsWindow:
             directory = directory.replace('\\', '/')
             self.music_path_var.set(directory)
 
+            # 自動儲存選擇的路徑
+            logger.info(f"[設定視窗] 瀏覽選擇路徑: {directory}")
+            from path_utils import normalize_network_path
+            normalized_path = normalize_network_path(directory)
+            self.config_manager.config['music_root_path'] = normalized_path
+            self.config_manager.save_config()
+            logger.info(f"[設定視窗] 路徑已自動儲存: {normalized_path}")
+
+            # 如果路徑被轉換了,通知使用者
+            if normalized_path != directory:
+                messagebox.showinfo(
+                    "路徑已儲存",
+                    f"網路磁碟機路徑已自動轉換並儲存為 UNC 格式:\n\n"
+                    f"原始: {directory}\n"
+                    f"儲存為: {normalized_path}\n\n"
+                    f"這確保 Python 可以正確訪問網路路徑。"
+                )
+            else:
+                messagebox.showinfo("路徑已儲存", f"音樂路徑已成功儲存:\n{normalized_path}")
+
+            # 呼叫回調函數
+            if self.on_save_callback:
+                self.on_save_callback()
+
     def _save_settings(self, devices, device_a_combo, device_b_combo):
         """儲存設定"""
+        from logger import logger
+        logger.info("[設定視窗] 開始儲存設定...")
         settings_saved = False
 
         # 先儲存音樂根目錄設定(不依賴於裝置選擇)
         music_path = self.music_path_var.get().strip()
+        logger.info(f"[設定視窗] 音樂路徑: {music_path}")
         if music_path:
             # 使用 path_utils 標準化網路路徑
             from path_utils import normalize_network_path
