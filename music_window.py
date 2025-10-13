@@ -50,7 +50,7 @@ class MusicWindow:
 
         # UI 元件
         self.category_tree = None  # 使用 Treeview 替換 Listbox
-        self.song_listbox = None
+        self.song_tree = None  # 使用 Treeview 顯示歌曲列表
         self.current_song_label = None
         self.artist_label = None  # 藝術家標籤
         self.play_pause_button = None
@@ -247,23 +247,46 @@ class MusicWindow:
         )
         clear_search_button.pack(side=tk.LEFT, padx=(5, 0))
 
-        song_scroll = tk.Scrollbar(middle_frame)
+        # 建立 Treeview 用於歌曲列表
+        song_tree_frame = tk.Frame(middle_frame, bg=card_bg)
+        song_tree_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+
+        song_scroll = tk.Scrollbar(song_tree_frame)
         song_scroll.pack(side=tk.RIGHT, fill=tk.Y)
 
-        self.song_listbox = tk.Listbox(
-            middle_frame,
-            yscrollcommand=song_scroll.set,
-            bg=card_bg,
-            fg=text_color,
-            selectbackground=accent_color,
-            selectforeground="white",
-            font=("Microsoft JhengHei UI", 10),
+        # 設定 Treeview 樣式
+        style.configure(
+            "Song.Treeview",
+            background=card_bg,
+            foreground=text_color,
+            fieldbackground=card_bg,
             borderwidth=0,
-            highlightthickness=0
+            rowheight=25
         )
-        self.song_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
-        song_scroll.config(command=self.song_listbox.yview)
-        self.song_listbox.bind('<Double-1>', self._on_song_double_click)
+        style.configure("Song.Treeview.Heading", background=header_bg, foreground="white", font=("Microsoft JhengHei UI", 10, "bold"))
+        style.map('Song.Treeview', background=[('selected', accent_color)])
+
+        # 建立 Treeview,包含標題和時長兩個欄位
+        self.song_tree = ttk.Treeview(
+            song_tree_frame,
+            columns=('title', 'duration'),
+            show='headings',
+            yscrollcommand=song_scroll.set,
+            style="Song.Treeview",
+            selectmode='browse'
+        )
+
+        # 設定欄位標題和寬度
+        self.song_tree.heading('title', text='🎵 歌曲名稱', anchor=tk.W)
+        self.song_tree.heading('duration', text='⏱ 時長', anchor=tk.E)
+
+        # 設定欄位寬度
+        self.song_tree.column('title', width=400, anchor=tk.W)
+        self.song_tree.column('duration', width=80, anchor=tk.E)
+
+        self.song_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        song_scroll.config(command=self.song_tree.yview)
+        self.song_tree.bind('<Double-1>', self._on_song_double_click)
 
         # 右側:播放控制區
         right_frame = tk.Frame(content_frame, bg=card_bg, relief=tk.RIDGE, bd=1)
@@ -676,23 +699,29 @@ class MusicWindow:
             songs (list): 歌曲列表
         """
         self.playlist = songs
-        self.song_listbox.delete(0, tk.END)
 
+        # 清空 Treeview
+        for item in self.song_tree.get_children():
+            self.song_tree.delete(item)
+
+        # 插入歌曲到 Treeview
         for song in songs:
             duration_str = self.music_manager.format_duration(song['duration'])
-            display_text = f"{song['title']} ({duration_str})"
-            self.song_listbox.insert(tk.END, display_text)
+            self.song_tree.insert('', 'end', values=(song['title'], duration_str))
 
     def _on_song_double_click(self, event):
         """歌曲雙擊事件"""
-        selection = self.song_listbox.curselection()
+        selection = self.song_tree.selection()
         if not selection:
             return
 
-        index = selection[0]
-        if index < len(self.playlist):
-            self.current_index = index
-            self._play_song(self.playlist[index])
+        # 獲取選中的項目索引
+        item_id = selection[0]
+        item_index = self.song_tree.index(item_id)
+
+        if item_index < len(self.playlist):
+            self.current_index = item_index
+            self._play_song(self.playlist[item_index])
 
     def _play_song(self, song):
         """播放歌曲

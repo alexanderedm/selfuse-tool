@@ -6,6 +6,21 @@
 
 ## [未發布]
 
+### 🎨 改進 (2025-10-13) - 音樂播放器 UI 優化
+- **歌曲列表改用 Treeview 多欄位顯示** (`music_window.py`):
+  - 問題描述:原本使用 Listbox 將標題和時長串接顯示,導致時長無法對齊
+  - 改進方法:將 Listbox 替換為 ttk.Treeview,使用兩欄位布局
+    - 第一欄:🎵 歌曲名稱 (左對齊,寬度 400px)
+    - 第二欄:⏱ 時長 (右對齊,寬度 80px)
+  - 修改檔案位置:
+    - `music_window.py:53` - 變數宣告 (song_listbox → song_tree)
+    - `music_window.py:250-289` - UI 建構 (完整 Treeview 實現)
+    - `music_window.py:695-710` - `_display_songs()` 方法更新
+    - `music_window.py:712-724` - `_on_song_double_click()` 事件處理更新
+  - 視覺改善:時長統一顯示在右側欄位,閱讀體驗大幅提升
+  - 保持深色主題一致性
+  - 所有測試通過 (146/146)
+
 ### 🔧 修復 (2025-10-13) - 音樂播放器效能與掃描問題
 - **修復音樂播放器效能下降問題** (`music_manager.py`):
   - 問題描述:音樂播放器啟動速度變慢,從原本秒開變成需要數秒
