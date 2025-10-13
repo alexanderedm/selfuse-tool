@@ -1695,7 +1695,7 @@ class MusicWindow:
 
     def _rename_folder(self, item_id, old_name):
         """重新命名資料夾"""
-        new_name = simpledialog.askstring("重新命名資料夾", f"請輸入新的資料夾名稱:", initialvalue=old_name)
+        new_name = simpledialog.askstring("重新命名資料夾", "請輸入新的資料夾名稱:", initialvalue=old_name)
         if not new_name or not new_name.strip() or new_name == old_name:
             return
 

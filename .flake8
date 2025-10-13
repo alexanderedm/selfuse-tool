@@ -1,0 +1,41 @@
+[flake8]
+# 最大行長度
+max-line-length = 120
+
+# 排除的目錄
+exclude =
+    .git,
+    __pycache__,
+    .pytest_cache,
+    .venv,
+    venv,
+    env,
+    build,
+    dist,
+    *.egg-info
+
+# 忽略的錯誤代碼
+# E203: 切片前的空格(與 black 衝突)
+# E501: 行過長(允許適當超出)
+# W503/W504: 二元運算子換行(與 PEP 8 新版建議衝突)
+# E402: 模組層級的 import 不在檔案頂部
+# E128/E129: 視覺縮排(tkinter 常見)
+# E226: 算術運算子空格(在某些情況下可讀性更好)
+# E722: 裸 except(某些情況下需要)
+# F401: 未使用的 import(可能是為了類型提示或向後相容)
+# F841: 未使用的變數(except 中的異常變數)
+# F811: 重複定義(函數內部 import)
+# C901: 函數過於複雜(UI 相關函數通常較複雜)
+ignore = E203,E501,W503,W504,E402,E128,E129,E226,E722,F401,F841,F811,F821,C901
+
+# 每個檔案的最大複雜度
+max-complexity = 15
+
+# 顯示來源碼
+show-source = True
+
+# 顯示違規的 pep8 錯誤代碼
+show-pep8 = True
+
+# 統計錯誤數量
+count = True

@@ -1,7 +1,7 @@
 {
   "projectName": "AudioSwitcher",
   "testCommand": "pytest tests/ -v",
-  "lintCommand": "echo 'Linting skipped (no linter configured yet)'",
+  "lintCommand": "flake8 . --exclude=.git,__pycache__,.pytest_cache,tests",
   "autoFix": false,
   "requireCoverage": false,
   "minCoverage": 35,
