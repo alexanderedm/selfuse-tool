@@ -11,6 +11,7 @@ from logger import logger
 from youtube_downloader import YouTubeDownloader
 from play_history_manager import PlayHistoryManager
 from playlist_manager import PlaylistManager
+from music_file_manager import MusicFileManager
 from PIL import Image, ImageTk, ImageDraw
 import requests
 from io import BytesIO
@@ -71,6 +72,9 @@ class MusicWindow:
 
         # 播放列表管理器
         self.playlist_manager = PlaylistManager("playlists.json")
+
+        # 檔案管理器
+        self.file_manager = MusicFileManager(self.music_manager.music_root_path)
 
         # 初始化 pygame mixer
         try:
@@ -1778,23 +1782,16 @@ class MusicWindow:
 
         folder_name = folder_name.strip()
 
-        # 建立資料夾
-        folder_path = os.path.join(self.music_manager.music_root_path, folder_name)
-        if os.path.exists(folder_path):
-            messagebox.showerror("錯誤", f"資料夾 '{folder_name}' 已存在")
-            return
-
-        try:
-            os.makedirs(folder_path, exist_ok=True)
-            logger.info(f"建立新資料夾: {folder_name}")
-
+        # 使用 MusicFileManager 建立資料夾
+        if self.file_manager.create_folder(folder_name):
             # 重新載入音樂庫
             self._reload_music_library()
-
             messagebox.showinfo("成功", f"資料夾 '{folder_name}' 已建立")
-        except Exception as e:
-            logger.error(f"建立資料夾失敗: {e}")
-            messagebox.showerror("錯誤", f"建立資料夾失敗:\n{str(e)}")
+        else:
+            if self.file_manager.folder_exists(folder_name):
+                messagebox.showerror("錯誤", f"資料夾 '{folder_name}' 已存在")
+            else:
+                messagebox.showerror("錯誤", "建立資料夾失敗")
 
     def _rename_folder(self, item_id, old_name):
         """重新命名資料夾"""
@@ -1804,25 +1801,16 @@ class MusicWindow:
 
         new_name = new_name.strip()
 
-        # 重新命名資料夾
-        old_path = os.path.join(self.music_manager.music_root_path, old_name)
-        new_path = os.path.join(self.music_manager.music_root_path, new_name)
-
-        if os.path.exists(new_path):
-            messagebox.showerror("錯誤", f"資料夾 '{new_name}' 已存在")
-            return
-
-        try:
-            os.rename(old_path, new_path)
-            logger.info(f"重新命名資料夾: {old_name} -> {new_name}")
-
+        # 使用 MusicFileManager 重新命名資料夾
+        if self.file_manager.rename_folder(old_name, new_name):
             # 重新載入音樂庫
             self._reload_music_library()
-
             messagebox.showinfo("成功", f"資料夾已重新命名為 '{new_name}'")
-        except Exception as e:
-            logger.error(f"重新命名資料夾失敗: {e}")
-            messagebox.showerror("錯誤", f"重新命名資料夾失敗:\n{str(e)}")
+        else:
+            if self.file_manager.folder_exists(new_name):
+                messagebox.showerror("錯誤", f"資料夾 '{new_name}' 已存在")
+            else:
+                messagebox.showerror("錯誤", "重新命名資料夾失敗")
 
     def _delete_folder(self, item_id, folder_name):
         """刪除資料夾"""
@@ -1835,21 +1823,13 @@ class MusicWindow:
         if not result:
             return
 
-        # 刪除資料夾
-        folder_path = os.path.join(self.music_manager.music_root_path, folder_name)
-
-        try:
-            import shutil
-            shutil.rmtree(folder_path)
-            logger.info(f"刪除資料夾: {folder_name}")
-
+        # 使用 MusicFileManager 刪除資料夾
+        if self.file_manager.delete_folder(folder_name):
             # 重新載入音樂庫
             self._reload_music_library()
-
             messagebox.showinfo("成功", f"資料夾 '{folder_name}' 已刪除")
-        except Exception as e:
-            logger.error(f"刪除資料夾失敗: {e}")
-            messagebox.showerror("錯誤", f"刪除資料夾失敗:\n{str(e)}")
+        else:
+            messagebox.showerror("錯誤", "刪除資料夾失敗")
 
     def _delete_song(self, item_id, song):
         """刪除歌曲"""
@@ -1862,26 +1842,13 @@ class MusicWindow:
         if not result:
             return
 
-        # 刪除歌曲檔案和 JSON
-        try:
-            audio_path = song['audio_path']
-            json_path = song['json_path']
-
-            if os.path.exists(audio_path):
-                os.remove(audio_path)
-                logger.info(f"刪除音訊檔案: {audio_path}")
-
-            if os.path.exists(json_path):
-                os.remove(json_path)
-                logger.info(f"刪除 JSON 檔案: {json_path}")
-
+        # 使用 MusicFileManager 刪除歌曲
+        if self.file_manager.delete_song(song):
             # 重新載入音樂庫
             self._reload_music_library()
-
             messagebox.showinfo("成功", f"歌曲 '{song['title']}' 已刪除")
-        except Exception as e:
-            logger.error(f"刪除歌曲失敗: {e}")
-            messagebox.showerror("錯誤", f"刪除歌曲失敗:\n{str(e)}")
+        else:
+            messagebox.showerror("錯誤", "刪除歌曲失敗")
 
     def _move_song_to_category(self, item_id, song):
         """移動歌曲到不同分類
@@ -1989,49 +1956,23 @@ class MusicWindow:
             # 關閉對話框
             move_dialog.destroy()
 
-            # 執行移動操作
-            try:
-                # 取得檔案路徑
-                audio_path = song['audio_path']
-                json_path = song['json_path']
-
-                # 取得檔名
-                audio_filename = os.path.basename(audio_path)
-                json_filename = os.path.basename(json_path)
-
-                # 建立目標路徑
+            # 使用 MusicFileManager 執行移動操作
+            if self.file_manager.move_song(song, target_category):
+                # 重新載入音樂庫
+                self._reload_music_library()
+                messagebox.showinfo("成功", f"歌曲已移動到分類: {target_category}")
+            else:
+                # 取得檔名用於錯誤訊息
+                audio_filename = os.path.basename(song['audio_path'])
                 target_audio_path = os.path.join(
                     self.music_manager.music_root_path,
                     target_category,
                     audio_filename
                 )
-                target_json_path = os.path.join(
-                    self.music_manager.music_root_path,
-                    target_category,
-                    json_filename
-                )
-
-                # 檢查目標檔案是否已存在
                 if os.path.exists(target_audio_path):
                     messagebox.showerror("錯誤", f"目標資料夾中已存在同名檔案:\n{audio_filename}")
-                    return
-
-                # 移動檔案
-                shutil.move(audio_path, target_audio_path)
-                logger.info(f"移動音訊檔案: {audio_path} -> {target_audio_path}")
-
-                if os.path.exists(json_path):
-                    shutil.move(json_path, target_json_path)
-                    logger.info(f"移動 JSON 檔案: {json_path} -> {target_json_path}")
-
-                # 重新載入音樂庫
-                self._reload_music_library()
-
-                messagebox.showinfo("成功", f"歌曲已移動到分類: {target_category}")
-
-            except Exception as e:
-                logger.error(f"移動歌曲失敗: {e}")
-                messagebox.showerror("錯誤", f"移動歌曲失敗:\n{str(e)}")
+                else:
+                    messagebox.showerror("錯誤", "移動歌曲失敗")
 
         move_btn = tk.Button(
             button_frame,
