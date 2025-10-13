@@ -147,7 +147,7 @@ class MusicWindow:
         # 左側:資料夾樹狀結構
         left_frame = tk.Frame(content_frame, bg=card_bg, relief=tk.RIDGE, bd=1)
         left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=False, padx=(0, 10))
-        left_frame.config(width=250)
+        left_frame.config(width=350)  # 增加寬度從 250 到 350
 
         category_header = tk.Label(
             left_frame,
@@ -174,7 +174,9 @@ class MusicWindow:
             background=card_bg,
             foreground=text_color,
             fieldbackground=card_bg,
-            borderwidth=0
+            borderwidth=0,
+            rowheight=28,  # 增加行高
+            font=("Microsoft JhengHei UI", 10)  # 增加字體大小
         )
         style.configure("Music.Treeview.Heading", background=header_bg, foreground="white")
         style.map('Music.Treeview', background=[('selected', accent_color)])
