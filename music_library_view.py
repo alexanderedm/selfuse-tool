@@ -220,40 +220,73 @@ class MusicLibraryView:
         songs = self.music_manager.get_all_songs()
         self.display_songs(songs)
 
-    def _on_category_select_internal(self, event):
-        """分類/資料夾選擇事件(內部處理)"""
+    def _get_selected_category_info(self):
+        """取得選中的分類資訊
+
+        Returns:
+            tuple: (item_id, item_type) 或 (None, None) 如果沒有選擇
+        """
         selection = self.category_tree.selection()
         if not selection:
-            return
+            return None, None
 
         item_id = selection[0]
         item_values = self.category_tree.item(item_id, 'values')
 
         if not item_values:
+            return None, None
+
+        return item_id, item_values[0]
+
+    def _load_folder_songs_view(self, folder_type):
+        """載入資料夾歌曲到視圖
+
+        Args:
+            folder_type (str): 資料夾類型字串 (格式: 'folder:category_name')
+        """
+        category_name = folder_type.replace('folder:', '')
+        songs = self.music_manager.get_songs_by_category(category_name)
+        self.display_songs(songs)
+
+    def _handle_song_selection(self, song_id, item_id):
+        """處理歌曲選擇，更新播放列表
+
+        Args:
+            song_id (str): 歌曲 ID
+            item_id: TreeView 項目 ID
+        """
+        song = self.music_manager.get_song_by_id(song_id)
+        if not song:
             return
 
-        item_type = item_values[0]
+        # 載入所屬資料夾的所有歌曲到播放列表
+        parent_id = self.category_tree.parent(item_id)
+        if not parent_id:
+            return
 
+        parent_values = self.category_tree.item(parent_id, 'values')
+        if not parent_values:
+            return
+
+        if parent_values[0].startswith('folder:'):
+            category_name = parent_values[0].replace('folder:', '')
+            self.current_playlist = self.music_manager.get_songs_by_category(category_name)
+
+    def _on_category_select_internal(self, event):
+        """分類/資料夾選擇事件(內部處理)"""
+        item_id, item_type = self._get_selected_category_info()
+
+        if item_type is None:
+            return
+
+        # 根據類型載入對應內容
         if item_type == 'all':
-            # 所有歌曲
             self._load_all_songs()
         elif item_type.startswith('folder:'):
-            # 資料夾
-            category_name = item_type.replace('folder:', '')
-            songs = self.music_manager.get_songs_by_category(category_name)
-            self.display_songs(songs)
+            self._load_folder_songs_view(item_type)
         elif item_type.startswith('song:'):
-            # 歌曲被選中
             song_id = item_type.replace('song:', '')
-            song = self.music_manager.get_song_by_id(song_id)
-            if song:
-                # 載入所屬資料夾的所有歌曲到播放列表
-                parent_id = self.category_tree.parent(item_id)
-                if parent_id:
-                    parent_values = self.category_tree.item(parent_id, 'values')
-                    if parent_values and parent_values[0].startswith('folder:'):
-                        category_name = parent_values[0].replace('folder:', '')
-                        self.current_playlist = self.music_manager.get_songs_by_category(category_name)
+            self._handle_song_selection(song_id, item_id)
 
         # 觸發外部回調
         if self.on_category_select:
