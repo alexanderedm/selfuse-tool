@@ -177,3 +177,38 @@ class TestConfigManager:
 
         result = config_manager.get_favorite_articles()
         assert result == test_favorites
+
+    def test_generic_get_method(self, temp_config_file):
+        """測試通用 get() 方法"""
+        config_manager = ConfigManager(temp_config_file)
+
+        # 測試取得現有的配置
+        volume = config_manager.get('music_volume')
+        assert volume == 70
+
+        # 測試取得不存在的鍵,應返回預設值
+        result = config_manager.get('non_existent_key', 'default_value')
+        assert result == 'default_value'
+
+        # 測試不提供預設值,應返回 None
+        result = config_manager.get('another_non_existent_key')
+        assert result is None
+
+    def test_generic_set_method(self, temp_config_file):
+        """測試通用 set() 方法"""
+        config_manager = ConfigManager(temp_config_file)
+
+        # 測試設定新的配置項
+        config_manager.set('auto_fetch_metadata', True)
+        result = config_manager.get('auto_fetch_metadata')
+        assert result is True
+
+        # 測試修改現有配置項
+        config_manager.set('music_volume', 50)
+        result = config_manager.get('music_volume')
+        assert result == 50
+
+        # 測試設定複雜型別
+        config_manager.set('custom_settings', {'key1': 'value1', 'key2': 123})
+        result = config_manager.get('custom_settings')
+        assert result == {'key1': 'value1', 'key2': 123}

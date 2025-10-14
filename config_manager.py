@@ -358,3 +358,27 @@ class ConfigManager:
         """
         self.config['music_volume'] = max(0, min(100, int(volume)))
         self.save_config()
+
+    # ==================== 通用配置存取方法 ====================
+
+    def get(self, key, default=None):
+        """取得配置值(通用方法)
+
+        Args:
+            key (str): 配置鍵名
+            default: 預設值(如果鍵不存在)
+
+        Returns:
+            配置值或預設值
+        """
+        return self.config.get(key, default)
+
+    def set(self, key, value):
+        """設定配置值(通用方法)
+
+        Args:
+            key (str): 配置鍵名
+            value: 配置值
+        """
+        self.config[key] = value
+        self.save_config()
