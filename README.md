@@ -114,20 +114,23 @@ pyinstaller --onefile --windowed --icon=icon.ico --name=AudioSwitcher main.py
 根據最新的程式碼健康度分析 (2025-10-13):
 
 - **總體健康度**: 🟢 **85/100** (優秀 - 大幅提升!)
-- **檔案總數**: 24 個 Python 檔案 (18 原始碼 + 6 新模組)
-- **測試覆蓋率**: ✅ **55%** (268 個單元測試,100% 通過)
+- **檔案總數**: 27 個 Python 檔案 (18 原始碼 + 9 新模組)
+- **測試覆蓋率**: ✅ **55%** (315 個單元測試,99.4% 通過)
 - **程式碼品質**: ✅ 零 flake8 錯誤
 
 **🎉 重大改善完成 (2025-10-13)**:
-  - ✅ **music_window.py 大幅瘦身**: 2,865 行 → 1,511 行 (-47%)
-  - ✅ **模組化重構完成**: 新增 6 個專門模組
+  - ✅ **music_window.py 大幅瘦身**: 2,865 行 → 1,370 行 (-52%)
+  - ✅ **模組化重構進行中**: 新增 9 個專門模組
     - MusicFileManager (檔案操作)
     - MusicHistoryDialog (播放歷史)
     - MusicPlaylistDialog (播放列表)
     - MusicDownloadDialog (YouTube 下載)
     - MusicPlaybackView (播放控制)
-    - **MusicMetadataFetcher (自動補全音樂資訊)** 🆕
-  - ✅ **測試大幅擴充**: 155 → 268 個測試 (+73%)
+    - MusicMetadataFetcher (自動補全音樂資訊)
+    - **MusicLibraryView (資料夾樹與歌曲列表)** ✅
+    - **MusicSearchView (搜尋框與搜尋邏輯)** ✅
+    - **MusicHeaderView (頂部標題和按鈕)** 🆕
+  - ✅ **測試大幅擴充**: 155 → 315 個測試 (+103%)
   - ✅ **Overnight Development + TDD**: Git hooks + 自動測試
   - ✅ **程式碼品質工具**: flake8 配置完成
 

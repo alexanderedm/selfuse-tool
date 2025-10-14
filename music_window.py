@@ -17,6 +17,8 @@ from music_playlist_dialog import MusicPlaylistDialog
 from music_download_dialog import MusicDownloadDialog
 from music_metadata_fetcher import MusicMetadataFetcher
 from music_library_view import MusicLibraryView
+from music_search_view import MusicSearchView
+from music_header_view import MusicHeaderView
 from PIL import Image, ImageTk, ImageDraw
 import requests
 from io import BytesIO
@@ -57,7 +59,9 @@ class MusicWindow:
         self.default_cover_image = None  # 預設封面圖片
 
         # UI 元件
+        self.header_view = None  # 頂部標題和按鈕視圖 (MusicHeaderView)
         self.library_view = None  # 音樂庫視圖 (MusicLibraryView)
+        self.search_view = None  # 搜尋視圖 (MusicSearchView)
         self.category_tree = None  # 使用 Treeview 替換 Listbox (將被 library_view 取代)
         self.song_tree = None  # 使用 Treeview 顯示歌曲列表 (將被 library_view 取代)
         self.current_song_label = None
@@ -68,7 +72,7 @@ class MusicWindow:
         self.time_label = None
         self.volume_scale = None
         self.album_cover_label = None  # 專輯封面
-        self.search_entry = None  # 搜尋框
+        self.search_entry = None  # 搜尋框 (將被 search_view 取代)
 
         # YouTube 下載器
         self.youtube_downloader = YouTubeDownloader(self.music_manager.music_root_path)
@@ -169,85 +173,14 @@ class MusicWindow:
         main_frame.pack(fill=tk.BOTH, expand=True, padx=15, pady=15)
 
         # === 頂部標題和功能按鈕 ===
-        header_frame = tk.Frame(main_frame, bg=bg_color)
-        header_frame.pack(fill=tk.X, pady=(0, 15))
-
-        title_label = tk.Label(
-            header_frame,
-            text="🎵 本地音樂播放器",
-            font=("Microsoft JhengHei UI", 18, "bold"),
-            bg=bg_color,
-            fg=text_color
+        # 使用 MusicHeaderView 顯示頂部標題和按鈕
+        self.header_view = MusicHeaderView(
+            parent=main_frame,
+            on_download_click=self._open_download_dialog,
+            on_playlist_click=self._show_playlists,
+            on_history_click=self._show_play_history,
+            on_most_played_click=self._show_most_played
         )
-        title_label.pack(side=tk.LEFT)
-
-        # 右側按鈕區域
-        button_frame = tk.Frame(header_frame, bg=bg_color)
-        button_frame.pack(side=tk.RIGHT)
-
-        # YouTube 下載按鈕
-        download_button = tk.Button(
-            button_frame,
-            text="📥 下載",
-            font=("Microsoft JhengHei UI", 10),
-            bg=accent_color,
-            fg="white",
-            activebackground="#005a9e",
-            activeforeground="white",
-            borderwidth=0,
-            padx=15,
-            pady=5,
-            command=self._open_download_dialog
-        )
-        download_button.pack(side=tk.RIGHT, padx=(5, 0))
-
-        # 最常播放按鈕
-        most_played_button = tk.Button(
-            button_frame,
-            text="🏆 最常播放",
-            font=("Microsoft JhengHei UI", 10),
-            bg="#353535",
-            fg=text_color,
-            activebackground="#505050",
-            activeforeground="white",
-            borderwidth=0,
-            padx=15,
-            pady=5,
-            command=self._show_most_played
-        )
-        most_played_button.pack(side=tk.RIGHT, padx=(5, 0))
-
-        # 播放列表按鈕
-        playlist_button = tk.Button(
-            button_frame,
-            text="📋 播放列表",
-            font=("Microsoft JhengHei UI", 10),
-            bg="#353535",
-            fg=text_color,
-            activebackground="#505050",
-            activeforeground="white",
-            borderwidth=0,
-            padx=15,
-            pady=5,
-            command=self._show_playlists
-        )
-        playlist_button.pack(side=tk.RIGHT, padx=(5, 0))
-
-        # 播放歷史按鈕
-        history_button = tk.Button(
-            button_frame,
-            text="📜 播放歷史",
-            font=("Microsoft JhengHei UI", 10),
-            bg="#353535",
-            fg=text_color,
-            activebackground="#505050",
-            activeforeground="white",
-            borderwidth=0,
-            padx=15,
-            pady=5,
-            command=self._show_play_history
-        )
-        history_button.pack(side=tk.RIGHT, padx=(5, 0))
 
         # === 主要內容區 ===
         content_frame = tk.Frame(main_frame, bg=bg_color)
@@ -257,56 +190,16 @@ class MusicWindow:
         library_container = tk.Frame(content_frame, bg=bg_color)
         library_container.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
 
-        # 搜尋框 (放在音樂庫視圖上方)
-        search_frame = tk.Frame(library_container, bg=card_bg, relief=tk.RIDGE, bd=1)
-        search_frame.pack(fill=tk.X, pady=(0, 10))
-
-        tk.Label(
-            search_frame,
-            text="🔍 搜尋音樂",
-            font=("Microsoft JhengHei UI", 11, "bold"),
-            bg=header_bg,
-            fg="white",
-            pady=8
-        ).pack(fill=tk.X)
-
-        search_input_frame = tk.Frame(search_frame, bg=card_bg)
-        search_input_frame.pack(fill=tk.X, padx=10, pady=10)
-
-        tk.Label(
-            search_input_frame,
-            text="🔍",
-            font=("Arial", 12),
-            bg=card_bg,
-            fg=text_secondary
-        ).pack(side=tk.LEFT, padx=(0, 5))
-
-        self.search_entry = tk.Entry(
-            search_input_frame,
-            font=("Microsoft JhengHei UI", 10),
-            bg="#3d3d3d",
-            fg=text_color,
-            insertbackground=text_color,
-            relief=tk.FLAT,
-            borderwidth=0
+        # 使用 MusicSearchView 顯示搜尋框
+        self.search_view = MusicSearchView(
+            parent=library_container,
+            music_manager=self.music_manager,
+            on_search_results=self._on_search_results,
+            on_search_cleared=self._on_search_cleared
         )
-        self.search_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, ipady=5)
-        self.search_entry.bind('<KeyRelease>', self._on_search_change)
 
-        # 清除搜尋按鈕
-        clear_search_button = tk.Button(
-            search_input_frame,
-            text="✖",
-            font=("Arial", 10),
-            bg=card_bg,
-            fg=text_secondary,
-            activebackground="#505050",
-            activeforeground="white",
-            borderwidth=0,
-            padx=5,
-            command=self._clear_search
-        )
-        clear_search_button.pack(side=tk.LEFT, padx=(5, 0))
+        # 保持向後相容:設定 search_entry 引用
+        self.search_entry = self.search_view.search_entry
 
         # 使用 MusicLibraryView 顯示音樂庫
         self.library_view = MusicLibraryView(
@@ -531,8 +424,8 @@ class MusicWindow:
             item_type: 項目類型 ('all', 'folder:name', 'song:id')
         """
         # 清除搜尋框
-        if self.search_entry:
-            self.search_entry.delete(0, tk.END)
+        if self.search_view:
+            self.search_view.clear()
 
         # 這個回調由 MusicLibraryView 內部處理,
         # 我們只需要更新 playlist 引用
@@ -551,33 +444,21 @@ class MusicWindow:
         self.current_index = index
         self._play_song(song)
 
-    def _on_search_change(self, event):
-        """搜尋框內容改變事件"""
-        keyword = self.search_entry.get().strip()
+    def _on_search_results(self, results):
+        """搜尋結果回調 - 由 MusicSearchView 觸發
 
-        if not keyword:
-            # 搜尋框為空,重新載入當前分類
-            if self.library_view:
-                # 讓 MusicLibraryView 重新顯示當前選中的分類
-                selected = self.library_view.get_selected_category()
-                if selected:
-                    self._on_library_category_select(selected)
-                else:
-                    self._load_all_songs()
-            return
-
-        # 搜尋歌曲並顯示
-        results = self.music_manager.search_songs(keyword)
+        Args:
+            results (list): 搜尋結果歌曲列表
+        """
+        # 顯示搜尋結果
         if self.library_view:
             self.library_view.display_songs(results)
         else:
             self._display_songs(results)
 
-        logger.info(f"搜尋關鍵字: '{keyword}', 找到 {len(results)} 首歌曲")
-
-    def _clear_search(self):
-        """清除搜尋"""
-        self.search_entry.delete(0, tk.END)
+    def _on_search_cleared(self):
+        """搜尋清除回調 - 由 MusicSearchView 觸發"""
+        # 重新載入當前分類
         if self.library_view:
             # 讓 MusicLibraryView 重新顯示當前選中的分類
             selected = self.library_view.get_selected_category()
