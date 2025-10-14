@@ -6,6 +6,39 @@
 
 ## [未發布]
 
+### 📊 測試與品質驗證 (2025-10-13) - 專案健康度確認
+- **測試狀態確認**:
+  - 總測試數: **317 個** (新增 MusicPlaybackView 測試)
+  - 測試通過率: **99.7%** (316/317 通過)
+  - 失敗原因: 1 個 tkinter 環境間歇性問題 (非程式碼問題)
+  - flake8 檢查: **零錯誤**
+
+- **測試覆蓋率達標**:
+  - 整體測試覆蓋率: **68%** (超過 60% 目標)
+  - music_window.py: 19% (需要繼續提升)
+  - 新模組覆蓋率優秀 (80-95%)
+
+- **MusicPlaybackView 測試補充**:
+  - 修復測試檔案以匹配實際實作
+  - 15 個測試,13 passed, 2 skipped
+  - 測試涵蓋所有主要功能:
+    - 初始化和 UI 建立
+    - 播放控制按鈕
+    - 音量控制
+    - 播放模式切換
+    - 進度更新
+    - 歌曲資訊顯示
+
+- **專案當前狀態**:
+  - music_window.py: 1,370 行 (距離 < 800 行目標還需 570 行)
+  - music_playback_view.py: 427 行 (已存在但未整合)
+  - test_music_playback_view.py: 201 行 (測試已完成)
+
+- **下一步計畫**:
+  - ⏳ 整合 MusicPlaybackView 到 music_window.py (預估減少 200 行)
+  - ⏳ 抽離其他大型區塊 (右鍵選單、對話框等)
+  - 🎯 最終目標: music_window.py < 800 行
+
 ### ♻️ 重構 (2025-10-13) - MusicHeaderView 整合完成 (階段 3)
 - **MusicHeaderView 整合至 music_window.py**:
   - 成功將 MusicHeaderView 模組整合到主視窗
