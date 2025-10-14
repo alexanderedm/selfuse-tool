@@ -14,20 +14,40 @@
   - 新增 113 個測試
   - 達成健康度目標
 
+- [x] **修復 ConfigManager 缺少通用方法** (2025-10-13 完成)
+  - 修復音樂播放器視窗無法開啟的問題
+  - 新增 get(key, default=None) 通用方法
+  - 新增 set(key, value) 通用方法
+  - 新增 2 個單元測試
+  - 所有 289 個測試通過
+  - 已推送至 GitHub
+
+- [x] **建立 MusicLibraryView 模組** (2025-10-13 完成)
+  - 從 music_window.py 抽離資料夾樹與歌曲列表 UI (302 行)
+  - 新增 19 個單元測試
+  - 17/19 測試通過 (2 個 tkinter 環境測試間歇性失敗)
+  - 模組已建立但尚未整合至 music_window.py
+
 ## 🚧 進行中 (In Progress)
-<!-- 目前正在進行的工作 -->
+- [ ] **解決 tkinter 測試環境問題**
+  - 2 個測試因 tkinter 環境設定問題間歇性失敗
+  - 需要修復或改用無頭測試環境
+
+- [ ] **整合 MusicLibraryView 到 music_window.py**
+  - MusicLibraryView 模組已完成但尚未整合
+  - 需要更新 music_window.py 使用新模組
 
 ## 📋 待辦事項 (Todo) - 根據程式碼健康度分析 (2025-10-13)
 
 ### 🔥 緊急優先 (Week 1-2) - 技術債務消除
 - [ ] **完成 music_window.py 重構** (預估: 3-5 天)
   - [ ] Day 1-2: 抽離 UI 元件模組
-    - [ ] 建立 `MusicLibraryView` (資料夾樹 + 歌曲列表,約 300 行)
+    - [x] 建立 `MusicLibraryView` (資料夾樹 + 歌曲列表,約 300 行) ✅ 2025-10-13
     - [ ] 建立 `MusicSearchView` (搜尋與篩選邏輯,約 150 行)
     - [ ] 建立 `MusicHeaderView` (頂部按鈕區域,約 100 行)
     - [ ] 更新 music_window.py 使用新元件
   - [ ] Day 3-4: 增加測試覆蓋率
-    - [ ] 新增 `test_music_library_view.py` (+20 tests)
+    - [x] 新增 `test_music_library_view.py` (+19 tests) ✅ 2025-10-13
     - [ ] 新增 `test_music_search_view.py` (+15 tests)
     - [ ] 擴展 `test_music_window.py` (+25 tests)
     - [ ] 目標: 測試覆蓋率 20% → 60%
