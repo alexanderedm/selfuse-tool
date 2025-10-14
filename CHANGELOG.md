@@ -68,6 +68,37 @@
     - 音樂測試：**239/241 通過** (99%)
     - flake8 檢查：**零錯誤** ✅
   - **改善**: 從「一般」(B 級) 提升至「優秀」(A 級)
+
+- **重構成果 #9 - music_window.py::_toggle_play_pause** ✨:
+  - **複雜度**: CC **8 (B 級) → 4 (A 級)** 🎉 降低 **50%**
+  - **方法**: 使用 TDD 方法安全重構
+    - 提取 4 個輔助方法：
+      1. `_start_first_song_if_available()` - 處理初次播放邏輯（CC 2）
+      2. `_resume_playback()` - 恢復播放邏輯（CC 1）
+      3. `_pause_playback()` - 暫停播放邏輯（CC 1）
+      4. `_update_playback_ui()` - 統一 UI 更新邏輯（CC 2）
+    - 使用 early return 減少巢狀層級
+    - 移除重複的條件檢查和 UI 更新程式碼
+    - 原函數從 28 行縮減至 16 行（-43%）
+  - **測試驗證**:
+    - Music Window 測試：**5/5 通過** (100%)
+    - Music Player Controller 測試：**20/20 通過** (100%)
+    - Music Window Play Next 測試：**12/12 通過** (100%)
+    - 總計：**37/37 通過** (100%)
+    - flake8 檢查：**零錯誤** ✅
+    - xenon 檢查：**通過** ✅
+  - **改善**: 從「一般」(B 級) 提升至「優秀」(A 級)
+  - **Commit**: 7a9e4f5
+
+- **重構成果 #2 - youtube_downloader.py::download_audio** ✨:
+  - **複雜度**: CC **19 (C 級) → 7 (B 級)** 🎉 降低 **63%**
+  - **方法**: 使用 TDD 方法安全重構
+    - 提取 6 個輔助方法：
+      1. `_get_video_info()` - 獲取影片資訊（CC 3）
+      2. `_build_download_command()` - 建立下載命令（CC 1）
+      3. `_try_browser_cookies()` - 測試瀏覽器 cookies（CC 5）
+      4. `_prepare_file_paths()` - 準備檔案路徑（CC 4）
+      5. `_execute_download()` - 執行下載命令（CC 4）
       6. `_save_metadata()` - 儲存元數據（CC 1）
     - 原函數從 ~100 行縮減至 ~60 行（-40%）
     - 每個方法職責單一，易於理解和維護
