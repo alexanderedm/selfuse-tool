@@ -13,36 +13,25 @@ class SettingsWindow:
         self.window = None
         self.tk_root = tk_root  # 使用共用的根視窗
 
-    def show(self):
-        """顯示設定視窗"""
-        if self.window is not None:
-            self.window.lift()
-            self.window.focus_force()
-            return
-
+    def _create_window(self):
+        """建立並配置設定視窗"""
         # 使用共用的根視窗建立 Toplevel 視窗
         if self.tk_root:
-            self.window = tk.Toplevel(self.tk_root)
+            window = tk.Toplevel(self.tk_root)
         else:
             # 如果沒有提供根視窗,建立獨立的視窗
-            self.window = tk.Tk()
-        self.window.title("⚙ 音訊切換工具 - 設定")
-        self.window.geometry("600x750")
-        self.window.resizable(False, False)
+            window = tk.Tk()
+        window.title("⚙ 音訊切換工具 - 設定")
+        window.geometry("600x750")
+        window.resizable(False, False)
 
         # 設定深色主題顏色
         bg_color = "#1e1e1e"
-        card_bg = "#2d2d2d"
-        text_color = "#e0e0e0"
-        text_secondary = "#a0a0a0"
-        accent_bg = "#1a3a52"
-        self.window.configure(bg=bg_color)
+        window.configure(bg=bg_color)
+        return window
 
-        # 建立主框架
-        main_frame = tk.Frame(self.window, bg=bg_color)
-        main_frame.pack(fill=tk.BOTH, expand=True, padx=30, pady=30)
-
-        # === 標題 ===
+    def _create_title_section(self, main_frame, bg_color, text_color, text_secondary):
+        """建立標題區塊"""
         title_label = tk.Label(
             main_frame,
             text="⚙ 音訊裝置設定",
@@ -61,6 +50,8 @@ class SettingsWindow:
         )
         subtitle_label.pack(pady=(0, 25))
 
+    def _create_device_section(self, main_frame, devices, card_bg, text_color, text_secondary):
+        """建立音訊裝置選擇區塊"""
         # === 裝置選擇區 ===
         devices_frame = tk.Frame(main_frame, bg=card_bg, relief=tk.RIDGE, bd=1)
         devices_frame.pack(fill=tk.X, pady=(0, 20))
@@ -68,8 +59,7 @@ class SettingsWindow:
         inner_frame = tk.Frame(devices_frame, bg=card_bg)
         inner_frame.pack(padx=20, pady=20)
 
-        # 取得所有裝置
-        devices = self.audio_manager.get_all_output_devices()
+        # 取得所有裝置名稱
         device_names = [f"{d['name']}" for d in devices]
 
         # 設定深色主題樣式
@@ -92,100 +82,83 @@ class SettingsWindow:
                  selectforeground=[('readonly', text_color)])
 
         # 裝置 A 選擇
-        device_a_frame = tk.Frame(inner_frame, bg=card_bg)
-        device_a_frame.pack(fill=tk.X, pady=10)
-
-        device_a_icon = tk.Label(
-            device_a_frame,
-            text="🎧",
-            font=("Segoe UI Emoji", 16),
-            bg=card_bg
+        device_a_combo = self._create_single_device_selector(
+            inner_frame, devices, "🎧", "裝置 A",
+            card_bg, text_color, is_device_a=True
         )
-        device_a_icon.pack(side=tk.LEFT, padx=(0, 10))
-
-        device_a_label_frame = tk.Frame(device_a_frame, bg=card_bg)
-        device_a_label_frame.pack(side=tk.LEFT, fill=tk.X, expand=True)
-
-        device_a_label = tk.Label(
-            device_a_label_frame,
-            text="裝置 A",
-            font=("Microsoft JhengHei UI", 11, "bold"),
-            bg=card_bg,
-            fg=text_color,
-            anchor=tk.W
-        )
-        device_a_label.pack(anchor=tk.W)
-
-        self.device_a_var = tk.StringVar()
-        device_a_combo = ttk.Combobox(
-            device_a_label_frame,
-            textvariable=self.device_a_var,
-            values=device_names,
-            state="readonly",
-            width=50,
-            font=("Microsoft JhengHei UI", 10)
-        )
-        device_a_combo.pack(fill=tk.X, pady=(5, 0))
-
-        # 設定目前的裝置 A
-        current_device_a = self.config_manager.get_device_a()
-        if current_device_a:
-            try:
-                index = next(i for i, d in enumerate(devices) if d['id'] == current_device_a['id'])
-                device_a_combo.current(index)
-            except StopIteration:
-                pass
 
         # 分隔線
         separator = ttk.Separator(inner_frame, orient='horizontal')
         separator.pack(fill=tk.X, pady=15)
 
         # 裝置 B 選擇
-        device_b_frame = tk.Frame(inner_frame, bg=card_bg)
-        device_b_frame.pack(fill=tk.X, pady=10)
+        device_b_combo = self._create_single_device_selector(
+            inner_frame, devices, "🔊", "裝置 B",
+            card_bg, text_color, is_device_a=False
+        )
 
-        device_b_icon = tk.Label(
-            device_b_frame,
-            text="🔊",
+        return device_a_combo, device_b_combo
+
+    def _create_single_device_selector(self, parent, devices, icon, label_text,
+                                      card_bg, text_color, is_device_a):
+        """建立單個裝置選擇器"""
+        device_frame = tk.Frame(parent, bg=card_bg)
+        device_frame.pack(fill=tk.X, pady=10)
+
+        device_icon = tk.Label(
+            device_frame,
+            text=icon,
             font=("Segoe UI Emoji", 16),
             bg=card_bg
         )
-        device_b_icon.pack(side=tk.LEFT, padx=(0, 10))
+        device_icon.pack(side=tk.LEFT, padx=(0, 10))
 
-        device_b_label_frame = tk.Frame(device_b_frame, bg=card_bg)
-        device_b_label_frame.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        device_label_frame = tk.Frame(device_frame, bg=card_bg)
+        device_label_frame.pack(side=tk.LEFT, fill=tk.X, expand=True)
 
-        device_b_label = tk.Label(
-            device_b_label_frame,
-            text="裝置 B",
+        device_label = tk.Label(
+            device_label_frame,
+            text=label_text,
             font=("Microsoft JhengHei UI", 11, "bold"),
             bg=card_bg,
             fg=text_color,
             anchor=tk.W
         )
-        device_b_label.pack(anchor=tk.W)
+        device_label.pack(anchor=tk.W)
 
-        self.device_b_var = tk.StringVar()
-        device_b_combo = ttk.Combobox(
-            device_b_label_frame,
-            textvariable=self.device_b_var,
+        # 建立變數
+        if is_device_a:
+            self.device_a_var = tk.StringVar()
+            device_var = self.device_a_var
+        else:
+            self.device_b_var = tk.StringVar()
+            device_var = self.device_b_var
+
+        device_names = [f"{d['name']}" for d in devices]
+        device_combo = ttk.Combobox(
+            device_label_frame,
+            textvariable=device_var,
             values=device_names,
             state="readonly",
             width=50,
             font=("Microsoft JhengHei UI", 10)
         )
-        device_b_combo.pack(fill=tk.X, pady=(5, 0))
+        device_combo.pack(fill=tk.X, pady=(5, 0))
 
-        # 設定目前的裝置 B
-        current_device_b = self.config_manager.get_device_b()
-        if current_device_b:
+        # 設定目前的裝置
+        current_device = (self.config_manager.get_device_a() if is_device_a
+                         else self.config_manager.get_device_b())
+        if current_device:
             try:
-                index = next(i for i, d in enumerate(devices) if d['id'] == current_device_b['id'])
-                device_b_combo.current(index)
+                index = next(i for i, d in enumerate(devices) if d['id'] == current_device['id'])
+                device_combo.current(index)
             except StopIteration:
                 pass
 
-        # === 當前裝置資訊 ===
+        return device_combo
+
+    def _create_current_device_info(self, main_frame, accent_bg):
+        """建立當前裝置資訊區塊"""
         current_frame = tk.Frame(main_frame, bg=accent_bg, relief=tk.FLAT, bd=1)
         current_frame.pack(fill=tk.X, pady=(0, 20))
 
@@ -202,7 +175,8 @@ class SettingsWindow:
         )
         current_info.pack()
 
-        # === 音樂根目錄設定區 ===
+    def _create_music_path_section(self, main_frame, card_bg, text_color, text_secondary):
+        """建立音樂根目錄設定區塊"""
         music_path_frame = tk.Frame(main_frame, bg=card_bg, relief=tk.RIDGE, bd=1)
         music_path_frame.pack(fill=tk.X, pady=(0, 20))
 
@@ -236,7 +210,6 @@ class SettingsWindow:
         path_control_frame.pack(fill=tk.X)
 
         # 取得目前的音樂根目錄
-        # 優先使用 config 中的設定,如果沒有則使用 DEFAULT_MUSIC_ROOT_PATH
         from constants import DEFAULT_MUSIC_ROOT_PATH
         current_music_path = self.config_manager.config.get('music_root_path', DEFAULT_MUSIC_ROOT_PATH)
 
@@ -271,39 +244,25 @@ class SettingsWindow:
         browse_button.pack(side=tk.RIGHT)
 
         # 路徑說明
-        path_hint = tk.Label(
-            music_path_inner,
-            text="設定音樂檔案所在的根目錄",
-            font=("Microsoft JhengHei UI", 9),
-            bg=card_bg,
-            fg=text_secondary,
-            anchor=tk.W
-        )
-        path_hint.pack(fill=tk.X, pady=(5, 0))
+        hints = [
+            ("設定音樂檔案所在的根目錄", 9, text_secondary),
+            ("支援格式: 本地路徑 (C:/Music)、網路磁碟機 (Z:/Shuvi) 或 UNC 路徑 (//Server/Share)", 8, "#808080"),
+            ("網路磁碟機 (如 Z:) 將自動轉換為 UNC 路徑格式以確保 Python 可正確訪問", 8, "#4a90e2")
+        ]
 
-        # 網路路徑格式提示
-        network_path_hint = tk.Label(
-            music_path_inner,
-            text="支援格式: 本地路徑 (C:/Music)、網路磁碟機 (Z:/Shuvi) 或 UNC 路徑 (//Server/Share)",
-            font=("Microsoft JhengHei UI", 8),
-            bg=card_bg,
-            fg="#808080",
-            anchor=tk.W
-        )
-        network_path_hint.pack(fill=tk.X, pady=(2, 0))
+        for hint_text, font_size, color in hints:
+            hint_label = tk.Label(
+                music_path_inner,
+                text=hint_text,
+                font=("Microsoft JhengHei UI", font_size),
+                bg=card_bg,
+                fg=color,
+                anchor=tk.W
+            )
+            hint_label.pack(fill=tk.X, pady=(5 if font_size == 9 else 2, 0))
 
-        # 網路路徑提醒
-        network_warning = tk.Label(
-            music_path_inner,
-            text="網路磁碟機 (如 Z:) 將自動轉換為 UNC 路徑格式以確保 Python 可正確訪問",
-            font=("Microsoft JhengHei UI", 8),
-            bg=card_bg,
-            fg="#4a90e2",
-            anchor=tk.W
-        )
-        network_warning.pack(fill=tk.X, pady=(2, 0))
-
-        # === 音樂資訊自動補全設定區 ===
+    def _create_metadata_section(self, main_frame, card_bg, text_color, text_secondary):
+        """建立音樂資訊自動補全設定區塊"""
         metadata_frame = tk.Frame(main_frame, bg=card_bg, relief=tk.RIDGE, bd=1)
         metadata_frame.pack(fill=tk.X, pady=(0, 20))
 
@@ -354,28 +313,24 @@ class SettingsWindow:
         metadata_checkbox.pack(anchor=tk.W)
 
         # 功能說明
-        metadata_hint = tk.Label(
-            metadata_inner,
-            text="播放時自動抓取缺失的專輯封面、藝術家、專輯名稱等資訊",
-            font=("Microsoft JhengHei UI", 9),
-            bg=card_bg,
-            fg=text_secondary,
-            anchor=tk.W
-        )
-        metadata_hint.pack(fill=tk.X, pady=(5, 0))
+        hints = [
+            ("播放時自動抓取缺失的專輯封面、藝術家、專輯名稱等資訊", 9, text_secondary),
+            ("資料來源: iTunes Search API", 8, "#808080")
+        ]
 
-        # 資料來源說明
-        metadata_source = tk.Label(
-            metadata_inner,
-            text="資料來源: iTunes Search API",
-            font=("Microsoft JhengHei UI", 8),
-            bg=card_bg,
-            fg="#808080",
-            anchor=tk.W
-        )
-        metadata_source.pack(fill=tk.X, pady=(2, 0))
+        for hint_text, font_size, color in hints:
+            hint_label = tk.Label(
+                metadata_inner,
+                text=hint_text,
+                font=("Microsoft JhengHei UI", font_size),
+                bg=card_bg,
+                fg=color,
+                anchor=tk.W
+            )
+            hint_label.pack(fill=tk.X, pady=(5 if font_size == 9 else 2, 0))
 
-        # === 按鈕框架 ===
+    def _create_button_section(self, main_frame, devices, device_a_combo, device_b_combo, bg_color):
+        """建立按鈕區塊"""
         button_frame = tk.Frame(main_frame, bg=bg_color)
         button_frame.pack(pady=(10, 0))
 
@@ -397,14 +352,44 @@ class SettingsWindow:
         )
         cancel_button.grid(row=0, column=1, padx=5)
 
+    def show(self):
+        """顯示設定視窗"""
+        if self.window is not None:
+            self.window.lift()
+            self.window.focus_force()
+            return
+
+        self.window = self._create_window()
+
+        # 設定深色主題顏色
+        bg_color = "#1e1e1e"
+        card_bg = "#2d2d2d"
+        text_color = "#e0e0e0"
+        text_secondary = "#a0a0a0"
+        accent_bg = "#1a3a52"
+
+        # 建立主框架
+        main_frame = tk.Frame(self.window, bg=bg_color)
+        main_frame.pack(fill=tk.BOTH, expand=True, padx=30, pady=30)
+
+        # 取得所有裝置
+        devices = self.audio_manager.get_all_output_devices()
+
+        # 建立各個區塊
+        self._create_title_section(main_frame, bg_color, text_color, text_secondary)
+        device_a_combo, device_b_combo = self._create_device_section(
+            main_frame, devices, card_bg, text_color, text_secondary
+        )
+        self._create_current_device_info(main_frame, accent_bg)
+        self._create_music_path_section(main_frame, card_bg, text_color, text_secondary)
+        self._create_metadata_section(main_frame, card_bg, text_color, text_secondary)
+        self._create_button_section(main_frame, devices, device_a_combo, device_b_combo, bg_color)
+
         # 儲存裝置列表的參考
         self.devices = devices
 
         # 關閉視窗時的處理
         self.window.protocol("WM_DELETE_WINDOW", self._close_window)
-
-        # 不要在這裡呼叫 mainloop(),因為主程式已經在執行 mainloop 了
-        # self.window.mainloop()
 
     def _browse_music_directory(self):
         """瀏覽並選擇音樂根目錄"""
@@ -443,18 +428,22 @@ class SettingsWindow:
             if self.on_save_callback:
                 self.on_save_callback()
 
-    def _save_settings(self, devices, device_a_combo, device_b_combo):
-        """儲存設定"""
-        from logger import logger
-        logger.info("[設定視窗] 開始儲存設定...")
-        settings_saved = False
+    def _save_music_path_and_metadata(self):
+        """儲存音樂路徑和自動補全設定
 
-        # 儲存音樂根目錄設定(不依賴於裝置選擇)
+        Returns:
+            tuple: (settings_saved, normalized_path, original_path)
+        """
+        from logger import logger
+        from path_utils import normalize_network_path
+
+        settings_saved = False
+        normalized_path = ""
+
+        # 儲存音樂根目錄設定
         music_path = self.music_path_var.get().strip()
         logger.info(f"[設定視窗] 音樂路徑: {music_path}")
         if music_path:
-            # 使用 path_utils 標準化網路路徑
-            from path_utils import normalize_network_path
             normalized_path = normalize_network_path(music_path)
             self.config_manager.config['music_root_path'] = normalized_path
             self.config_manager.save_config()
@@ -476,44 +465,73 @@ class SettingsWindow:
                 f"這確保 Python 可以正確訪問網路路徑。"
             )
 
-        # 檢查音訊裝置設定
+        return settings_saved, normalized_path, music_path
+
+    def _validate_and_save_devices(self, devices, device_a_index, device_b_index, settings_saved):
+        """驗證並儲存音訊裝置設定
+
+        Args:
+            devices: 裝置列表
+            device_a_index: 裝置 A 的索引
+            device_b_index: 裝置 B 的索引
+            settings_saved: 是否已有設定被儲存
+
+        Returns:
+            bool: 是否成功儲存裝置設定
+        """
+        # 如果有選擇裝置,則驗證並儲存
+        if device_a_index != -1 or device_b_index != -1:
+            # 檢查是否只選擇了一個裝置
+            if device_a_index == -1 or device_b_index == -1:
+                warning_msg = ("音樂路徑已儲存,但音訊裝置設定不完整。\n請選擇兩個裝置以儲存音訊設定。"
+                             if settings_saved else "請選擇兩個裝置")
+                messagebox.showwarning("部分儲存" if settings_saved else "警告", warning_msg)
+                return settings_saved
+
+            # 檢查是否選擇了相同裝置
+            if device_a_index == device_b_index:
+                warning_msg = ("音樂路徑已儲存,但請選擇兩個不同的裝置以儲存音訊設定。"
+                             if settings_saved else "請選擇兩個不同的裝置")
+                messagebox.showwarning("部分儲存" if settings_saved else "警告", warning_msg)
+                return settings_saved
+
+            # 儲存音訊裝置設定
+            self.config_manager.set_device_a(devices[device_a_index])
+            self.config_manager.set_device_b(devices[device_b_index])
+            return True
+
+        return settings_saved
+
+    def _show_success_and_close(self):
+        """顯示成功訊息並關閉視窗"""
+        messagebox.showinfo("成功", "設定已儲存!")
+
+        # 呼叫回調函數
+        if self.on_save_callback:
+            self.on_save_callback()
+
+        self._close_window()
+
+    def _save_settings(self, devices, device_a_combo, device_b_combo):
+        """儲存設定"""
+        from logger import logger
+        logger.info("[設定視窗] 開始儲存設定...")
+
+        # 儲存音樂路徑和自動補全設定
+        settings_saved, _, _ = self._save_music_path_and_metadata()
+
+        # 取得裝置索引
         device_a_index = device_a_combo.current()
         device_b_index = device_b_combo.current()
 
-        # 如果有選擇裝置,則驗證並儲存
-        if device_a_index != -1 or device_b_index != -1:
-            if device_a_index == -1 or device_b_index == -1:
-                if settings_saved:
-                    messagebox.showwarning(
-                        "部分儲存",
-                        "音樂路徑已儲存,但音訊裝置設定不完整。\n請選擇兩個裝置以儲存音訊設定。"
-                    )
-                else:
-                    messagebox.showwarning("警告", "請選擇兩個裝置")
-                    return
-            elif device_a_index == device_b_index:
-                if settings_saved:
-                    messagebox.showwarning(
-                        "部分儲存",
-                        "音樂路徑已儲存,但請選擇兩個不同的裝置以儲存音訊設定。"
-                    )
-                else:
-                    messagebox.showwarning("警告", "請選擇兩個不同的裝置")
-                    return
-            else:
-                # 儲存音訊裝置設定
-                self.config_manager.set_device_a(devices[device_a_index])
-                self.config_manager.set_device_b(devices[device_b_index])
-                settings_saved = True
+        # 驗證並儲存裝置設定
+        settings_saved = self._validate_and_save_devices(
+            devices, device_a_index, device_b_index, settings_saved
+        )
 
+        # 顯示結果
         if settings_saved:
-            messagebox.showinfo("成功", "設定已儲存!")
-
-            # 呼叫回調函數
-            if self.on_save_callback:
-                self.on_save_callback()
-
-            self._close_window()
+            self._show_success_and_close()
         else:
             messagebox.showwarning("警告", "沒有可儲存的設定變更")
 
