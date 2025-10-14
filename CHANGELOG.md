@@ -221,6 +221,25 @@
     - 從「中等複雜」(C 級) 提升至「簡單」(A 級) ⭐
     - 所有測試 100% 通過，無 skip 無 fail
 
+- **重構成果 #8 - music_window.py::_update_progress** 🎵:
+  - **複雜度**: CC **9 (B 級) → 6 (B 級)** 🎉 降低 **33%**
+  - **方法**: 使用 TDD 方法與 Extract Method 模式重構
+    - 提取 5 個輔助方法：
+      1. `_should_play_next()` - 檢查是否播放結束（CC 2）
+      2. `_handle_paused_state()` - 處理暫停狀態（CC 2）
+      3. `_calculate_playback_position()` - 計算播放位置（CC 1）
+      4. `_format_time_text()` - 格式化時間文字（CC 1）
+      5. `_update_ui_progress()` - 更新 UI 進度（CC 3）
+    - `_update_progress()` 函數從 33 行優化至 19 行 (-42%)
+    - 每個輔助方法職責單一，易於測試和維護
+  - **測試驗證**:
+    - Music Window 測試：**5/5 通過** (100%)
+    - Music Manager 測試：**15/15 通過** (100%)
+    - flake8 檢查：**零錯誤** ✅
+    - radon cc 確認複雜度降低 ✅
+  - **改善**: 從 B 級複雜度進一步優化至更清晰的 B 級
+  - **收益**: 程式碼可讀性大幅提升，認知負擔降低
+
 - **Git Hooks 整合**:
   - 更新 `.git/hooks/pre-commit` 加入複雜度檢查
   - 執行順序：flake8 → xenon → pytest

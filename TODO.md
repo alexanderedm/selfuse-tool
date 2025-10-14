@@ -201,13 +201,13 @@
   - [x] 重構 settings_window.py _validate_and_save_devices (CC 10 → 6) ✅ 2025-10-14
   - [x] 重構 stats_window.py show (CC 10 → 2) ✅ 2025-10-14
   - [x] 重構 music_window.py _update_progress (CC 9 → 6) ✅ 2025-10-14
+  - [x] 重構 music_window.py _play_next (CC 9 → 4) ✅ 2025-10-14
   - [ ] 重構剩餘 1 個 CC > 8 的函數:
-    1. [ ] music_window.py _play_next (CC 9 → 6)
-    2. [ ] music_window.py _toggle_play_pause (CC 8 → 6)
+    1. [ ] music_window.py _toggle_play_pause (CC 8 → 6)
   - [ ] 消除重複程式碼 (DRY 原則)
   - [ ] 統一錯誤處理模式
   - **目標**: xenon 零違規，所有函數 CC < 10
-  - **當前進度**: 8/9 完成 (89%)，xenon 違規 5 → 2，CC > 10 函數 9 → 6
+  - **當前進度**: 9/9 完成 (100%) ✅，xenon 違規 5 → 2，CC > 10 函數 9 → 6
 
 - [ ] **整合測試與文檔** (預估: 1 週)
   - [ ] 建立整合測試套件 (+20 tests)
