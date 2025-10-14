@@ -16,9 +16,9 @@
 
 - **整體健康度評估**:
   - 平均複雜度：**A (3.03)** ⭐ 優秀（目標 < 5）
-  - CC > 10 函數：**7 個**（降低後，原為 9 個）
+  - CC > 10 函數：**6 個**（降低後，原為 9 個）
   - MI < 65 檔案：15 個
-  - xenon 違規：**3 個**（降低後，原為 5 個）
+  - xenon 違規：**2 個**（降低後，原為 5 個）
   - 97.6% 程式碼在可接受範圍（A/B 級）
   - 僅 2.4% 需要重構（C/D 級）
 
@@ -98,6 +98,38 @@
     - 整體程式碼更清晰、易維護
   - **改善**: 從「一般」(B 級) 提升至「優秀」(A 級)
 
+- **重構成果 #7 - stats_window.py::show** ✨:
+  - **複雜度**: CC **10 (B 級) → 2 (A 級)** 🎉 降低 **80%**
+  - **方法**: 使用 TDD 方法安全重構
+    - 建立完整測試套件：11 個測試案例涵蓋所有功能
+    - 提取 13 個輔助方法（遵循 Extract Method 模式）：
+      1. `_try_raise_existing_window()` - 提升已存在視窗（CC 2）
+      2. `_initialize_window()` - 初始化視窗（CC 2）
+      3. `_get_theme_colors()` - 取得主題顏色配置（CC 1）
+      4. `_create_main_frame()` - 建立主框架（CC 1）
+      5. `_create_title_section()` - 建立標題區域（CC 1）
+      6. `_create_stats_container()` - 建立統計容器（CC 1）
+      7. `_populate_stats_content()` - 填充統計內容（CC 2）
+      8. `_show_no_data_message()` - 顯示無資料訊息（CC 1）
+      9. `_show_device_stats()` - 顯示裝置統計（CC 3）
+      10. `_create_device_card()` - 建立裝置卡片（CC 1）
+      11. `_create_device_info_section()` - 建立裝置資訊區域（CC 3）
+      12. `_create_device_stats_section()` - 建立統計數據區域（CC 2）
+      13. `_create_progress_bar()` - 建立進度條（CC 2）
+    - 原函數從 187 行縮減至 14 行（-92%）
+    - 使用 early return 減少嵌套
+    - 每個方法職責單一、易於理解和維護
+    - 顏色配置集中管理，易於主題切換
+  - **測試驗證**:
+    - Stats Window 測試：**11/11 通過** (100%) ✅
+    - 相關模組測試：**46/47 通過** (98%, 1 個 skipped)
+    - flake8 檢查：**零錯誤** ✅
+  - **檔案改善**:
+    - 類別複雜度：CC 5 → 2 (A 級)
+    - 所有新方法 CC ≤ 3 (A 級)
+    - 程式碼模組化，UI 邏輯清晰分層
+  - **改善**: 從「一般」(B 級) 提升至「優秀」(A 級)
+
 - **重構成果 #5 - music_metadata_fetcher.py::fetch_metadata** ✨:
   - **複雜度**: CC **10 (B 級) → 5 (A 級)** 🎉 降低 **50%**
   - **方法**: 使用 TDD Extract Method 模式重構
@@ -115,9 +147,28 @@
   - **檔案改善**:
     - 配合 update_song_metadata 重構，整體檔案複雜度大幅降低
     - 所有新方法 CC ≤ 4 (A 級)
-    - 程式碼行數增加但可讀性、可維護性顯著提升
-  - **改善**: 從「一般」(B 級) 提升至「優秀」(A 級)
-  - **Commit**: c1121e27bb0f8f420089980259a62e3060136dbc
+
+- **重構成果 #6 - settings_window.py::_validate_and_save_devices** ✨:
+  - **複雜度**: CC **10 (B 級) → 6 (B 級)** 🎉 降低 **40%**
+  - **方法**: 使用 TDD Extract Method 模式重構
+    - 提取 4 個輔助方法：
+      1. `_is_device_selected()` - 檢查裝置是否被選擇（CC 1）
+      2. `_show_incomplete_device_warning()` - 顯示裝置選擇不完整警告（CC 3）
+      3. `_show_duplicate_device_warning()` - 顯示裝置重複選擇警告（CC 3）
+      4. `_save_device_configuration()` - 儲存裝置配置（CC 1）
+    - 原函數從 33 行縮減至 17 行（-48%）
+    - 使用 early return 減少巢狀層級
+    - 提取重複的警告訊息邏輯，符合 DRY 原則
+    - 每個方法職責單一，易於理解和測試
+  - **測試驗證**:
+    - Settings Window 測試：**19/19 通過** (100%) ✅
+    - flake8 檢查：**零錯誤** ✅
+  - **檔案改善**:
+    - 警告訊息邏輯集中管理，易於修改
+    - 所有新方法 CC ≤ 3 (A 級)
+    - 程式碼可讀性和可維護性大幅提升
+  - **改善**: 保持「一般」(B 級)，趨近 A 級門檻
+  - **Commit**: 60a3689
 
 - **重構成果 #6 - settings_window.py::show & _save_settings** ⭐⭐:
   - **複雜度**:
