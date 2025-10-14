@@ -467,6 +467,48 @@ class SettingsWindow:
 
         return settings_saved, normalized_path, music_path
 
+    def _is_device_selected(self, device_index):
+        """檢查裝置是否被選擇
+
+        Args:
+            device_index: 裝置索引
+
+        Returns:
+            bool: 是否已選擇裝置
+        """
+        return device_index != -1
+
+    def _show_incomplete_device_warning(self, settings_saved):
+        """顯示裝置選擇不完整的警告訊息
+
+        Args:
+            settings_saved: 是否已有其他設定被儲存
+        """
+        warning_msg = ("音樂路徑已儲存,但音訊裝置設定不完整。\n請選擇兩個裝置以儲存音訊設定。"
+                     if settings_saved else "請選擇兩個裝置")
+        messagebox.showwarning("部分儲存" if settings_saved else "警告", warning_msg)
+
+    def _show_duplicate_device_warning(self, settings_saved):
+        """顯示裝置重複選擇的警告訊息
+
+        Args:
+            settings_saved: 是否已有其他設定被儲存
+        """
+        warning_msg = ("音樂路徑已儲存,但請選擇兩個不同的裝置以儲存音訊設定。"
+                     if settings_saved else "請選擇兩個不同的裝置")
+        messagebox.showwarning("部分儲存" if settings_saved else "警告", warning_msg)
+
+    def _save_device_configuration(self, devices, device_a_index, device_b_index):
+        """儲存裝置配置到設定檔
+
+        Args:
+            devices: 裝置列表
+            device_a_index: 裝置 A 的索引
+            device_b_index: 裝置 B 的索引
+        """
+        self.config_manager.set_device_a(devices[device_a_index])
+        self.config_manager.set_device_b(devices[device_b_index])
+
     def _validate_and_save_devices(self, devices, device_a_index, device_b_index, settings_saved):
         """驗證並儲存音訊裝置設定
 
@@ -479,28 +521,23 @@ class SettingsWindow:
         Returns:
             bool: 是否成功儲存裝置設定
         """
-        # 如果有選擇裝置,則驗證並儲存
-        if device_a_index != -1 or device_b_index != -1:
-            # 檢查是否只選擇了一個裝置
-            if device_a_index == -1 or device_b_index == -1:
-                warning_msg = ("音樂路徑已儲存,但音訊裝置設定不完整。\n請選擇兩個裝置以儲存音訊設定。"
-                             if settings_saved else "請選擇兩個裝置")
-                messagebox.showwarning("部分儲存" if settings_saved else "警告", warning_msg)
-                return settings_saved
+        # 如果沒有選擇任何裝置,直接返回
+        if not self._is_device_selected(device_a_index) and not self._is_device_selected(device_b_index):
+            return settings_saved
 
-            # 檢查是否選擇了相同裝置
-            if device_a_index == device_b_index:
-                warning_msg = ("音樂路徑已儲存,但請選擇兩個不同的裝置以儲存音訊設定。"
-                             if settings_saved else "請選擇兩個不同的裝置")
-                messagebox.showwarning("部分儲存" if settings_saved else "警告", warning_msg)
-                return settings_saved
+        # 檢查是否只選擇了一個裝置
+        if not self._is_device_selected(device_a_index) or not self._is_device_selected(device_b_index):
+            self._show_incomplete_device_warning(settings_saved)
+            return settings_saved
 
-            # 儲存音訊裝置設定
-            self.config_manager.set_device_a(devices[device_a_index])
-            self.config_manager.set_device_b(devices[device_b_index])
-            return True
+        # 檢查是否選擇了相同裝置
+        if device_a_index == device_b_index:
+            self._show_duplicate_device_warning(settings_saved)
+            return settings_saved
 
-        return settings_saved
+        # 儲存音訊裝置設定
+        self._save_device_configuration(devices, device_a_index, device_b_index)
+        return True
 
     def _show_success_and_close(self):
         """顯示成功訊息並關閉視窗"""
