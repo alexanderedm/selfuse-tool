@@ -422,34 +422,57 @@ class MusicWindow:
         except Exception as e:
             logger.error(f"更新 UI 失敗: {e}")
 
+    def _start_first_song_if_available(self):
+        """如果沒有歌曲但有播放列表，播放第一首歌
+
+        Returns:
+            bool: 如果開始播放第一首歌則返回 True
+        """
+        if self.playlist:
+            self.current_index = 0
+            self._play_song(self.playlist[0])
+            return True
+        return False
+
+    def _resume_playback(self):
+        """恢復播放"""
+        pygame.mixer.music.unpause()
+        self.is_paused = False
+        self.start_time = time.time() - self.pause_position
+        self._update_playback_ui(is_paused=False)
+
+    def _pause_playback(self):
+        """暫停播放"""
+        pygame.mixer.music.pause()
+        self.is_paused = True
+        self.pause_position = time.time() - self.start_time
+        self._update_playback_ui(is_paused=True)
+
+    def _update_playback_ui(self, is_paused):
+        """更新播放/暫停按鈕 UI
+
+        Args:
+            is_paused (bool): 是否為暫停狀態
+        """
+        if self.playback_view:
+            self.playback_view.update_play_pause_button(is_paused=is_paused)
+
     def _toggle_play_pause(self):
         """切換播放/暫停"""
+        # 如果沒有歌曲，嘗試播放第一首
         if not self.current_song:
-            # 如果沒有歌曲,播放第一首
-            if self.playlist:
-                self.current_index = 0
-                self._play_song(self.playlist[0])
+            self._start_first_song_if_available()
             return
 
+        # 如果正在播放，切換暫停/恢復
         if self.is_playing:
             if self.is_paused:
-                # 恢復播放
-                pygame.mixer.music.unpause()
-                self.is_paused = False
-                self.start_time = time.time() - self.pause_position  # 調整開始時間
-                if self.playback_view:
-                    self.playback_view.update_play_pause_button(is_paused=False)
+                self._resume_playback()
             else:
-                # 暫停
-                pygame.mixer.music.pause()
-                self.is_paused = True
-                self.pause_position = time.time() - self.start_time  # 記錄暫停位置
-                if self.playback_view:
-                    self.playback_view.update_play_pause_button(is_paused=True)
+                self._pause_playback()
         else:
-            # 重新播放
-            if self.current_song:
-                self._play_song(self.current_song)
+            # 重新播放當前歌曲
+            self._play_song(self.current_song)
 
     def _play_previous(self):
         """播放上一首"""

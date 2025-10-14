@@ -170,6 +170,133 @@ class RSSManager:
         """
         return self.config_manager.get_rss_feeds()
 
+    def _get_cached_entries(self, url):
+        """從快取取得文章列表
+
+        Args:
+            url (str): RSS feed URL
+
+        Returns:
+            list or None: 快取的文章列表，如果快取無效則返回 None
+        """
+        if url not in self.cache:
+            return None
+
+        cache_data = self.cache[url]
+        if time.time() - cache_data['last_update'] < self.cache_timeout:
+            return cache_data['entries']
+
+        return None
+
+    def _parse_publish_time(self, entry):
+        """解析文章發布時間
+
+        Args:
+            entry: feedparser entry 物件
+
+        Returns:
+            str: 格式化的發布時間
+        """
+        if hasattr(entry, 'published_parsed') and entry.published_parsed:
+            try:
+                return time.strftime('%Y-%m-%d %H:%M', entry.published_parsed)
+            except:
+                pass
+
+        if hasattr(entry, 'updated_parsed') and entry.updated_parsed:
+            try:
+                return time.strftime('%Y-%m-%d %H:%M', entry.updated_parsed)
+            except:
+                pass
+
+        return '未知時間'
+
+    def _extract_entry_content(self, entry):
+        """提取文章內容
+
+        Args:
+            entry: feedparser entry 物件
+
+        Returns:
+            str: 文章內容（可能包含 HTML）
+        """
+        # 嘗試取得完整內容
+        if hasattr(entry, 'content') and entry.content:
+            if isinstance(entry.content, list) and len(entry.content) > 0:
+                return entry.content[0].get('value', '')
+            return str(entry.content)
+
+        # 如果沒有完整內容，使用摘要
+        if hasattr(entry, 'summary'):
+            return entry.summary
+
+        # 如果有 description 欄位也嘗試使用
+        if hasattr(entry, 'description'):
+            return entry.description
+
+        return ''
+
+    def _process_content_and_summary(self, content):
+        """處理內容並生成摘要
+
+        Args:
+            content (str): 原始內容（可能包含 HTML）
+
+        Returns:
+            tuple: (content_html, content_text, summary)
+        """
+        if not content:
+            return '', '無內容', '無內容'
+
+        content_html = content
+        # 移除 HTML 標籤建立純文字版本
+        content_text = re.sub('<[^<]+?>', '', content)
+        # 清理多餘空白
+        content_text = re.sub(r'\s+', ' ', content_text).strip()
+
+        # 建立摘要（前200字）
+        if len(content_text) > 200:
+            summary = content_text[:200] + '...'
+        else:
+            summary = content_text
+
+        return content_html, content_text, summary
+
+    def _parse_feed_entry(self, entry):
+        """解析單個 feed entry
+
+        Args:
+            entry: feedparser entry 物件
+
+        Returns:
+            dict: 解析後的文章資料
+        """
+        published = self._parse_publish_time(entry)
+        content = self._extract_entry_content(entry)
+        content_html, content_text, summary = self._process_content_and_summary(content)
+
+        return {
+            'id': entry.get('link', ''),
+            'title': entry.get('title', '無標題'),
+            'link': entry.get('link', ''),
+            'published': published,
+            'summary': summary,
+            'content': content_text,
+            'content_html': content_html
+        }
+
+    def _update_cache(self, url, entries):
+        """更新快取
+
+        Args:
+            url (str): RSS feed URL
+            entries (list): 文章列表
+        """
+        self.cache[url] = {
+            'entries': entries,
+            'last_update': time.time()
+        }
+
     def fetch_feed_entries(self, url, force_refresh=False):
         """抓取指定 RSS feed 的文章列表
 
@@ -181,10 +308,10 @@ class RSSManager:
             list: 文章列表 [{'title': str, 'link': str, 'published': str, 'summary': str}]
         """
         # 檢查快取
-        if not force_refresh and url in self.cache:
-            cache_data = self.cache[url]
-            if time.time() - cache_data['last_update'] < self.cache_timeout:
-                return cache_data['entries']
+        if not force_refresh:
+            cached_entries = self._get_cached_entries(url)
+            if cached_entries is not None:
+                return cached_entries
 
         # 抓取 feed
         try:
@@ -194,78 +321,10 @@ class RSSManager:
                 return []
 
             entries = []
-            for entry in feed.entries[:RSS_MAX_ENTRIES]:  # 最多取設定數量的文章
-                # 處理發布時間
-                published = '未知時間'
-                if hasattr(entry, 'published_parsed') and entry.published_parsed:
-                    try:
-                        published = time.strftime('%Y-%m-%d %H:%M', entry.published_parsed)
-                    except:
-                        pass
-                elif hasattr(entry, 'updated_parsed') and entry.updated_parsed:
-                    try:
-                        published = time.strftime('%Y-%m-%d %H:%M', entry.updated_parsed)
-                    except:
-                        pass
+            for entry in feed.entries[:RSS_MAX_ENTRIES]:
+                entries.append(self._parse_feed_entry(entry))
 
-                # 處理內容 - 優先使用完整內容,其次使用摘要
-                content = ''
-                summary = ''
-
-                # 嘗試取得完整內容
-                if hasattr(entry, 'content') and entry.content:
-                    # content 通常是列表
-                    if isinstance(entry.content, list) and len(entry.content) > 0:
-                        content = entry.content[0].get('value', '')
-                    else:
-                        content = str(entry.content)
-
-                # 如果沒有完整內容,使用摘要
-                if not content and hasattr(entry, 'summary'):
-                    content = entry.summary
-
-                # 如果有 description 欄位也嘗試使用
-                if not content and hasattr(entry, 'description'):
-                    content = entry.description
-
-                # 移除 HTML 標籤建立純文字版本
-                if content:
-                    # 保留原始 HTML 內容
-                    content_html = content
-                    # 建立純文字版本
-                    content_text = re.sub('<[^<]+?>', '', content)
-                    # 清理多餘空白
-                    content_text = re.sub(r'\s+', ' ', content_text).strip()
-
-                    # 建立摘要 (前200字)
-                    if len(content_text) > 200:
-                        summary = content_text[:200] + '...'
-                    else:
-                        summary = content_text
-                else:
-                    content_html = ''
-                    content_text = '無內容'
-                    summary = '無內容'
-
-                # 產生文章唯一 ID (使用 link 作為 ID)
-                article_id = entry.get('link', '')
-
-                entries.append({
-                    'id': article_id,
-                    'title': entry.get('title', '無標題'),
-                    'link': entry.get('link', ''),
-                    'published': published,
-                    'summary': summary,
-                    'content': content_text,  # 完整純文字內容
-                    'content_html': content_html  # 原始 HTML 內容
-                })
-
-            # 更新快取
-            self.cache[url] = {
-                'entries': entries,
-                'last_update': time.time()
-            }
-
+            self._update_cache(url, entries)
             return entries
 
         except Exception as e:
