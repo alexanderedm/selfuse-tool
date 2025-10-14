@@ -16,6 +16,7 @@ from music_history_dialog import MusicHistoryDialog
 from music_playlist_dialog import MusicPlaylistDialog
 from music_download_dialog import MusicDownloadDialog
 from music_metadata_fetcher import MusicMetadataFetcher
+from music_library_view import MusicLibraryView
 from PIL import Image, ImageTk, ImageDraw
 import requests
 from io import BytesIO
@@ -56,8 +57,9 @@ class MusicWindow:
         self.default_cover_image = None  # 預設封面圖片
 
         # UI 元件
-        self.category_tree = None  # 使用 Treeview 替換 Listbox
-        self.song_tree = None  # 使用 Treeview 顯示歌曲列表
+        self.library_view = None  # 音樂庫視圖 (MusicLibraryView)
+        self.category_tree = None  # 使用 Treeview 替換 Listbox (將被 library_view 取代)
+        self.song_tree = None  # 使用 Treeview 顯示歌曲列表 (將被 library_view 取代)
         self.current_song_label = None
         self.artist_label = None  # 藝術家標籤
         self.play_pause_button = None
@@ -251,78 +253,28 @@ class MusicWindow:
         content_frame = tk.Frame(main_frame, bg=bg_color)
         content_frame.pack(fill=tk.BOTH, expand=True)
 
-        # 左側:資料夾樹狀結構
-        left_frame = tk.Frame(content_frame, bg=card_bg, relief=tk.RIDGE, bd=1)
-        left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=False, padx=(0, 10))
-        left_frame.config(width=350)  # 增加寬度從 250 到 350
+        # 建立容器用於音樂庫視圖和搜尋框
+        library_container = tk.Frame(content_frame, bg=bg_color)
+        library_container.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
 
-        category_header = tk.Label(
-            left_frame,
-            text="📁 資料夾",
-            font=("Microsoft JhengHei UI", 11, "bold"),
-            bg=header_bg,
-            fg="white",
-            pady=8
-        )
-        category_header.pack(fill=tk.X)
-
-        # 建立 Treeview
-        tree_frame = tk.Frame(left_frame, bg=card_bg)
-        tree_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
-
-        category_scroll = tk.Scrollbar(tree_frame)
-        category_scroll.pack(side=tk.RIGHT, fill=tk.Y)
-
-        # 設定 Treeview 樣式
-        style = ttk.Style()
-        style.theme_use('default')
-        style.configure(
-            "Music.Treeview",
-            background=card_bg,
-            foreground=text_color,
-            fieldbackground=card_bg,
-            borderwidth=0,
-            rowheight=28,  # 增加行高
-            font=("Microsoft JhengHei UI", 10)  # 增加字體大小
-        )
-        style.configure("Music.Treeview.Heading", background=header_bg, foreground="white")
-        style.map('Music.Treeview', background=[('selected', accent_color)])
-
-        self.category_tree = ttk.Treeview(
-            tree_frame,
-            yscrollcommand=category_scroll.set,
-            style="Music.Treeview",
-            selectmode='browse',
-            show='tree'  # 只顯示樹狀結構,不顯示標題
-        )
-        self.category_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        category_scroll.config(command=self.category_tree.yview)
-
-        # 綁定事件
-        self.category_tree.bind('<<TreeviewSelect>>', self._on_category_select)
-        self.category_tree.bind('<Button-3>', self._on_category_right_click)  # 右鍵選單
-        self.category_tree.bind('<Double-1>', self._on_category_double_click)  # 雙擊展開/收合
-
-        # 中間:歌曲列表
-        middle_frame = tk.Frame(content_frame, bg=card_bg, relief=tk.RIDGE, bd=1)
-        middle_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
-
-        song_header = tk.Label(
-            middle_frame,
-            text="🎵 歌曲列表",
-            font=("Microsoft JhengHei UI", 11, "bold"),
-            bg=header_bg,
-            fg="white",
-            pady=8
-        )
-        song_header.pack(fill=tk.X)
-
-        # 搜尋框
-        search_frame = tk.Frame(middle_frame, bg=card_bg)
-        search_frame.pack(fill=tk.X, padx=5, pady=5)
+        # 搜尋框 (放在音樂庫視圖上方)
+        search_frame = tk.Frame(library_container, bg=card_bg, relief=tk.RIDGE, bd=1)
+        search_frame.pack(fill=tk.X, pady=(0, 10))
 
         tk.Label(
             search_frame,
+            text="🔍 搜尋音樂",
+            font=("Microsoft JhengHei UI", 11, "bold"),
+            bg=header_bg,
+            fg="white",
+            pady=8
+        ).pack(fill=tk.X)
+
+        search_input_frame = tk.Frame(search_frame, bg=card_bg)
+        search_input_frame.pack(fill=tk.X, padx=10, pady=10)
+
+        tk.Label(
+            search_input_frame,
             text="🔍",
             font=("Arial", 12),
             bg=card_bg,
@@ -330,7 +282,7 @@ class MusicWindow:
         ).pack(side=tk.LEFT, padx=(0, 5))
 
         self.search_entry = tk.Entry(
-            search_frame,
+            search_input_frame,
             font=("Microsoft JhengHei UI", 10),
             bg="#3d3d3d",
             fg=text_color,
@@ -343,7 +295,7 @@ class MusicWindow:
 
         # 清除搜尋按鈕
         clear_search_button = tk.Button(
-            search_frame,
+            search_input_frame,
             text="✖",
             font=("Arial", 10),
             bg=card_bg,
@@ -356,46 +308,19 @@ class MusicWindow:
         )
         clear_search_button.pack(side=tk.LEFT, padx=(5, 0))
 
-        # 建立 Treeview 用於歌曲列表
-        song_tree_frame = tk.Frame(middle_frame, bg=card_bg)
-        song_tree_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
-
-        song_scroll = tk.Scrollbar(song_tree_frame)
-        song_scroll.pack(side=tk.RIGHT, fill=tk.Y)
-
-        # 設定 Treeview 樣式
-        style.configure(
-            "Song.Treeview",
-            background=card_bg,
-            foreground=text_color,
-            fieldbackground=card_bg,
-            borderwidth=0,
-            rowheight=25
-        )
-        style.configure("Song.Treeview.Heading", background=header_bg, foreground="white", font=("Microsoft JhengHei UI", 10, "bold"))
-        style.map('Song.Treeview', background=[('selected', accent_color)])
-
-        # 建立 Treeview,包含標題和時長兩個欄位
-        self.song_tree = ttk.Treeview(
-            song_tree_frame,
-            columns=('title', 'duration'),
-            show='headings',
-            yscrollcommand=song_scroll.set,
-            style="Song.Treeview",
-            selectmode='browse'
+        # 使用 MusicLibraryView 顯示音樂庫
+        self.library_view = MusicLibraryView(
+            parent=library_container,
+            music_manager=self.music_manager,
+            on_category_select=self._on_library_category_select,
+            on_song_double_click=self._on_library_song_double_click,
+            on_category_rename=self._rename_folder,
+            on_category_delete=self._delete_folder
         )
 
-        # 設定欄位標題和寬度
-        self.song_tree.heading('title', text='🎵 歌曲名稱', anchor=tk.W)
-        self.song_tree.heading('duration', text='⏱ 時長', anchor=tk.E)
-
-        # 設定欄位寬度
-        self.song_tree.column('title', width=400, anchor=tk.W)
-        self.song_tree.column('duration', width=80, anchor=tk.E)
-
-        self.song_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        song_scroll.config(command=self.song_tree.yview)
-        self.song_tree.bind('<Double-1>', self._on_song_double_click)
+        # 保持向後相容:設定 category_tree 和 song_tree 引用
+        self.category_tree = self.library_view.category_tree
+        self.song_tree = self.library_view.song_tree
 
         # 右側:播放控制區
         right_frame = tk.Frame(content_frame, bg=card_bg, relief=tk.RIDGE, bd=1)
@@ -590,40 +515,41 @@ class MusicWindow:
             messagebox.showerror("錯誤", result['message'])
             return
 
-        # 清空樹狀結構
-        for item in self.category_tree.get_children():
-            self.category_tree.delete(item)
-
-        # 新增 "所有歌曲" 根節點
-        all_songs_node = self.category_tree.insert('', 'end', text='📋 所有歌曲', values=('all',), open=True)
-
-        # 載入分類(資料夾) - 包含空資料夾
-        categories = self.music_manager.get_all_categories()
-        for category in categories:
-            # 新增資料夾節點(即使是空資料夾也顯示)
-            folder_node = self.category_tree.insert('', 'end', text=f'📁 {category}', values=(f'folder:{category}',), open=False)
-
-            # 載入該資料夾下的歌曲
-            songs = self.music_manager.get_songs_by_category(category)
-            if songs:
-                for song in songs:
-                    duration_str = self.music_manager.format_duration(song['duration'])
-                    song_text = f'🎵 {song["title"]} ({duration_str})'
-                    # 將歌曲資訊編碼到 values 中
-                    song_id = song.get('id', '')
-                    self.category_tree.insert(folder_node, 'end', text=song_text, values=(f'song:{song_id}',))
-            else:
-                # 空資料夾:新增一個提示節點
-                self.category_tree.insert(folder_node, 'end', text='   (空資料夾)', values=('empty',), tags=('empty',))
-
-        # 預設選擇所有歌曲
-        self.category_tree.selection_set(all_songs_node)
-        self._load_all_songs()
+        # 使用 MusicLibraryView 重新載入音樂庫
+        if self.library_view:
+            self.library_view.reload_library()
 
     def _load_all_songs(self):
         """載入所有歌曲"""
         songs = self.music_manager.get_all_songs()
         self._display_songs(songs)
+
+    def _on_library_category_select(self, item_type):
+        """音樂庫視圖的分類選擇回調
+
+        Args:
+            item_type: 項目類型 ('all', 'folder:name', 'song:id')
+        """
+        # 清除搜尋框
+        if self.search_entry:
+            self.search_entry.delete(0, tk.END)
+
+        # 這個回調由 MusicLibraryView 內部處理,
+        # 我們只需要更新 playlist 引用
+        if self.library_view:
+            self.playlist = self.library_view.get_current_playlist()
+
+    def _on_library_song_double_click(self, song, playlist, index):
+        """音樂庫視圖的歌曲雙擊回調
+
+        Args:
+            song: 歌曲資訊
+            playlist: 當前播放列表
+            index: 歌曲在播放列表中的索引
+        """
+        self.playlist = playlist
+        self.current_index = index
+        self._play_song(song)
 
     def _on_search_change(self, event):
         """搜尋框內容改變事件"""
@@ -631,19 +557,34 @@ class MusicWindow:
 
         if not keyword:
             # 搜尋框為空,重新載入當前分類
-            self._reload_current_category()
+            if self.library_view:
+                # 讓 MusicLibraryView 重新顯示當前選中的分類
+                selected = self.library_view.get_selected_category()
+                if selected:
+                    self._on_library_category_select(selected)
+                else:
+                    self._load_all_songs()
             return
 
-        # 搜尋歌曲
+        # 搜尋歌曲並顯示
         results = self.music_manager.search_songs(keyword)
-        self._display_songs(results)
+        if self.library_view:
+            self.library_view.display_songs(results)
+        else:
+            self._display_songs(results)
 
         logger.info(f"搜尋關鍵字: '{keyword}', 找到 {len(results)} 首歌曲")
 
     def _clear_search(self):
         """清除搜尋"""
         self.search_entry.delete(0, tk.END)
-        self._reload_current_category()
+        if self.library_view:
+            # 讓 MusicLibraryView 重新顯示當前選中的分類
+            selected = self.library_view.get_selected_category()
+            if selected:
+                self._on_library_category_select(selected)
+            else:
+                self._load_all_songs()
 
     def _reload_current_category(self):
         """重新載入當前選擇的分類"""
