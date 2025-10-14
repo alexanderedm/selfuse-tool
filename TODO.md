@@ -196,17 +196,17 @@
   - [x] 重構 rss_manager.py fetch_feed_entries (CC 24 → 7) ✅ 2025-10-14
   - [x] 重構 youtube_downloader.py download_audio (CC 19 → 7) ✅ 2025-10-14
   - [x] 重構 music_library_view.py _on_category_select_internal (CC 11 → 6) ✅ 2025-10-14
-  - [ ] 重構剩餘 6 個 CC > 10 的函數:
-    1. [ ] settings_window.py show (CC 13 → 6)
-    2. [ ] settings_window.py _save_settings (CC 13 → 6)
-    3. [ ] music_metadata_fetcher.py fetch_metadata (CC 10 → 6)
-    4. [ ] music_metadata_fetcher.py update_song_metadata (CC 10 → 6)
-    5. [ ] stats_window.py show (CC 10 → 6)
-    6. [ ] rss_manager.py is_valid_rss_url (CC 9 → 5)
+  - [x] 重構 music_metadata_fetcher.py update_song_metadata (CC 10 → 5) ✅ 2025-10-14
+  - [x] 重構 music_metadata_fetcher.py fetch_metadata (CC 10 → 5) ✅ 2025-10-14
+  - [ ] 重構剩餘 4 個 CC > 10 的函數:
+    1. [ ] settings_window.py _validate_and_save_devices (CC 10 → 6)
+    2. [ ] stats_window.py show (CC 10 → 6)
+    3. [ ] music_window.py _play_next (CC 9 → 6)
+    4. [ ] music_window.py _update_progress (CC 9 → 6)
   - [ ] 消除重複程式碼 (DRY 原則)
   - [ ] 統一錯誤處理模式
   - **目標**: xenon 零違規，所有函數 CC < 10
-  - **當前進度**: 3/9 完成 (33%)，xenon 違規 5 → 3，CC > 10 函數 9 → 7
+  - **當前進度**: 5/9 完成 (56%)，xenon 違規估計 5 → 2，CC > 10 函數 9 → 4
 
 - [ ] **整合測試與文檔** (預估: 1 週)
   - [ ] 建立整合測試套件 (+20 tests)
