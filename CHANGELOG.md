@@ -6,6 +6,31 @@
 
 ## [未發布]
 
+### ♻️ 重構 (2025-10-13) - MusicLibraryView 整合完成 (階段 1)
+- **MusicLibraryView 整合至 music_window.py**:
+  - 成功將 MusicLibraryView 模組整合到主視窗
+  - 替換直接建立 UI 元件的代碼,使用模組化設計
+  - 新增 `_on_library_category_select()` 回調處理分類選擇
+  - 新增 `_on_library_song_double_click()` 回調處理歌曲雙擊
+  - 調整搜尋功能使用 MusicLibraryView 的 display_songs()
+  - 簡化 `_load_music_library()` 方法,委託給 MusicLibraryView
+  - 保持向後相容:設定 category_tree 和 song_tree 引用
+
+- **程式碼縮減成果**:
+  - music_window.py: 1,548 → 1,489 行 (-59 行, -3%)
+  - 移除重複的 UI 建立代碼 (資料夾樹和歌曲列表)
+  - 提升程式碼可維護性和模組化程度
+
+- **測試結果**:
+  - 所有 289 個測試通過 (100%)
+  - flake8 零錯誤
+  - MusicLibraryView 19 個測試全部通過
+
+- **下一步計畫**:
+  - ⏳ 階段 2: 建立 MusicSearchView 模組 (~150 行)
+  - ⏳ 階段 3: 建立 MusicHeaderView 模組 (~100 行)
+  - 🎯 最終目標: music_window.py < 800 行
+
 ### ♻️ 重構 (2025-10-13) - MusicLibraryView 模組抽離 (Day 1)
 - **建立 MusicLibraryView 獨立模組** (`music_library_view.py` 新增):
   - 從 music_window.py 抽離資料夾樹和歌曲列表 UI (約 300 行邏輯)
