@@ -19,6 +19,7 @@ from music_metadata_fetcher import MusicMetadataFetcher
 from music_library_view import MusicLibraryView
 from music_search_view import MusicSearchView
 from music_header_view import MusicHeaderView
+from music_playback_view import MusicPlaybackView
 from PIL import Image, ImageTk, ImageDraw
 import requests
 from io import BytesIO
@@ -62,16 +63,17 @@ class MusicWindow:
         self.header_view = None  # 頂部標題和按鈕視圖 (MusicHeaderView)
         self.library_view = None  # 音樂庫視圖 (MusicLibraryView)
         self.search_view = None  # 搜尋視圖 (MusicSearchView)
+        self.playback_view = None  # 播放控制視圖 (MusicPlaybackView)
         self.category_tree = None  # 使用 Treeview 替換 Listbox (將被 library_view 取代)
         self.song_tree = None  # 使用 Treeview 顯示歌曲列表 (將被 library_view 取代)
-        self.current_song_label = None
-        self.artist_label = None  # 藝術家標籤
-        self.play_pause_button = None
-        self.play_mode_button = None  # 播放模式按鈕
-        self.progress_bar = None
-        self.time_label = None
-        self.volume_scale = None
-        self.album_cover_label = None  # 專輯封面
+        self.current_song_label = None  # 向後相容 (由 playback_view 管理)
+        self.artist_label = None  # 向後相容 (由 playback_view 管理)
+        self.play_pause_button = None  # 向後相容 (由 playback_view 管理)
+        self.play_mode_button = None  # 向後相容 (由 playback_view 管理)
+        self.progress_bar = None  # 向後相容 (由 playback_view 管理)
+        self.time_label = None  # 向後相容 (由 playback_view 管理)
+        self.volume_scale = None  # 向後相容 (由 playback_view 管理)
+        self.album_cover_label = None  # 向後相容 (由 playback_view 管理)
         self.search_entry = None  # 搜尋框 (將被 search_view 取代)
 
         # YouTube 下載器
@@ -215,179 +217,31 @@ class MusicWindow:
         self.category_tree = self.library_view.category_tree
         self.song_tree = self.library_view.song_tree
 
-        # 右側:播放控制區
-        right_frame = tk.Frame(content_frame, bg=card_bg, relief=tk.RIDGE, bd=1)
-        right_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=False)
-        right_frame.config(width=250)
-
-        control_header = tk.Label(
-            right_frame,
-            text="🎧 播放控制",
-            font=("Microsoft JhengHei UI", 11, "bold"),
-            bg=header_bg,
-            fg="white",
-            pady=8
+        # 使用 MusicPlaybackView 建立播放控制區
+        self.playback_view = MusicPlaybackView(
+            parent_frame=content_frame,
+            music_manager=self.music_manager,
+            on_play_pause=self._toggle_play_pause,
+            on_play_previous=self._play_previous,
+            on_play_next=self._play_next,
+            on_volume_change=self._on_volume_change,
+            on_cycle_play_mode=self._cycle_play_mode
         )
-        control_header.pack(fill=tk.X)
+        self.playback_view.create_view()
 
-        control_content = tk.Frame(right_frame, bg=card_bg)
-        control_content.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        # 保持向後相容:設定引用
+        self.current_song_label = self.playback_view.current_song_label
+        self.artist_label = self.playback_view.artist_label
+        self.play_pause_button = self.playback_view.play_pause_button
+        self.play_mode_button = self.playback_view.play_mode_button
+        self.progress_bar = self.playback_view.progress_bar
+        self.time_label = self.playback_view.time_label
+        self.volume_scale = self.playback_view.volume_scale
+        self.album_cover_label = self.playback_view.album_cover_label
 
-        # 專輯封面(縮圖)
-        self.album_cover_label = tk.Label(
-            control_content,
-            bg=card_bg,
-            text="🎵",
-            font=("Arial", 48),
-            fg=text_secondary
-        )
-        self.album_cover_label.pack(pady=(0, 10))
-
-        # 當前播放歌曲
-        tk.Label(
-            control_content,
-            text="正在播放:",
-            font=("Microsoft JhengHei UI", 9),
-            bg=card_bg,
-            fg=text_secondary
-        ).pack(anchor=tk.W, pady=(0, 5))
-
-        self.current_song_label = tk.Label(
-            control_content,
-            text="未播放",
-            font=("Microsoft JhengHei UI", 10, "bold"),
-            bg=card_bg,
-            fg=text_color,
-            wraplength=220,
-            justify=tk.LEFT
-        )
-        self.current_song_label.pack(anchor=tk.W, pady=(0, 5))
-
-        # 藝術家/上傳者
-        self.artist_label = tk.Label(
-            control_content,
-            text="",
-            font=("Microsoft JhengHei UI", 9),
-            bg=card_bg,
-            fg=text_secondary,
-            wraplength=220,
-            justify=tk.LEFT
-        )
-        self.artist_label.pack(anchor=tk.W, pady=(0, 15))
-
-        # 播放進度條
-        self.time_label = tk.Label(
-            control_content,
-            text="00:00 / 00:00",
-            font=("Microsoft JhengHei UI", 9),
-            bg=card_bg,
-            fg=text_secondary
-        )
-        self.time_label.pack(pady=(0, 5))
-
-        self.progress_bar = ttk.Progressbar(
-            control_content,
-            orient=tk.HORIZONTAL,
-            mode='determinate',
-            maximum=100
-        )
-        self.progress_bar.pack(fill=tk.X, pady=(0, 15))
-
-        # 播放控制按鈕
-        button_frame = tk.Frame(control_content, bg=card_bg)
-        button_frame.pack(pady=(0, 10))
-
-        prev_button = tk.Button(
-            button_frame,
-            text="⏮",
-            font=("Arial", 14),
-            bg=accent_color,
-            fg="white",
-            activebackground="#005a9e",
-            activeforeground="white",
-            borderwidth=0,
-            padx=15,
-            pady=5,
-            command=self._play_previous
-        )
-        prev_button.pack(side=tk.LEFT, padx=5)
-
-        self.play_pause_button = tk.Button(
-            button_frame,
-            text="▶",
-            font=("Arial", 16),
-            bg=accent_color,
-            fg="white",
-            activebackground="#005a9e",
-            activeforeground="white",
-            borderwidth=0,
-            padx=20,
-            pady=5,
-            command=self._toggle_play_pause
-        )
-        self.play_pause_button.pack(side=tk.LEFT, padx=5)
-
-        next_button = tk.Button(
-            button_frame,
-            text="⏭",
-            font=("Arial", 14),
-            bg=accent_color,
-            fg="white",
-            activebackground="#005a9e",
-            activeforeground="white",
-            borderwidth=0,
-            padx=15,
-            pady=5,
-            command=self._play_next
-        )
-        next_button.pack(side=tk.LEFT, padx=5)
-
-        # 播放模式按鈕
-        mode_frame = tk.Frame(control_content, bg=card_bg)
-        mode_frame.pack(pady=(0, 15))
-
-        self.play_mode_button = tk.Button(
-            mode_frame,
-            text="➡️ 順序播放",
-            font=("Microsoft JhengHei UI", 9),
-            bg="#353535",
-            fg=text_color,
-            activebackground="#505050",
-            activeforeground="white",
-            borderwidth=0,
-            padx=10,
-            pady=5,
-            command=self._cycle_play_mode
-        )
-        self.play_mode_button.pack()
-
-        # 音量控制
-        tk.Label(
-            control_content,
-            text="🔊 音量",
-            font=("Microsoft JhengHei UI", 9),
-            bg=card_bg,
-            fg=text_secondary
-        ).pack(anchor=tk.W, pady=(0, 5))
-
-        self.volume_scale = tk.Scale(
-            control_content,
-            from_=0,
-            to=100,
-            orient=tk.HORIZONTAL,
-            command=self._on_volume_change,
-            bg=card_bg,
-            fg=text_color,
-            highlightthickness=0,
-            troughcolor="#353535",
-            activebackground=accent_color
-        )
-        # 從設定檔讀取音量
-        saved_volume = self.music_manager.config_manager.get_music_volume()
-        self.volume_scale.set(saved_volume)
         # 設定 pygame mixer 音量
+        saved_volume = self.music_manager.config_manager.get_music_volume()
         pygame.mixer.music.set_volume(saved_volume / 100.0)
-        self.volume_scale.pack(fill=tk.X)
 
         # 載入音樂庫
         self._load_music_library()
@@ -681,18 +535,11 @@ class MusicWindow:
             except Exception as e:
                 logger.error(f"記錄播放歷史失敗: {e}")
 
-            # 更新 UI
-            self.current_song_label.config(text=song['title'])
-            # 顯示藝術家
-            if self.artist_label and song.get('uploader'):
-                self.artist_label.config(text=f"🎤 {song.get('uploader', '未知')}")
-            self.play_pause_button.config(text="⏸")
-
-            # 更新專輯封面
-            threading.Thread(target=self._update_album_cover, args=(song,), daemon=True).start()
-
-            # 重置進度條
-            self.progress_bar['value'] = 0
+            # 使用 playback_view 更新 UI
+            if self.playback_view:
+                self.playback_view.update_current_song(song)
+                self.playback_view.update_play_pause_button(is_paused=False)
+                self.playback_view.update_progress(0)
 
             # 啟動進度更新執行緒
             threading.Thread(target=self._update_progress, daemon=True).start()
@@ -720,14 +567,16 @@ class MusicWindow:
             metadata: 新的元數據
         """
         try:
-            # 重新載入當前歌曲資訊以顯示新封面
-            if metadata.get("thumbnail"):
-                # 更新專輯封面
-                threading.Thread(target=self._update_album_cover, args=(song,), daemon=True).start()
+            # 使用 playback_view 更新顯示
+            if self.playback_view:
+                # 更新歌曲資訊 (包含新的 thumbnail 和 artist)
+                updated_song = song.copy()
+                if metadata.get("thumbnail"):
+                    updated_song["thumbnail"] = metadata["thumbnail"]
+                if metadata.get("artist"):
+                    updated_song["uploader"] = metadata["artist"]
 
-            # 更新藝術家標籤
-            if metadata.get("artist") and self.artist_label:
-                self.artist_label.config(text=f"🎤 {metadata['artist']}")
+                self.playback_view.update_current_song(updated_song)
 
             logger.info("UI 已更新顯示新的元數據")
         except Exception as e:
@@ -748,13 +597,15 @@ class MusicWindow:
                 pygame.mixer.music.unpause()
                 self.is_paused = False
                 self.start_time = time.time() - self.pause_position  # 調整開始時間
-                self.play_pause_button.config(text="⏸")
+                if self.playback_view:
+                    self.playback_view.update_play_pause_button(is_paused=False)
             else:
                 # 暫停
                 pygame.mixer.music.pause()
                 self.is_paused = True
                 self.pause_position = time.time() - self.start_time  # 記錄暫停位置
-                self.play_pause_button.config(text="▶")
+                if self.playback_view:
+                    self.playback_view.update_play_pause_button(is_paused=True)
         else:
             # 重新播放
             if self.current_song:
@@ -823,16 +674,16 @@ class MusicWindow:
                 current_pos = time.time() - self.start_time
                 total_duration = self.current_song.get('duration', 0)
 
-                if total_duration > 0:
-                    # 更新進度條
+                if total_duration > 0 and self.playback_view:
+                    # 使用 playback_view 更新進度
                     progress = min(100, (current_pos / total_duration) * 100)
-                    self.window.after(0, lambda: self.progress_bar.config(value=progress))
+                    self.window.after(0, lambda: self.playback_view.update_progress(progress))
 
                     # 更新時間標籤
                     current_str = self.music_manager.format_duration(int(current_pos))
                     total_str = self.music_manager.format_duration(total_duration)
                     time_text = f"{current_str} / {total_str}"
-                    self.window.after(0, lambda t=time_text: self.time_label.config(text=t))
+                    self.window.after(0, lambda t=time_text: self.playback_view.update_time_label(t))
 
                 time.sleep(0.5)
 
@@ -847,127 +698,21 @@ class MusicWindow:
         next_index = (current_index + 1) % len(modes)
         self.play_mode = modes[next_index]
 
-        # 更新按鈕文字和顏色
-        mode_config = {
-            'sequential': {'text': '➡️ 順序播放', 'bg': '#353535'},
-            'repeat_all': {'text': '🔂 列表循環', 'bg': '#0078d4'},
-            'repeat_one': {'text': '🔁 單曲循環', 'bg': '#d43d00'},
-            'shuffle': {'text': '🔀 隨機播放', 'bg': '#00b050'}
-        }
-
-        config = mode_config[self.play_mode]
-        self.play_mode_button.config(text=config['text'], bg=config['bg'])
+        # 使用 playback_view 更新播放模式顯示
+        if self.playback_view:
+            self.playback_view.update_play_mode(self.play_mode)
 
         # 如果切換到隨機模式,清空已播放記錄
         if self.play_mode == 'shuffle':
             self.played_indices = []
 
-        logger.info(f"播放模式已切換為: {config['text']}")
-
-    def _load_album_cover(self, thumbnail_url):
-        """載入專輯封面圖片
-
-        Args:
-            thumbnail_url (str): 縮圖 URL
-
-        Returns:
-            ImageTk.PhotoImage: 圖片物件,失敗則回傳 None
-        """
-        if not thumbnail_url:
-            return None
-
-        # 檢查快取
-        if thumbnail_url in self.thumbnail_cache:
-            return self.thumbnail_cache[thumbnail_url]
-
-        try:
-            # 下載圖片
-            response = requests.get(thumbnail_url, timeout=5)
-            response.raise_for_status()
-
-            # 載入圖片
-            image_data = BytesIO(response.content)
-            image = Image.open(image_data)
-
-            # 保持原始長寬比,調整圖片大小以適應顯示區域
-            # 最大寬度和高度設為 250px
-            max_size = 250
-            original_width, original_height = image.size
-
-            # 計算縮放比例
-            ratio = min(max_size / original_width, max_size / original_height)
-            new_width = int(original_width * ratio)
-            new_height = int(original_height * ratio)
-
-            # 使用高品質重採樣保持長寬比
-            image = image.resize((new_width, new_height), Image.Resampling.LANCZOS)
-
-            # 轉換為 PhotoImage
-            photo = ImageTk.PhotoImage(image)
-
-            # 快取圖片
-            self.thumbnail_cache[thumbnail_url] = photo
-
-            logger.info(f"成功載入專輯封面: {thumbnail_url[:50]}... ({new_width}x{new_height})")
-            return photo
-
-        except Exception as e:
-            logger.error(f"載入專輯封面失敗: {e}")
-            return None
-
-    def _get_default_cover_image(self):
-        """取得預設封面圖片
-
-        Returns:
-            ImageTk.PhotoImage: 預設封面圖片
-        """
-        if self.default_cover_image:
-            return self.default_cover_image
-
-        try:
-            # 建立一個簡單的預設封面 (灰色背景 + 音符圖示)
-            image = Image.new('RGB', (200, 200), color='#2d2d2d')
-            draw = ImageDraw.Draw(image)
-
-            # 繪製音符 (簡化版)
-            # 音符圓圈
-            draw.ellipse([70, 110, 110, 150], fill='#0078d4')
-            # 音符桿
-            draw.rectangle([105, 70, 115, 130], fill='#0078d4')
-            # 音符旗
-            draw.polygon([115, 70, 115, 80, 135, 90, 135, 80], fill='#0078d4')
-
-            self.default_cover_image = ImageTk.PhotoImage(image)
-            return self.default_cover_image
-
-        except Exception as e:
-            logger.error(f"建立預設封面失敗: {e}")
-            return None
-
-    def _update_album_cover(self, song):
-        """更新專輯封面顯示
-
-        Args:
-            song (dict): 歌曲資訊
-        """
-        try:
-            thumbnail_url = song.get('thumbnail', '')
-
-            # 先嘗試載入實際封面
-            cover_image = self._load_album_cover(thumbnail_url)
-
-            # 如果載入失敗,使用預設封面
-            if not cover_image:
-                cover_image = self._get_default_cover_image()
-
-            # 更新 UI
-            if cover_image and self.album_cover_label:
-                self.album_cover_label.config(image=cover_image, text="")
-                # 保持引用避免被垃圾回收
-                self.album_cover_label.image = cover_image
-
-        except Exception as e:
-            logger.error(f"更新專輯封面時發生錯誤: {e}")
+        mode_names = {
+            'sequential': '➡️ 順序播放',
+            'repeat_all': '🔂 列表循環',
+            'repeat_one': '🔁 單曲循環',
+            'shuffle': '🔀 隨機播放'
+        }
+        logger.info(f"播放模式已切換為: {mode_names[self.play_mode]}")
 
     def _restore_playback_state(self):
         """恢復播放狀態(重新開啟視窗時)"""
@@ -975,34 +720,14 @@ class MusicWindow:
             # 檢查是否有音樂正在播放
             is_music_playing = pygame.mixer.music.get_busy()
 
-            if is_music_playing and self.current_song:
+            if is_music_playing and self.current_song and self.playback_view:
                 # 音樂正在播放,恢復 UI 狀態
                 logger.info(f"恢復播放狀態: {self.current_song['title']}")
 
-                # 更新 UI
-                self.current_song_label.config(text=self.current_song['title'])
-                if self.artist_label and self.current_song.get('uploader'):
-                    self.artist_label.config(text=f"🎤 {self.current_song.get('uploader', '未知')}")
-
-                # 更新專輯封面
-                threading.Thread(target=self._update_album_cover, args=(self.current_song,), daemon=True).start()
-
-                # 更新播放按鈕
-                if self.is_paused:
-                    self.play_pause_button.config(text="▶")
-                else:
-                    self.play_pause_button.config(text="⏸")
-
-                # 更新播放模式按鈕
-                mode_config = {
-                    'sequential': {'text': '➡️ 順序播放', 'bg': '#353535'},
-                    'repeat_all': {'text': '🔂 列表循環', 'bg': '#0078d4'},
-                    'repeat_one': {'text': '🔁 單曲循環', 'bg': '#d43d00'},
-                    'shuffle': {'text': '🔀 隨機播放', 'bg': '#00b050'}
-                }
-                if self.play_mode in mode_config:
-                    config = mode_config[self.play_mode]
-                    self.play_mode_button.config(text=config['text'], bg=config['bg'])
+                # 使用 playback_view 更新 UI
+                self.playback_view.update_current_song(self.current_song)
+                self.playback_view.update_play_pause_button(is_paused=self.is_paused)
+                self.playback_view.update_play_mode(self.play_mode)
 
                 # 如果正在播放(非暫停),重新啟動進度更新
                 if not self.is_paused:

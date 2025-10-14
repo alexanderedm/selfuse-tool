@@ -1,0 +1,91 @@
+{
+  "recent_plays": [
+    {
+      "song_id": "BXO1Ne4bJmE",
+      "title": "美秀集團 Amazing Show－物語 Tales【Official Music Video】",
+      "artist": "美秀集團 Amazing Show",
+      "category": "華語流行音樂",
+      "played_at": "2025-10-13T14:57:23.841050"
+    },
+    {
+      "song_id": "fxHjlCBHuzA",
+      "title": "Bye Bye Bye",
+      "artist": "未知",
+      "category": "Electronic",
+      "played_at": "2025-10-13T14:57:17.053679"
+    },
+    {
+      "song_id": "mRma6NkHwWU",
+      "title": "美秀集團 Amazing Show－愛情的大壞蛋 Bastards of Love【Official Music Video】",
+      "artist": "未知",
+      "category": "華語流行音樂",
+      "played_at": "2025-10-13T04:49:01.604561"
+    },
+    {
+      "song_id": "BryspbM6s3E",
+      "title": "UNDEAD",
+      "artist": "未知",
+      "category": "Electronic",
+      "played_at": "2025-10-13T04:48:57.929337"
+    },
+    {
+      "song_id": "fxHjlCBHuzA",
+      "title": "Bye Bye Bye",
+      "artist": "未知",
+      "category": "Electronic",
+      "played_at": "2025-10-13T04:48:53.909339"
+    },
+    {
+      "song_id": "Z7mCrxjivB0",
+      "title": "少女變成了一隻甲蟲",
+      "artist": "未知",
+      "category": "日本流行音樂",
+      "played_at": "2025-10-13T04:21:30.826331"
+    },
+    {
+      "song_id": "bYWR9Ms1FSM",
+      "title": "Xomu - Tera (Original Mix)",
+      "artist": "未知",
+      "category": "電子音樂",
+      "played_at": "2025-10-13T04:21:24.350902"
+    },
+    {
+      "song_id": "DiTd771WumE",
+      "title": "APT.",
+      "artist": "未知",
+      "category": "Experimental",
+      "played_at": "2025-10-13T04:21:22.678664"
+    },
+    {
+      "song_id": "DiTd771WumE",
+      "title": "APT.",
+      "artist": "未知",
+      "category": "Experimental",
+      "played_at": "2025-10-13T04:21:20.084956"
+    },
+    {
+      "song_id": "DiTd771WumE",
+      "title": "APT.",
+      "artist": "未知",
+      "category": "Experimental",
+      "played_at": "2025-10-13T04:21:17.965829"
+    },
+    {
+      "song_id": "BryspbM6s3E",
+      "title": "UNDEAD",
+      "artist": "未知",
+      "category": "Electronic",
+      "played_at": "2025-10-13T04:21:07.868829"
+    }
+  ],
+  "play_counts": {
+    "BryspbM6s3E": 2,
+    "DiTd771WumE": 3,
+    "bYWR9Ms1FSM": 1,
+    "Z7mCrxjivB0": 1,
+    "fxHjlCBHuzA": 2,
+    "mRma6NkHwWU": 1,
+    "BXO1Ne4bJmE": 1
+  },
+  "total_plays": 11
+}
