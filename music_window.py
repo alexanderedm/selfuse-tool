@@ -332,193 +332,22 @@ class MusicWindow:
             else:
                 self._load_all_songs()
 
-    def _reload_current_category(self):
-        """重新載入當前選擇的分類"""
-        selection = self.category_tree.selection()
-        if not selection:
-            self._load_all_songs()
-            return
-
-        item_id = selection[0]
-        item_values = self.category_tree.item(item_id, 'values')
-
-        if not item_values:
-            return
-
-        item_type = item_values[0]
-
-        if item_type == 'all':
-            # 所有歌曲
-            self._load_all_songs()
-        elif item_type.startswith('folder:'):
-            # 特定資料夾
-            category_name = item_type.replace('folder:', '')
-            songs = self.music_manager.get_songs_by_category(category_name)
-            self._display_songs(songs)
-        elif item_type.startswith('song:'):
-            # 選中的是歌曲,載入其所屬資料夾的所有歌曲
-            parent_id = self.category_tree.parent(item_id)
-            if parent_id:
-                parent_values = self.category_tree.item(parent_id, 'values')
-                if parent_values and parent_values[0].startswith('folder:'):
-                    category_name = parent_values[0].replace('folder:', '')
-                    songs = self.music_manager.get_songs_by_category(category_name)
-                    self._display_songs(songs)
-
-    def _on_category_select(self, event):
-        """分類/資料夾選擇事件"""
-        # 清除搜尋框
-        if self.search_entry:
-            self.search_entry.delete(0, tk.END)
-
-        selection = self.category_tree.selection()
-        if not selection:
-            return
-
-        item_id = selection[0]
-        item_values = self.category_tree.item(item_id, 'values')
-
-        if not item_values:
-            return
-
-        item_type = item_values[0]
-
-        if item_type == 'all':
-            # 所有歌曲
-            self._load_all_songs()
-        elif item_type.startswith('folder:'):
-            # 資料夾
-            category_name = item_type.replace('folder:', '')
-            songs = self.music_manager.get_songs_by_category(category_name)
-            self._display_songs(songs)
-        elif item_type.startswith('song:'):
-            # 歌曲被選中,播放該歌曲
-            song_id = item_type.replace('song:', '')
-            song = self.music_manager.get_song_by_id(song_id)
-            if song:
-                # 先載入所屬資料夾的所有歌曲到播放列表
-                parent_id = self.category_tree.parent(item_id)
-                if parent_id:
-                    parent_values = self.category_tree.item(parent_id, 'values')
-                    if parent_values and parent_values[0].startswith('folder:'):
-                        category_name = parent_values[0].replace('folder:', '')
-                        self.playlist = self.music_manager.get_songs_by_category(category_name)
-                        # 找到該歌曲在播放列表中的索引
-                        for i, s in enumerate(self.playlist):
-                            if s['id'] == song_id:
-                                self.current_index = i
-                                break
-                # 不要在這裡自動播放,只載入到列表
-
-    def _on_category_double_click(self, event):
-        """雙擊事件:展開/收合資料夾 或 播放歌曲"""
-        selection = self.category_tree.selection()
-        if not selection:
-            return
-
-        item_id = selection[0]
-        item_values = self.category_tree.item(item_id, 'values')
-
-        if not item_values:
-            return
-
-        item_type = item_values[0]
-
-        if item_type.startswith('song:'):
-            # 雙擊歌曲,播放歌曲
-            song_id = item_type.replace('song:', '')
-            song = self.music_manager.get_song_by_id(song_id)
-            if song:
-                # 載入所屬資料夾的所有歌曲到播放列表
-                parent_id = self.category_tree.parent(item_id)
-                if parent_id:
-                    parent_values = self.category_tree.item(parent_id, 'values')
-                    if parent_values and parent_values[0].startswith('folder:'):
-                        category_name = parent_values[0].replace('folder:', '')
-                        self.playlist = self.music_manager.get_songs_by_category(category_name)
-                        # 找到該歌曲在播放列表中的索引
-                        for i, s in enumerate(self.playlist):
-                            if s['id'] == song_id:
-                                self.current_index = i
-                                break
-                # 播放歌曲
-                self._play_song(song)
-
-    def _on_category_right_click(self, event):
-        """右鍵選單"""
-        # 選中右鍵點擊的項目
-        item_id = self.category_tree.identify_row(event.y)
-        if not item_id:
-            # 點擊空白處,顯示新增資料夾選單
-            menu = tk.Menu(self.window, tearoff=0, bg="#2d2d2d", fg="#e0e0e0")
-            menu.add_command(label="➕ 新增資料夾", command=self._create_new_folder)
-            menu.post(event.x_root, event.y_root)
-            return
-
-        self.category_tree.selection_set(item_id)
-        item_values = self.category_tree.item(item_id, 'values')
-
-        if not item_values:
-            return
-
-        item_type = item_values[0]
-
-        menu = tk.Menu(self.window, tearoff=0, bg="#2d2d2d", fg="#e0e0e0")
-
-        if item_type == 'all':
-            # 所有歌曲節點:只能新增資料夾
-            menu.add_command(label="➕ 新增資料夾", command=self._create_new_folder)
-        elif item_type.startswith('folder:'):
-            # 資料夾節點
-            category_name = item_type.replace('folder:', '')
-            menu.add_command(label="✏️ 重新命名", command=lambda: self._rename_folder(item_id, category_name))
-            menu.add_command(label="🗑️ 刪除資料夾", command=lambda: self._delete_folder(item_id, category_name))
-            menu.add_separator()
-            menu.add_command(label="➕ 新增資料夾", command=self._create_new_folder)
-        elif item_type.startswith('song:'):
-            # 歌曲節點
-            song_id = item_type.replace('song:', '')
-            song = self.music_manager.get_song_by_id(song_id)
-            if song:
-                menu.add_command(label="▶️ 播放", command=lambda: self._play_song_from_tree(song))
-                menu.add_separator()
-                menu.add_command(label="➕ 加入到播放列表", command=lambda: self._add_song_to_playlist(song))
-                menu.add_command(label="📁 移動到...", command=lambda: self._move_song_to_category(item_id, song))
-                menu.add_separator()
-                menu.add_command(label="🗑️ 刪除歌曲", command=lambda: self._delete_song(item_id, song))
-
-        menu.post(event.x_root, event.y_root)
-
     def _display_songs(self, songs):
-        """顯示歌曲列表
+        """顯示歌曲列表（向後相容，實際由 MusicLibraryView 處理）
 
         Args:
             songs (list): 歌曲列表
         """
-        self.playlist = songs
-
-        # 清空 Treeview
-        for item in self.song_tree.get_children():
-            self.song_tree.delete(item)
-
-        # 插入歌曲到 Treeview
-        for song in songs:
-            duration_str = self.music_manager.format_duration(song['duration'])
-            self.song_tree.insert('', 'end', values=(song['title'], duration_str))
-
-    def _on_song_double_click(self, event):
-        """歌曲雙擊事件"""
-        selection = self.song_tree.selection()
-        if not selection:
-            return
-
-        # 獲取選中的項目索引
-        item_id = selection[0]
-        item_index = self.song_tree.index(item_id)
-
-        if item_index < len(self.playlist):
-            self.current_index = item_index
-            self._play_song(self.playlist[item_index])
+        if self.library_view:
+            self.library_view.display_songs(songs)
+        else:
+            # 向後相容的實現
+            self.playlist = songs
+            for item in self.song_tree.get_children():
+                self.song_tree.delete(item)
+            for song in songs:
+                duration_str = self.music_manager.format_duration(song['duration'])
+                self.song_tree.insert('', 'end', values=(song['title'], duration_str))
 
     def _play_song(self, song):
         """播放歌曲
