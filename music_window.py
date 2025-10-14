@@ -20,6 +20,7 @@ from music_library_view import MusicLibraryView
 from music_search_view import MusicSearchView
 from music_header_view import MusicHeaderView
 from music_playback_view import MusicPlaybackView
+from music_song_actions import MusicSongActions
 from PIL import Image, ImageTk, ImageDraw
 import requests
 from io import BytesIO
@@ -64,6 +65,7 @@ class MusicWindow:
         self.library_view = None  # 音樂庫視圖 (MusicLibraryView)
         self.search_view = None  # 搜尋視圖 (MusicSearchView)
         self.playback_view = None  # 播放控制視圖 (MusicPlaybackView)
+        self.song_actions = None  # 歌曲操作模組 (MusicSongActions)
         self.category_tree = None  # 使用 Treeview 替換 Listbox (將被 library_view 取代)
         self.song_tree = None  # 使用 Treeview 顯示歌曲列表 (將被 library_view 取代)
         self.current_song_label = None  # 向後相容 (由 playback_view 管理)
@@ -238,6 +240,15 @@ class MusicWindow:
         self.time_label = self.playback_view.time_label
         self.volume_scale = self.playback_view.volume_scale
         self.album_cover_label = self.playback_view.album_cover_label
+
+        # 初始化歌曲操作模組
+        self.song_actions = MusicSongActions(
+            parent_window=self.window,
+            music_manager=self.music_manager,
+            file_manager=self.file_manager,
+            on_play_song=self._on_song_action_play,
+            on_reload_library=self._reload_music_library
+        )
 
         # 設定 pygame mixer 音量
         saved_volume = self.music_manager.config_manager.get_music_volume()
@@ -785,20 +796,22 @@ class MusicWindow:
 
         logger.info("音樂庫已重新載入")
 
+    def _on_song_action_play(self, song, playlist, index):
+        """歌曲操作模組的播放回調
+
+        Args:
+            song: 歌曲資訊
+            playlist: 播放列表
+            index: 歌曲在播放列表中的索引
+        """
+        self.playlist = playlist
+        self.current_index = index
+        self._play_song(song)
+
     def _play_song_from_tree(self, song):
-        """從樹狀結構播放歌曲"""
-        if song:
-            # 載入所屬資料夾的所有歌曲到播放列表
-            category = song.get('category', '')
-            if category:
-                self.playlist = self.music_manager.get_songs_by_category(category)
-                # 找到該歌曲在播放列表中的索引
-                for i, s in enumerate(self.playlist):
-                    if s['id'] == song['id']:
-                        self.current_index = i
-                        break
-            # 播放歌曲
-            self._play_song(song)
+        """從樹狀結構播放歌曲(使用 song_actions 模組)"""
+        if self.song_actions:
+            self.song_actions.play_song_from_tree(song)
 
     def _create_new_folder(self):
         """新增資料夾"""
@@ -858,177 +871,14 @@ class MusicWindow:
             messagebox.showerror("錯誤", "刪除資料夾失敗")
 
     def _delete_song(self, item_id, song):
-        """刪除歌曲"""
-        # 確認刪除
-        result = messagebox.askyesno(
-            "確認刪除",
-            f"確定要刪除歌曲 '{song['title']}' 嗎?\n\n此操作無法復原!"
-        )
-
-        if not result:
-            return
-
-        # 使用 MusicFileManager 刪除歌曲
-        if self.file_manager.delete_song(song):
-            # 重新載入音樂庫
-            self._reload_music_library()
-            messagebox.showinfo("成功", f"歌曲 '{song['title']}' 已刪除")
-        else:
-            messagebox.showerror("錯誤", "刪除歌曲失敗")
+        """刪除歌曲(使用 song_actions 模組)"""
+        if self.song_actions:
+            self.song_actions.delete_song(song)
 
     def _move_song_to_category(self, item_id, song):
-        """移動歌曲到不同分類
-
-        Args:
-            item_id: 樹狀結構中的項目ID
-            song (dict): 歌曲資訊
-        """
-        # 取得所有分類
-        categories = self.music_manager.get_all_categories()
-        if not categories:
-            messagebox.showwarning("警告", "沒有可用的分類")
-            return
-
-        # 取得當前分類
-        current_category = song.get('category', '')
-
-        # 從分類列表中移除當前分類
-        available_categories = [c for c in categories if c != current_category]
-
-        if not available_categories:
-            messagebox.showinfo("提示", "沒有其他分類可以移動到。\n請先建立新的分類資料夾。")
-            return
-
-        # 建立分類選擇對話框
-        move_dialog = tk.Toplevel(self.window)
-        move_dialog.title("移動歌曲")
-        move_dialog.geometry("450x300")
-        move_dialog.configure(bg="#1e1e1e")
-        move_dialog.resizable(False, False)
-        move_dialog.transient(self.window)
-        move_dialog.grab_set()
-
-        main_frame = tk.Frame(move_dialog, bg="#1e1e1e")
-        main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
-
-        # 標題
-        tk.Label(
-            main_frame,
-            text="移動歌曲到...",
-            font=("Microsoft JhengHei UI", 14, "bold"),
-            bg="#1e1e1e",
-            fg="#e0e0e0"
-        ).pack(pady=(0, 10))
-
-        # 歌曲資訊
-        tk.Label(
-            main_frame,
-            text=f"歌曲: {song['title'][:40]}{'...' if len(song['title']) > 40 else ''}",
-            font=("Microsoft JhengHei UI", 9),
-            bg="#1e1e1e",
-            fg="#a0a0a0",
-            wraplength=400,
-            justify=tk.LEFT
-        ).pack(pady=(0, 5))
-
-        tk.Label(
-            main_frame,
-            text=f"目前位置: {current_category}",
-            font=("Microsoft JhengHei UI", 9),
-            bg="#1e1e1e",
-            fg="#a0a0a0"
-        ).pack(pady=(0, 20))
-
-        # 選擇目標分類
-        tk.Label(
-            main_frame,
-            text="選擇目標資料夾:",
-            font=("Microsoft JhengHei UI", 10),
-            bg="#1e1e1e",
-            fg="#e0e0e0"
-        ).pack(anchor=tk.W, pady=(0, 5))
-
-        # 下拉選單
-        category_var = tk.StringVar(value=available_categories[0])
-
-        style = ttk.Style()
-        style.configure(
-            "Move.TCombobox",
-            fieldbackground="#2d2d2d",
-            background="#2d2d2d",
-            foreground="#e0e0e0"
-        )
-
-        category_combo = ttk.Combobox(
-            main_frame,
-            textvariable=category_var,
-            values=available_categories,
-            font=("Microsoft JhengHei UI", 10),
-            state="readonly",
-            style="Move.TCombobox"
-        )
-        category_combo.pack(fill=tk.X, ipady=5, pady=(0, 20))
-
-        # 按鈕區
-        button_frame = tk.Frame(main_frame, bg="#1e1e1e")
-        button_frame.pack()
-
-        def confirm_move():
-            target_category = category_var.get()
-            if not target_category:
-                messagebox.showwarning("警告", "請選擇目標資料夾", parent=move_dialog)
-                return
-
-            # 關閉對話框
-            move_dialog.destroy()
-
-            # 使用 MusicFileManager 執行移動操作
-            if self.file_manager.move_song(song, target_category):
-                # 重新載入音樂庫
-                self._reload_music_library()
-                messagebox.showinfo("成功", f"歌曲已移動到分類: {target_category}")
-            else:
-                # 取得檔名用於錯誤訊息
-                audio_filename = os.path.basename(song['audio_path'])
-                target_audio_path = os.path.join(
-                    self.music_manager.music_root_path,
-                    target_category,
-                    audio_filename
-                )
-                if os.path.exists(target_audio_path):
-                    messagebox.showerror("錯誤", f"目標資料夾中已存在同名檔案:\n{audio_filename}")
-                else:
-                    messagebox.showerror("錯誤", "移動歌曲失敗")
-
-        move_btn = tk.Button(
-            button_frame,
-            text="移動",
-            font=("Microsoft JhengHei UI", 10),
-            bg="#0078d4",
-            fg="white",
-            activebackground="#005a9e",
-            activeforeground="white",
-            borderwidth=0,
-            padx=30,
-            pady=8,
-            command=confirm_move
-        )
-        move_btn.pack(side=tk.LEFT, padx=5)
-
-        cancel_btn = tk.Button(
-            button_frame,
-            text="取消",
-            font=("Microsoft JhengHei UI", 10),
-            bg="#353535",
-            fg="white",
-            activebackground="#505050",
-            activeforeground="white",
-            borderwidth=0,
-            padx=20,
-            pady=8,
-            command=move_dialog.destroy
-        )
-        cancel_btn.pack(side=tk.LEFT, padx=5)
+        """移動歌曲到不同分類(使用 song_actions 模組)"""
+        if self.song_actions:
+            self.song_actions.move_song_to_category(song)
 
     def _show_play_history(self):
         """顯示播放歷史對話框"""

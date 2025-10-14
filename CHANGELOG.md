@@ -6,6 +6,50 @@
 
 ## [未發布]
 
+### ♻️ 重構 (2025-10-13) - MusicSongActions 整合完成 (階段 5)
+- **MusicSongActions 整合至 music_window.py**:
+  - 成功將歌曲操作邏輯抽離到獨立模組
+  - 抽離歌曲操作方法:
+    - `_play_song_from_tree()` - 從樹狀結構播放歌曲 (14 行)
+    - `_delete_song()` - 刪除歌曲 (18 行)
+    - `_move_song_to_category()` - 移動歌曲到不同分類 (154 行,包含完整對話框)
+  - 簡化 music_window.py 中的歌曲操作方法 (使用委派模式)
+  - 新增 `_on_song_action_play()` 回調處理歌曲播放請求
+
+- **程式碼縮減成果**:
+  - music_window.py: 1,095 → 945 行 (-150 行, -13.7%)
+  - 累計縮減: 1,548 → 945 行 (-603 行, -38.9%)
+  - 新增 MusicSongActions 模組: 298 行
+  - 移除複雜的移動歌曲對話框程式碼 (154 行)
+  - 簡化歌曲刪除和播放邏輯
+  - 使用回調模式實現低耦合設計
+
+- **🧪 MusicSongActions 測試套件** (`tests/test_music_song_actions.py` 新增):
+  - 11 個完整的單元測試,100% 通過
+  - 涵蓋所有主要功能:
+    - 初始化測試 (1 個)
+    - 播放歌曲測試 (3 個) - 有分類、無分類、無回調
+    - 刪除歌曲測試 (3 個) - 成功、取消、失敗
+    - 移動歌曲測試 (3 個) - 無分類、無其他分類、顯示對話框
+    - UI 主題測試 (1 個)
+  - 使用 Mock 進行隔離測試
+  - 測試覆蓋率良好
+
+- **測試結果**:
+  - 所有 328 個測試,327 passed, 1 failed (tkinter 環境問題)
+  - flake8 零錯誤
+  - MusicSongActions 功能完全整合
+
+- **剩餘工作**:
+  - **當前行數**: 945 行
+  - **目標行數**: < 800 行
+  - **還需減少**: 145 行 (15.3%)
+
+- **下一步計畫**:
+  - ⏳ 階段 6: 抽離 MusicFolderActions 模組 (預計 100-150 行)
+  - ⏳ 階段 7: 繼續優化其他重複程式碼
+  - 🎯 最終目標: music_window.py < 800 行
+
 ### ♻️ 重構 (2025-10-13) - MusicPlaybackView 整合完成 (階段 4)
 - **MusicPlaybackView 整合至 music_window.py**:
   - 成功將 MusicPlaybackView 模組整合到主視窗
