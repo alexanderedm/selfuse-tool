@@ -48,6 +48,24 @@
       3. `_try_browser_cookies()` - 測試瀏覽器 cookies（CC 5）
       4. `_prepare_file_paths()` - 準備檔案路徑（CC 4）
       5. `_execute_download()` - 執行下載命令（CC 4）
+
+- **重構成果 #8 - music_window.py::_play_next** ✨:
+  - **複雜度**: CC **9 (B 級) → 4 (A 級)** 🎉 降低 **56%**
+  - **方法**: 使用 TDD 方法安全重構
+    - 建立完整測試套件（17 個測試涵蓋所有播放模式）
+    - 提取 5 個輔助方法：
+      1. `_is_valid_current_index()` - 索引有效性檢查（CC 1）
+      2. `_get_available_shuffle_indices()` - 隨機模式可用索引（CC 4）
+      3. `_play_next_in_repeat_one_mode()` - 單曲循環邏輯（CC 2）
+      4. `_play_next_in_shuffle_mode()` - 隨機播放邏輯（CC 1）
+      5. `_play_next_in_sequential_mode()` - 順序播放邏輯（CC 1）
+    - 原函數從 25 行縮減至 8 行（-68%）
+    - 所有邏輯模組化，易於測試和維護
+  - **測試驗證**:
+    - 新增測試套件：**17/17 通過** (100%)
+    - 音樂測試：**239/241 通過** (99%)
+    - flake8 檢查：**零錯誤** ✅
+  - **改善**: 從「一般」(B 級) 提升至「優秀」(A 級)
       6. `_save_metadata()` - 儲存元數據（CC 1）
     - 原函數從 ~100 行縮減至 ~60 行（-40%）
     - 每個方法職責單一，易於理解和維護
