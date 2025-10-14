@@ -120,12 +120,8 @@ class MusicMetadataFetcher:
         Returns:
             dict: 新的元數據,如果失敗返回 None
         """
-        if not self.enabled:
-            logger.debug("自動補全功能已停用")
-            return None
-
-        if not missing_fields:
-            logger.debug("沒有缺失的元數據")
+        # 驗證請求
+        if not self._validate_fetch_request(missing_fields):
             return None
 
         try:
@@ -143,28 +139,78 @@ class MusicMetadataFetcher:
 
             if metadata:
                 # 處理縮圖
-                if "thumbnail" in missing_fields and metadata.get("artworkUrl"):
-                    cover_path = self.download_cover(
-                        metadata["artworkUrl"],
-                        song.get("id")
-                    )
-                    if cover_path:
-                        metadata["thumbnail"] = cover_path
-                    else:
-                        # 下載失敗,移除 thumbnail 避免寫入無效值
-                        metadata.pop("thumbnail", None)
+                self._process_thumbnail_metadata(metadata, song, missing_fields)
 
                 # 更新歌曲檔案
-                if self.update_song_metadata(song, metadata, missing_fields):
-                    logger.info(f"✅ 成功補全元數據: {title}")
-                    return metadata
-                else:
-                    logger.warning(f"更新 JSON 失敗: {title}")
+                return self._apply_and_update_metadata(song, metadata, missing_fields, title)
 
         except Exception as e:
             logger.error(f"抓取元數據失敗: {e}", exc_info=True)
 
         return None
+
+    def _validate_fetch_request(self, missing_fields):
+        """驗證抓取請求是否有效
+
+        Args:
+            missing_fields: 缺失的欄位列表
+
+        Returns:
+            bool: 是否有效
+        """
+        if not self.enabled:
+            logger.debug("自動補全功能已停用")
+            return False
+
+        if not missing_fields:
+            logger.debug("沒有缺失的元數據")
+            return False
+
+        return True
+
+    def _process_thumbnail_metadata(self, metadata, song, missing_fields):
+        """處理縮圖元數據下載
+
+        Args:
+            metadata: 元數據字典 (會被修改)
+            song: 歌曲資料字典
+            missing_fields: 缺失的欄位列表
+        """
+        if "thumbnail" not in missing_fields:
+            return
+
+        if not metadata.get("artworkUrl"):
+            return
+
+        cover_path = self.download_cover(
+            metadata["artworkUrl"],
+            song.get("id")
+        )
+
+        if cover_path:
+            metadata["thumbnail"] = cover_path
+        else:
+            # 下載失敗,移除 thumbnail 避免寫入無效值
+            metadata.pop("thumbnail", None)
+
+    def _apply_and_update_metadata(self, song, metadata, missing_fields, title):
+        """應用並更新元數據到歌曲檔案
+
+        Args:
+            song: 歌曲資料字典
+            metadata: 新的元數據
+            missing_fields: 缺失的欄位列表
+            title: 歌曲標題
+
+        Returns:
+            dict: 元數據如果成功,否則 None
+        """
+        if self.update_song_metadata(song, metadata, missing_fields):
+            logger.info(f"✅ 成功補全元數據: {title}")
+            return metadata
+        else:
+            logger.warning(f"更新 JSON 失敗: {title}")
+            return None
 
     def fetch_from_itunes(self, title, artist=""):
         """從 iTunes Search API 抓取資訊
@@ -262,6 +308,87 @@ class MusicMetadataFetcher:
 
         return None
 
+    def _validate_song_path(self, song_path):
+        """驗證歌曲路徑有效性
+
+        Args:
+            song_path: Path 物件
+
+        Returns:
+            bool: 路徑是否有效
+        """
+        if not song_path.name:
+            logger.warning(f"無效的歌曲路徑 (路徑名稱為空): {song_path}")
+            return False
+
+        if not song_path.exists():
+            logger.error(f"歌曲檔案不存在: {song_path}")
+            return False
+
+        if not song_path.is_file():
+            logger.warning(f"路徑不是檔案: {song_path}")
+            return False
+
+        return True
+
+    def _load_or_create_json_data(self, json_path, song, song_path):
+        """載入或建立 JSON 資料
+
+        Args:
+            json_path: JSON 檔案路徑
+            song: 歌曲資料
+            song_path: 歌曲檔案路徑
+
+        Returns:
+            dict: JSON 資料
+        """
+        if json_path.exists():
+            with open(json_path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        else:
+            # 如果 JSON 不存在,建立基本結構
+            return {
+                "id": song.get("id"),
+                "title": song.get("title"),
+                "path": str(song_path),
+            }
+
+    def _update_missing_fields(self, data, new_metadata, missing_fields):
+        """更新缺失的欄位
+
+        Args:
+            data: 現有資料字典
+            new_metadata: 新的元數據
+            missing_fields: 缺失的欄位列表
+
+        Returns:
+            list: 已更新的欄位列表
+        """
+        updated_fields = []
+        for field in missing_fields:
+            if field in new_metadata and new_metadata[field]:
+                data[field] = new_metadata[field]
+                updated_fields.append(field)
+        return updated_fields
+
+    def _write_json_file(self, json_path, data):
+        """寫入 JSON 檔案
+
+        Args:
+            json_path: JSON 檔案路徑
+            data: 要寫入的資料
+
+        Returns:
+            bool: 是否成功寫入
+        """
+        try:
+            with open(json_path, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+            return True
+        except Exception as e:
+            logger.error(f"寫入 JSON 檔案失敗: {e}", exc_info=True)
+            return False
+
     def update_song_metadata(self, song, new_metadata, missing_fields):
         """更新歌曲 JSON 檔案
 
@@ -274,50 +401,26 @@ class MusicMetadataFetcher:
             bool: 是否成功更新
         """
         try:
-            # 取得 JSON 檔案路徑
+            # 取得並驗證路徑
             song_path = Path(song.get("path", ""))
-
-            # 驗證路徑有效性 (修復 Bug: WindowsPath('.') has an empty name)
-            if not song_path.name:
-                logger.warning(f"無效的歌曲路徑 (路徑名稱為空): {song_path}")
-                return False
-
-            if not song_path.exists():
-                logger.error(f"歌曲檔案不存在: {song_path}")
-                return False
-
-            if not song_path.is_file():
-                logger.warning(f"路徑不是檔案: {song_path}")
+            if not self._validate_song_path(song_path):
                 return False
 
             json_path = song_path.with_suffix(".json")
 
-            # 讀取現有資料
-            if json_path.exists():
-                with open(json_path, "r", encoding="utf-8") as f:
-                    data = json.load(f)
-            else:
-                # 如果 JSON 不存在,建立基本結構
-                data = {
-                    "id": song.get("id"),
-                    "title": song.get("title"),
-                    "path": str(song_path),
-                }
+            # 載入或建立資料
+            data = self._load_or_create_json_data(json_path, song, song_path)
 
-            # 只更新缺失的欄位
-            updated_fields = []
-            for field in missing_fields:
-                if field in new_metadata and new_metadata[field]:
-                    data[field] = new_metadata[field]
-                    updated_fields.append(field)
+            # 更新缺失的欄位
+            updated_fields = self._update_missing_fields(data, new_metadata, missing_fields)
 
             if not updated_fields:
                 logger.debug("沒有欄位需要更新")
                 return False
 
-            # 寫回檔案
-            with open(json_path, "w", encoding="utf-8") as f:
-                json.dump(data, f, ensure_ascii=False, indent=2)
+            # 寫入檔案
+            if not self._write_json_file(json_path, data):
+                return False
 
             logger.info(f"✅ 更新 JSON: {json_path.name}, 欄位: {updated_fields}")
             return True
