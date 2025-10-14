@@ -282,3 +282,210 @@ class TestAudioSwitcherApp:
 
         # 驗證選單不為 None
         assert menu is not None
+
+    # ==================== 音樂播放器測試 ====================
+
+    @patch('main.MusicWindow')
+    def test_open_music_player_first_time(self, mock_music_window, mock_components):
+        """測試首次開啟音樂播放器"""
+        app = AudioSwitcherApp()
+        app.music_window = None
+
+        # 建立 Mock 視窗實例
+        mock_window_instance = Mock()
+        mock_music_window.return_value = mock_window_instance
+
+        app.open_music_player()
+
+        # 驗證建立新視窗
+        mock_music_window.assert_called_once()
+        mock_window_instance.show.assert_called_once()
+
+    @patch('main.MusicWindow')
+    def test_open_music_player_reopen_closed_window(self, mock_music_window, mock_components):
+        """測試重新開啟已關閉的音樂播放器視窗"""
+        app = AudioSwitcherApp()
+
+        # 模擬視窗已關閉（實例存在但 window 為 None）
+        mock_window_instance = Mock()
+        mock_window_instance.window = None
+        app.music_window = mock_window_instance
+
+        app.open_music_player()
+
+        # 驗證呼叫 show() 重新開啟
+        mock_window_instance.show.assert_called_once()
+
+    def test_music_toggle_play_pause_with_window(self, mock_components):
+        """測試切換音樂播放/暫停（視窗已開啟）"""
+        app = AudioSwitcherApp()
+        app.icon = Mock()
+
+        # 建立 Mock 音樂視窗
+        mock_window = Mock()
+        mock_window.current_song = {'title': 'Test Song'}
+        mock_window.is_paused = False
+        app.music_window = mock_window
+
+        app.music_toggle_play_pause()
+
+        # 驗證呼叫 _toggle_play_pause
+        mock_window._toggle_play_pause.assert_called_once()
+
+    def test_music_toggle_play_pause_no_window(self, mock_components):
+        """測試切換音樂播放/暫停（視窗未開啟）"""
+        app = AudioSwitcherApp()
+        app.icon = Mock()
+        app.music_window = None
+
+        app.music_toggle_play_pause()
+
+        # 驗證顯示通知
+        app.icon.notify.assert_called_once()
+
+    def test_music_play_next_with_window(self, mock_components):
+        """測試播放下一首（視窗已開啟）"""
+        app = AudioSwitcherApp()
+        app.icon = Mock()
+
+        # 建立 Mock 音樂視窗
+        mock_window = Mock()
+        mock_window.current_song = {'title': 'Next Song'}
+        app.music_window = mock_window
+
+        app.music_play_next()
+
+        # 驗證呼叫 _play_next
+        mock_window._play_next.assert_called_once()
+
+    def test_music_play_previous_with_window(self, mock_components):
+        """測試播放上一首（視窗已開啟）"""
+        app = AudioSwitcherApp()
+        app.icon = Mock()
+
+        # 建立 Mock 音樂視窗
+        mock_window = Mock()
+        mock_window.current_song = {'title': 'Previous Song'}
+        app.music_window = mock_window
+
+        app.music_play_previous()
+
+        # 驗證呼叫 _play_previous
+        mock_window._play_previous.assert_called_once()
+
+    def test_music_stop_no_window(self, mock_components):
+        """測試停止音樂（視窗未開啟）"""
+        app = AudioSwitcherApp()
+        app.icon = Mock()
+        app.music_window = None
+
+        app.music_stop()
+
+        # 驗證顯示通知
+        app.icon.notify.assert_called_once()
+        assert "沒有正在播放" in app.icon.notify.call_args[0][0]
+
+    # ==================== RSS 視窗測試 ====================
+
+    @patch('main.RSSWindow')
+    def test_open_rss_viewer_first_time(self, mock_rss_window, mock_components):
+        """測試首次開啟 RSS 視窗"""
+        app = AudioSwitcherApp()
+        app.rss_window = None
+
+        # 建立 Mock 視窗實例
+        mock_window_instance = Mock()
+        mock_rss_window.return_value = mock_window_instance
+
+        app.open_rss_viewer()
+
+        # 驗證建立新視窗
+        mock_rss_window.assert_called_once()
+        mock_window_instance.show.assert_called_once()
+
+    @patch('main.RSSWindow')
+    def test_open_rss_viewer_bring_to_front(self, mock_rss_window, mock_components):
+        """測試將 RSS 視窗帶到前景"""
+        app = AudioSwitcherApp()
+
+        # 建立已存在的視窗
+        mock_window_instance = Mock()
+        mock_window = Mock()
+        mock_window_instance.window = mock_window
+        app.rss_window = mock_window_instance
+
+        app.open_rss_viewer()
+
+        # 驗證將視窗帶到前景
+        mock_window.lift.assert_called_once()
+        mock_window.focus_force.assert_called_once()
+
+    # ==================== 設定視窗測試 ====================
+
+    @patch('main.SettingsWindow')
+    def test_open_settings_first_time(self, mock_settings_window, mock_components):
+        """測試首次開啟設定視窗"""
+        app = AudioSwitcherApp()
+        app.settings_window = None
+
+        # 建立 Mock 視窗實例
+        mock_window_instance = Mock()
+        mock_settings_window.return_value = mock_window_instance
+
+        app.open_settings()
+
+        # 驗證建立新視窗
+        mock_settings_window.assert_called_once()
+        mock_window_instance.show.assert_called_once()
+
+    # ==================== 統計視窗測試 ====================
+
+    @patch('main.StatsWindow')
+    def test_open_stats_first_time(self, mock_stats_window, mock_components):
+        """測試首次開啟統計視窗"""
+        app = AudioSwitcherApp()
+        app.stats_window = None
+
+        # 建立 Mock 視窗實例
+        mock_window_instance = Mock()
+        mock_stats_window.return_value = mock_window_instance
+
+        app.open_stats()
+
+        # 驗證更新使用統計
+        app.config_manager.update_current_usage.assert_called_once()
+        # 驗證建立新視窗
+        mock_stats_window.assert_called_once()
+        mock_window_instance.show.assert_called_once()
+
+    # ==================== Log 檢視器測試 ====================
+
+    @patch('main.os.path.exists')
+    @patch('main.os.startfile')
+    def test_open_log_viewer_success(self, mock_startfile, mock_exists, mock_components):
+        """測試開啟 Log 檢視器（檔案存在）"""
+        app = AudioSwitcherApp()
+        app.icon = Mock()
+
+        # 模擬檔案存在
+        mock_exists.return_value = True
+
+        app.open_log_viewer()
+
+        # 驗證呼叫 startfile
+        mock_startfile.assert_called_once()
+
+    @patch('main.os.path.exists')
+    def test_open_log_viewer_file_not_found(self, mock_exists, mock_components):
+        """測試開啟 Log 檢視器（檔案不存在）"""
+        app = AudioSwitcherApp()
+        app.icon = Mock()
+
+        # 模擬檔案不存在
+        mock_exists.return_value = False
+
+        app.open_log_viewer()
+
+        # 驗證顯示錯誤通知
+        app.icon.notify.assert_called_once()
+        assert "Log 檔案不存在" in app.icon.notify.call_args[0][0]
