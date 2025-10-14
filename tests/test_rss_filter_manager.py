@@ -32,6 +32,21 @@ class TestRSSFilterManager(unittest.TestCase):
         self.assertEqual(manager.all_entries, entries)
         self.assertEqual(manager.current_entries, entries)
 
+    def test_set_entries(self):
+        """測試設定文章 (別名方法)"""
+        from rss_filter_manager import RSSFilterManager
+
+        manager = RSSFilterManager(self.mock_rss_manager)
+        entries = [
+            {'id': '1', 'title': 'Test 1', 'published': '2025-01-01'},
+            {'id': '2', 'title': 'Test 2', 'published': '2025-01-02'}
+        ]
+
+        manager.set_entries(entries)
+
+        self.assertEqual(manager.all_entries, entries)
+        self.assertEqual(manager.current_entries, entries)
+
     def test_filter_by_mode_all(self):
         """測試全部模式篩選"""
         from rss_filter_manager import RSSFilterManager

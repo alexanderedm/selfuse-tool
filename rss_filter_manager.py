@@ -40,6 +40,14 @@ class RSSFilterManager:
         self.all_entries = entries
         self.current_entries = entries
 
+    def set_entries(self, entries):
+        """設定所有文章 (別名方法,與 set_all_entries 相同)
+
+        Args:
+            entries (list): 文章列表
+        """
+        self.set_all_entries(entries)
+
     def get_current_entries(self):
         """取得當前篩選後的文章
 
