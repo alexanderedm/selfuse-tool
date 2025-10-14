@@ -97,14 +97,22 @@
   - 執行全專案複雜度分析 (383 個區塊)
   - 建立 `CODE_COMPLEXITY_REPORT.md` 詳細報告
   - 重構 `rss_manager.py::fetch_feed_entries` **CC 24 → 7** (-71%) ✅
-    - 提取 5 個輔助方法 (_get_cached_entries, _parse_published_time等)
+    - 提取 6 個輔助方法：
+      1. `_get_cached_entries()` - 快取檢查邏輯（CC 3）
+      2. `_parse_publish_time()` - 發布時間解析（CC 7）
+      3. `_extract_entry_content()` - 內容提取邏輯（CC 7）
+      4. `_process_content_and_summary()` - HTML 處理與摘要生成（CC 3）
+      5. `_parse_feed_entry()` - 單個 entry 解析（CC 1）
+      6. `_update_cache()` - 快取更新邏輯（CC 1）
+    - 原函數從 101 行縮減至 33 行（-67%）
     - 使用 TDD 方法確保所有 RSS 測試通過 (12/12)
-    - flake8 零錯誤
+    - flake8 零錯誤，xenon 檢查通過
+    - **消除 D 級違規** ✅
   - 整合複雜度檢查到 Git pre-commit hooks
   - **成果**:
     - 平均複雜度: **A (3.03)** ⭐ (目標 < 5)
     - CC > 10 函數: **6 個** (從 9 降至 6，進步 33%)
-    - xenon 違規: **2 個** (從 5 降至 2，進步 60%)
+    - xenon 違規: **1 個** ✅ (從 5 降至 1，進步 80%，已消除 D 級違規)
     - MI < 65 檔案: 15 個
     - 所有測試通過，flake8 零錯誤
 
@@ -207,7 +215,7 @@
   - [ ] 消除重複程式碼 (DRY 原則)
   - [ ] 統一錯誤處理模式
   - **目標**: xenon 零違規，所有函數 CC < 10
-  - **當前進度**: 9/9 完成 (100%) ✅，xenon 違規 5 → 2，CC > 10 函數 9 → 6
+  - **當前進度**: 9/9 完成 (100%) ✅，xenon 違規 5 → 1 (已消除 D 級違規)，CC > 10 函數 9 → 6
 
 - [ ] **整合測試與文檔** (預估: 1 週)
   - [ ] 建立整合測試套件 (+20 tests)

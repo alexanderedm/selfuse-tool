@@ -18,26 +18,28 @@
   - 平均複雜度：**A (3.03)** ⭐ 優秀（目標 < 5）
   - CC > 10 函數：**6 個**（降低後，原為 9 個）
   - MI < 65 檔案：15 個
-  - xenon 違規：**2 個**（降低後，原為 5 個）
+  - xenon 違規：**1 個** ✅（降低後，原為 5 個，已消除 D 級違規）
   - 97.6% 程式碼在可接受範圍（A/B 級）
   - 僅 2.4% 需要重構（C/D 級）
 
-- **重構成果 #1 - rss_manager.py::fetch_feed_entries**:
+- **重構成果 #1 - rss_manager.py::fetch_feed_entries** ✅:
   - **複雜度**: CC **24 (D 級) → 7 (B 級)** 🎉 降低 **71%**
   - **方法**: 使用 TDD 方法安全重構
-    - 提取 5 個輔助方法：
-      1. `_get_cached_entries()` - 快取讀取（CC 3）
-      2. `_parse_published_time()` - 時間解析（CC 7）
-      3. `_extract_entry_content()` - 內容提取（CC 7）
-      4. `_process_content_html()` - HTML 處理（CC 3）
-      5. `_parse_single_entry()` - Entry 解析（CC 1）
-      6. `_update_cache()` - 快取更新（CC 1）
-    - 原函數從 101 行縮減至 26 行（-74%）
+    - 提取 6 個輔助方法：
+      1. `_get_cached_entries()` - 快取檢查邏輯（CC 3）
+      2. `_parse_publish_time()` - 發布時間解析（CC 7）
+      3. `_extract_entry_content()` - 內容提取邏輯（CC 7）
+      4. `_process_content_and_summary()` - HTML 處理與摘要生成（CC 3）
+      5. `_parse_feed_entry()` - 單個 entry 解析（CC 1）
+      6. `_update_cache()` - 快取更新邏輯（CC 1）
+    - 原函數從 101 行縮減至 33 行（-67%）
     - 所有邏輯模組化，易於測試和維護
   - **測試驗證**:
     - RSS Manager 測試：**12/12 通過** (100%)
     - flake8 檢查：**零錯誤** ✅
-  - **改善**: 從「無法維護」(D 級) 提升至「一般」(B 級)
+    - xenon 檢查：**通過** ✅
+  - **改善**: 從「無法維護」(D 級) 提升至「可接受」(B 級)
+  - **Commit**: 7086736
 
 - **重構成果 #2 - youtube_downloader.py::download_audio** ✨:
   - **複雜度**: CC **19 (C 級) → 7 (B 級)** 🎉 降低 **63%**
