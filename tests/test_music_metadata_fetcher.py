@@ -487,6 +487,75 @@ class TestMusicMetadataFetcherUpdateJSON:
 
         assert result is False
 
+    def test_update_song_metadata_with_dot_path(self, fetcher, caplog):
+        """測試 song_path 是 '.' 時的處理 - Bug 修復
+
+        重現錯誤：
+        [2025-10-14 01:56:16] [ERROR] - 更新 JSON 檔案失敗: WindowsPath('.') has an empty name
+        ValueError: WindowsPath('.') has an empty name
+
+        修復後應該：
+        - 在呼叫 with_suffix() 前驗證路徑
+        - 記錄 WARNING 而非 ERROR
+        - 優雅地返回 False，不拋出異常
+        """
+        import logging
+
+        song = {
+            "id": "test",
+            "title": "Test",
+            "path": "."  # WindowsPath('.') name='' -> with_suffix() 會拋出 ValueError
+        }
+        new_metadata = {"artist": "Artist"}
+        missing_fields = ["artist"]
+
+        # 應該優雅地返回 False，不拋出 ValueError
+        with caplog.at_level(logging.WARNING):
+            result = fetcher.update_song_metadata(song, new_metadata, missing_fields)
+
+        # 驗證結果
+        assert result is False
+
+        # 驗證有記錄警告（而非錯誤）
+        # 修復後應該看到 WARNING 而非 ERROR with traceback
+        assert any("無效" in record.message or "路徑" in record.message
+                   for record in caplog.records
+                   if record.levelname in ["WARNING", "ERROR"])
+
+    def test_update_song_metadata_with_empty_path(self, fetcher):
+        """測試 song_path 是空字串時的處理 - Bug 修復"""
+        song = {
+            "id": "test",
+            "title": "Test",
+            "path": ""  # Path('') -> WindowsPath('.')
+        }
+        new_metadata = {"artist": "Artist"}
+        missing_fields = ["artist"]
+
+        # 應該優雅地返回 False，不拋出異常
+        result = fetcher.update_song_metadata(song, new_metadata, missing_fields)
+
+        assert result is False
+
+    def test_update_song_metadata_with_directory_path(self, fetcher, tmp_path):
+        """測試 song_path 是目錄而非檔案時的處理 - Bug 修復"""
+        # 建立一個存在的目錄
+        test_dir = tmp_path / "test_directory"
+        test_dir.mkdir()
+
+        song = {
+            "id": "test",
+            "title": "Test",
+            "path": str(test_dir)  # 指向目錄，不是檔案
+        }
+        new_metadata = {"artist": "Artist"}
+        missing_fields = ["artist"]
+
+        # 應該優雅地返回 False，不拋出異常
+        result = fetcher.update_song_metadata(song, new_metadata, missing_fields)
+
+        assert result is False
+
 
 class TestMusicMetadataFetcherIntegration:
     """整合測試"""

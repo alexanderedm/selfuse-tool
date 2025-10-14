@@ -276,8 +276,18 @@ class MusicMetadataFetcher:
         try:
             # 取得 JSON 檔案路徑
             song_path = Path(song.get("path", ""))
+
+            # 驗證路徑有效性 (修復 Bug: WindowsPath('.') has an empty name)
+            if not song_path.name:
+                logger.warning(f"無效的歌曲路徑 (路徑名稱為空): {song_path}")
+                return False
+
             if not song_path.exists():
                 logger.error(f"歌曲檔案不存在: {song_path}")
+                return False
+
+            if not song_path.is_file():
+                logger.warning(f"路徑不是檔案: {song_path}")
                 return False
 
             json_path = song_path.with_suffix(".json")

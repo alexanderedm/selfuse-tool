@@ -1,6 +1,13 @@
 # 專案待辦清單 (Todo List)
 
 ## ✅ 已完成 (Completed)
+- [x] **修復 MusicMetadataFetcher JSON 更新 Bug** (2025-10-14 完成)
+  - 使用 TDD 方法診斷並修復路徑驗證 Bug
+  - 問題：`WindowsPath('.') has an empty name` ValueError
+  - 根因：`update_song_metadata()` 未在呼叫 `.with_suffix()` 前驗證路徑
+  - 解決：新增路徑名稱檢查與檔案類型驗證
+  - 新增 3 個單元測試，所有 41 個音樂元數據測試通過
+  - 測試 41/41 通過 (100%)，flake8 零錯誤
 - [x] **修復 RSS 文章無法顯示問題** (2025-10-14 完成)
   - 診斷並修復重構時遺漏的 `set_entries()` 方法
   - 根因：`rss_window.py` 呼叫不存在的方法名稱
@@ -191,5 +198,3 @@
 <!-- 在此新增未來想要實作的功能 -->
 - 音樂播放器歌詞顯示功能
 - 音樂播放器等化器設定
-- RSS 訂閱 OPML 匯入/匯出
-- 多語言支援 (i18n)
