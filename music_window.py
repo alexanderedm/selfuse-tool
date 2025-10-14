@@ -21,9 +21,12 @@ from music_search_view import MusicSearchView
 from music_header_view import MusicHeaderView
 from music_playback_view import MusicPlaybackView
 from music_song_actions import MusicSongActions
+from music_lyrics_view import MusicLyricsView
+from lyrics_parser import LyricsParser
 from PIL import Image, ImageTk, ImageDraw
 import requests
 from io import BytesIO
+from pathlib import Path
 
 
 class MusicWindow:
@@ -65,6 +68,7 @@ class MusicWindow:
         self.library_view = None  # 音樂庫視圖 (MusicLibraryView)
         self.search_view = None  # 搜尋視圖 (MusicSearchView)
         self.playback_view = None  # 播放控制視圖 (MusicPlaybackView)
+        self.lyrics_view = None  # 歌詞顯示視圖 (MusicLyricsView)
         self.song_actions = None  # 歌曲操作模組 (MusicSongActions)
         self.category_tree = None  # 使用 Treeview 替換 Listbox (將被 library_view 取代)
         self.song_tree = None  # 使用 Treeview 顯示歌曲列表 (將被 library_view 取代)
@@ -95,6 +99,9 @@ class MusicWindow:
             self.music_manager,
             self.music_manager.config_manager
         )
+
+        # 歌詞解析器
+        self.lyrics_parser = LyricsParser()
 
         # 歷史對話框(延遲初始化,當 window 建立後)
         self.history_dialog = None
@@ -219,9 +226,13 @@ class MusicWindow:
         self.category_tree = self.library_view.category_tree
         self.song_tree = self.library_view.song_tree
 
+        # 建立右側容器 (包含播放控制和歌詞)
+        right_container = tk.Frame(content_frame, bg=bg_color)
+        right_container.pack(side=tk.LEFT, fill=tk.BOTH, expand=False)
+
         # 使用 MusicPlaybackView 建立播放控制區
         self.playback_view = MusicPlaybackView(
-            parent_frame=content_frame,
+            parent_frame=right_container,
             music_manager=self.music_manager,
             on_play_pause=self._toggle_play_pause,
             on_play_previous=self._play_previous,
@@ -230,6 +241,13 @@ class MusicWindow:
             on_cycle_play_mode=self._cycle_play_mode
         )
         self.playback_view.create_view()
+
+        # 建立歌詞顯示區 (在播放控制下方)
+        self.lyrics_view = MusicLyricsView(
+            parent_frame=right_container,
+            on_lyric_click=self._on_lyric_click
+        )
+        self.lyrics_view.create_view()
 
         # 保持向後相容:設定引用
         self.current_song_label = self.playback_view.current_song_label
@@ -380,6 +398,9 @@ class MusicWindow:
                 self.playback_view.update_current_song(song)
                 self.playback_view.update_play_pause_button(is_paused=False)
                 self.playback_view.update_progress(0)
+
+            # 載入並顯示歌詞
+            self._load_lyrics_for_song(song)
 
             # 啟動進度更新執行緒
             threading.Thread(target=self._update_progress, daemon=True).start()
@@ -606,6 +627,10 @@ class MusicWindow:
         # 更新時間標籤
         time_text = self._format_time_text(current_pos, total_duration)
         self.window.after(0, lambda t=time_text: self.playback_view.update_time_label(t))
+
+        # 更新歌詞同步
+        if self.lyrics_view:
+            self.window.after(0, lambda p=current_pos: self.lyrics_view.update_current_time(p))
 
     def _update_progress(self):
         """更新播放進度"""
@@ -863,6 +888,70 @@ class MusicWindow:
         if self.window:
             self.window.destroy()
             self.window = None
+
+    def _load_lyrics_for_song(self, song):
+        """載入歌曲的歌詞檔案
+
+        Args:
+            song (dict): 歌曲資訊
+        """
+        try:
+            # 取得音樂檔案路徑
+            audio_path = song.get('audio_path', '')
+            if not audio_path:
+                if self.lyrics_view:
+                    self.lyrics_view.show_no_lyrics_message()
+                return
+
+            # 取得對應的 LRC 檔案路徑
+            lrc_path = Path(audio_path).with_suffix('.lrc')
+
+            if not lrc_path.exists():
+                logger.info(f"找不到歌詞檔案: {lrc_path}")
+                if self.lyrics_view:
+                    self.lyrics_view.show_no_lyrics_message()
+                return
+
+            # 解析歌詞
+            lyrics = self.lyrics_parser.parse_lrc_file(str(lrc_path))
+
+            if lyrics and self.lyrics_view:
+                self.lyrics_view.set_lyrics(lyrics)
+                logger.info(f"成功載入歌詞: {lrc_path.name} ({len(lyrics)} 行)")
+            else:
+                if self.lyrics_view:
+                    self.lyrics_view.show_no_lyrics_message()
+
+        except Exception as e:
+            logger.error(f"載入歌詞時發生錯誤: {e}")
+            if self.lyrics_view:
+                self.lyrics_view.show_no_lyrics_message()
+
+    def _on_lyric_click(self, time):
+        """點擊歌詞跳轉到指定時間
+
+        Args:
+            time (float): 跳轉的時間點(秒)
+        """
+        if not self.current_song or not self.is_playing:
+            return
+
+        try:
+            # 停止當前播放
+            pygame.mixer.music.stop()
+
+            # 重新載入並從指定位置開始播放
+            pygame.mixer.music.load(self.current_song['audio_path'])
+            pygame.mixer.music.play(start=time)
+
+            # 更新時間追蹤
+            self.start_time = time.time() - time
+            self.is_paused = False
+
+            logger.info(f"跳轉到歌詞位置: {time:.2f} 秒")
+
+        except Exception as e:
+            logger.error(f"跳轉播放位置失敗: {e}")
 
     def cleanup(self):
         """清理資源(在應用程式完全關閉時呼叫)"""
