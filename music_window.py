@@ -459,31 +459,57 @@ class MusicWindow:
         self.current_index = (self.current_index - 1) % len(self.playlist)
         self._play_song(self.playlist[self.current_index])
 
+    def _is_valid_current_index(self):
+        """檢查當前索引是否有效
+
+        Returns:
+            bool: 如果當前索引有效則返回 True
+        """
+        return 0 <= self.current_index < len(self.playlist)
+
+    def _get_available_shuffle_indices(self):
+        """取得隨機模式下可用的歌曲索引
+
+        Returns:
+            list: 可用的歌曲索引列表
+        """
+        available_indices = [i for i in range(len(self.playlist)) if i not in self.played_indices]
+
+        if not available_indices:
+            # 所有歌曲都播放過了,清空記錄重新開始
+            self.played_indices = []
+            available_indices = list(range(len(self.playlist)))
+
+        return available_indices
+
+    def _play_next_in_repeat_one_mode(self):
+        """單曲循環模式 - 重播當前歌曲"""
+        if self._is_valid_current_index():
+            self._play_song(self.playlist[self.current_index])
+
+    def _play_next_in_shuffle_mode(self):
+        """隨機模式 - 隨機選擇下一首歌曲"""
+        available_indices = self._get_available_shuffle_indices()
+        self.current_index = random.choice(available_indices)
+        self.played_indices.append(self.current_index)
+        self._play_song(self.playlist[self.current_index])
+
+    def _play_next_in_sequential_mode(self):
+        """順序模式或列表循環模式 - 播放下一首"""
+        self.current_index = (self.current_index + 1) % len(self.playlist)
+        self._play_song(self.playlist[self.current_index])
+
     def _play_next(self):
         """播放下一首"""
         if not self.playlist:
             return
 
         if self.play_mode == 'repeat_one':
-            # 單曲循環模式 - 重播當前歌曲
-            if self.current_index >= 0 and self.current_index < len(self.playlist):
-                self._play_song(self.playlist[self.current_index])
+            self._play_next_in_repeat_one_mode()
         elif self.play_mode == 'shuffle':
-            # 隨機模式
-            available_indices = [i for i in range(len(self.playlist)) if i not in self.played_indices]
-
-            if not available_indices:
-                # 所有歌曲都播放過了,清空記錄重新開始
-                self.played_indices = []
-                available_indices = list(range(len(self.playlist)))
-
-            self.current_index = random.choice(available_indices)
-            self.played_indices.append(self.current_index)
-            self._play_song(self.playlist[self.current_index])
+            self._play_next_in_shuffle_mode()
         else:
-            # 順序模式或列表循環模式
-            self.current_index = (self.current_index + 1) % len(self.playlist)
-            self._play_song(self.playlist[self.current_index])
+            self._play_next_in_sequential_mode()
 
     def _on_volume_change(self, value):
         """音量改變事件
@@ -497,33 +523,83 @@ class MusicWindow:
         # 儲存音量設定到設定檔
         self.music_manager.config_manager.set_music_volume(int(float(value)))
 
+    def _should_play_next(self):
+        """檢查是否應該播放下一首
+
+        Returns:
+            bool: 如果播放結束應播放下一首則返回 True
+        """
+        return not pygame.mixer.music.get_busy() and not self.is_paused
+
+    def _handle_paused_state(self):
+        """處理暫停狀態
+
+        Returns:
+            bool: 如果當前為暫停狀態則返回 True
+        """
+        if self.is_paused:
+            time.sleep(0.1)
+            return True
+        return False
+
+    def _calculate_playback_position(self):
+        """計算當前播放位置
+
+        Returns:
+            tuple: (當前位置(秒), 總時長(秒))
+        """
+        current_pos = time.time() - self.start_time
+        total_duration = self.current_song.get('duration', 0)
+        return current_pos, total_duration
+
+    def _format_time_text(self, current_pos, total_duration):
+        """格式化時間文字
+
+        Args:
+            current_pos (float): 當前播放位置(秒)
+            total_duration (int): 總時長(秒)
+
+        Returns:
+            str: 格式化的時間文字 "MM:SS / MM:SS"
+        """
+        current_str = self.music_manager.format_duration(int(current_pos))
+        total_str = self.music_manager.format_duration(total_duration)
+        return f"{current_str} / {total_str}"
+
+    def _update_ui_progress(self, current_pos, total_duration):
+        """更新 UI 進度條和時間標籤
+
+        Args:
+            current_pos (float): 當前播放位置(秒)
+            total_duration (int): 總時長(秒)
+        """
+        if total_duration <= 0 or not self.playback_view:
+            return
+
+        # 更新進度條
+        progress = min(100, (current_pos / total_duration) * 100)
+        self.window.after(0, lambda: self.playback_view.update_progress(progress))
+
+        # 更新時間標籤
+        time_text = self._format_time_text(current_pos, total_duration)
+        self.window.after(0, lambda t=time_text: self.playback_view.update_time_label(t))
+
     def _update_progress(self):
         """更新播放進度"""
         while self.is_playing and self.current_song:
             try:
-                if not pygame.mixer.music.get_busy() and not self.is_paused:
-                    # 播放結束,自動播放下一首
+                # 檢查是否播放結束
+                if self._should_play_next():
                     self.window.after(0, self._play_next)
                     break
 
-                if self.is_paused:
-                    time.sleep(0.1)
+                # 處理暫停狀態
+                if self._handle_paused_state():
                     continue
 
-                # 計算當前播放位置
-                current_pos = time.time() - self.start_time
-                total_duration = self.current_song.get('duration', 0)
-
-                if total_duration > 0 and self.playback_view:
-                    # 使用 playback_view 更新進度
-                    progress = min(100, (current_pos / total_duration) * 100)
-                    self.window.after(0, lambda: self.playback_view.update_progress(progress))
-
-                    # 更新時間標籤
-                    current_str = self.music_manager.format_duration(int(current_pos))
-                    total_str = self.music_manager.format_duration(total_duration)
-                    time_text = f"{current_str} / {total_str}"
-                    self.window.after(0, lambda t=time_text: self.playback_view.update_time_label(t))
+                # 計算播放位置並更新 UI
+                current_pos, total_duration = self._calculate_playback_position()
+                self._update_ui_progress(current_pos, total_duration)
 
                 time.sleep(0.5)
 
