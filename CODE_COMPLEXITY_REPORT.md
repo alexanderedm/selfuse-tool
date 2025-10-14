@@ -470,6 +470,71 @@ echo "✅ Code complexity check passed!"
 
 ---
 
+#### 2. music_library_view.py::_on_category_select_internal ✅
+- **重構日期**: 2025-10-14
+- **改善前**: CC = 11 (C 級)
+- **改善後**: CC = 6 (B 級)
+- **降低幅度**: -45% (-5 分)
+- **方法**: 提取 3 個輔助方法
+  - `_get_selected_category_info()` - 取得選中的分類資訊 (CC = 3)
+  - `_load_folder_songs_view()` - 載入資料夾歌曲到視圖 (CC = 1)
+  - `_handle_song_selection()` - 處理歌曲選擇和播放列表更新 (CC = 5)
+- **測試狀態**: 17/19 通過 (2 個 Tkinter 環境問題)
+- **flake8**: 零錯誤
+- **檔案 MI**: 52.95 → 維持在 B 級
+- **Git commit**: c2af8ad
+
+**影響**:
+- xenon 違規: 4 → 3 (-1)
+- CC > 10 函數: 8 → 7 (-1)
+
+---
+
+#### 3. settings_window.py::show & _save_settings ✅⭐
+- **重構日期**: 2025-10-14
+- **改善前**:
+  - `show()`: CC = 13 (C 級)
+  - `_save_settings()`: CC = 13 (C 級)
+- **改善後**:
+  - `show()`: **CC = 2 (A 級)** ⭐
+  - `_save_settings()`: **CC = 2 (A 級)** ⭐
+- **降低幅度**:
+  - `show()`: **-85%** (-11 分)
+  - `_save_settings()`: **-85%** (-11 分)
+- **方法**: 提取 12 個輔助方法，按職責分離
+  - **視窗建立**: `_create_window()` (CC = 2)
+  - **UI 區塊建立**:
+    - `_create_title_section()` (CC = 1)
+    - `_create_device_section()` (CC = 2)
+    - `_create_single_device_selector()` (CC = 8, B 級)
+    - `_create_current_device_info()` (CC = 2)
+    - `_create_music_path_section()` (CC = 3)
+    - `_create_metadata_section()` (CC = 3)
+    - `_create_button_section()` (CC = 1)
+  - **設定儲存**:
+    - `_save_music_path_and_metadata()` (CC = 4)
+    - `_validate_and_save_devices()` (CC = 10, B 級)
+    - `_show_success_and_close()` (CC = 2)
+  - **其他**: `_browse_music_directory()` (CC = 5, 已存在)
+- **測試狀態**: **19/19 全部通過** ✅
+- **flake8**: 零錯誤
+- **檔案 MI**: 47.43 → 預估提升至 55-60 範圍
+- **Git commit**: 待提交
+
+**影響**:
+- xenon 違規: 3 → **1** (-2) ⭐⭐
+- CC > 10 函數: 7 → **6** (-1)
+- settings_window.py 兩個高複雜度函數全部降至 A 級
+
+**亮點**:
+- 這是本次重構中改善幅度最大的檔案 (雙 85% 降低)
+- show() 方法從 390 行縮減到 33 行（提取 9 個 UI 建立方法）
+- _save_settings() 從 73 行縮減到 18 行（提取 3 個儲存方法）
+- 所有 19 個測試全部通過，無 skip 無 fail
+- 程式碼可讀性和可維護性大幅提升
+
+---
+
 **報告結束**
 
 如需詳細分析報告，請執行:

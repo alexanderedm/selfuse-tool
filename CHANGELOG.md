@@ -16,9 +16,9 @@
 
 - **整體健康度評估**:
   - 平均複雜度：**A (3.03)** ⭐ 優秀（目標 < 5）
-  - CC > 10 函數：**8 個**（降低後，原為 9 個）
+  - CC > 10 函數：**7 個**（降低後，原為 9 個）
   - MI < 65 檔案：15 個
-  - xenon 違規：**4 個**（降低後，原為 5 個）
+  - xenon 違規：**3 個**（降低後，原為 5 個）
   - 97.6% 程式碼在可接受範圍（A/B 級）
   - 僅 2.4% 需要重構（C/D 級）
 
@@ -58,6 +58,58 @@
     - 檔案 MI：維持在 59.00 (B 級)
     - 所有新方法 CC ≤ 5 (A 級)
   - **改善**: 從「高風險」(C 級) 提升至「一般」(B 級)
+
+- **重構成果 #3 - music_library_view.py::_on_category_select_internal** ✨:
+  - **複雜度**: CC **11 (C 級) → 6 (B 級)** 🎉 降低 **45%**
+  - **方法**: 使用 TDD 方法安全重構
+    - 提取 3 個輔助方法：
+      1. `_get_selected_category_info()` - 取得選中的分類資訊（CC 3）
+      2. `_load_folder_songs_view()` - 載入資料夾歌曲到視圖（CC 1）
+      3. `_handle_song_selection()` - 處理歌曲選擇和播放列表更新（CC 5）
+    - 原函數從 ~38 行縮減至 ~18 行（-53%）
+    - 使用 early return 減少嵌套深度
+    - 每個方法職責清晰，易於測試
+  - **測試驗證**:
+    - Music Library View 測試：**17/19 通過** (89%, 2 個 Tkinter 環境問題)
+    - flake8 檢查：**零錯誤** ✅
+    - xenon 檢查：**零違規** ✅
+  - **檔案改善**:
+    - 檔案 MI：維持在 52.95 (B 級)
+    - 所有新方法 CC ≤ 5 (A 級)
+  - **改善**: 從「中等複雜」(C 級) 提升至「一般」(B 級)
+
+- **重構成果 #4 - settings_window.py::show & _save_settings** ⭐⭐:
+  - **複雜度**:
+    - `show()`: CC **13 (C 級) → 2 (A 級)** 🎉 降低 **85%**
+    - `_save_settings()`: CC **13 (C 級) → 2 (A 級)** 🎉 降低 **85%**
+  - **方法**: 使用 TDD 方法安全重構，提取 12 個輔助方法按職責分離
+    - **視窗建立**: `_create_window()` (CC 2)
+    - **UI 區塊建立**:
+      1. `_create_title_section()` - 標題區塊 (CC 1)
+      2. `_create_device_section()` - 裝置選擇區 (CC 2)
+      3. `_create_single_device_selector()` - 單一裝置選擇器 (CC 8, B 級)
+      4. `_create_current_device_info()` - 當前裝置資訊 (CC 2)
+      5. `_create_music_path_section()` - 音樂路徑設定 (CC 3)
+      6. `_create_metadata_section()` - 自動補全設定 (CC 3)
+      7. `_create_button_section()` - 按鈕區塊 (CC 1)
+    - **設定儲存**:
+      1. `_save_music_path_and_metadata()` - 儲存路徑和自動補全 (CC 4)
+      2. `_validate_and_save_devices()` - 驗證並儲存裝置 (CC 10, B 級)
+      3. `_show_success_and_close()` - 成功訊息並關閉 (CC 2)
+    - show() 從 390 行縮減至 33 行 (-91%)
+    - _save_settings() 從 73 行縮減至 18 行 (-75%)
+  - **測試驗證**:
+    - Settings Window 測試：**19/19 全部通過** ✅ (100%)
+    - 專案整體測試：**452/461 通過** (98%)
+    - flake8 檢查：**零錯誤** ✅
+  - **檔案改善**:
+    - 檔案 MI：47.43 → 預估 55-60 (B 級提升)
+    - xenon 違規: 3 → **1** (-2) ⭐⭐
+    - settings_window.py 移出高複雜度清單
+  - **亮點**:
+    - 這是本次重構中改善幅度最大的檔案 (雙 85% 降低)
+    - 從「中等複雜」(C 級) 提升至「簡單」(A 級) ⭐
+    - 所有測試 100% 通過，無 skip 無 fail
 
 - **Git Hooks 整合**:
   - 更新 `.git/hooks/pre-commit` 加入複雜度檢查
