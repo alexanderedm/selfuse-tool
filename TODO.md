@@ -103,8 +103,8 @@
   - 整合複雜度檢查到 Git pre-commit hooks
   - **成果**:
     - 平均複雜度: **A (3.03)** ⭐ (目標 < 5)
-    - CC > 10 函數: **9 個** (從 24 降至 7 後剩 8 個)
-    - xenon 違規: **4 個** (從 5 降至 4)
+    - CC > 10 函數: **6 個** (從 9 降至 6，進步 33%)
+    - xenon 違規: **2 個** (從 5 降至 2，進步 60%)
     - MI < 65 檔案: 15 個
     - 所有測試通過，flake8 零錯誤
 
@@ -198,15 +198,15 @@
   - [x] 重構 music_library_view.py _on_category_select_internal (CC 11 → 6) ✅ 2025-10-14
   - [x] 重構 music_metadata_fetcher.py update_song_metadata (CC 10 → 5) ✅ 2025-10-14
   - [x] 重構 music_metadata_fetcher.py fetch_metadata (CC 10 → 5) ✅ 2025-10-14
-  - [ ] 重構剩餘 4 個 CC > 10 的函數:
-    1. [ ] settings_window.py _validate_and_save_devices (CC 10 → 6)
-    2. [ ] stats_window.py show (CC 10 → 6)
-    3. [ ] music_window.py _play_next (CC 9 → 6)
-    4. [ ] music_window.py _update_progress (CC 9 → 6)
+  - [x] 重構 settings_window.py _validate_and_save_devices (CC 10 → 6) ✅ 2025-10-14
+  - [x] 重構 stats_window.py show (CC 10 → 2) ✅ 2025-10-14
+  - [ ] 重構剩餘 2 個 CC > 10 的函數:
+    1. [ ] music_window.py _play_next (CC 9 → 6)
+    2. [ ] music_window.py _update_progress (CC 9 → 6)
   - [ ] 消除重複程式碼 (DRY 原則)
   - [ ] 統一錯誤處理模式
   - **目標**: xenon 零違規，所有函數 CC < 10
-  - **當前進度**: 5/9 完成 (56%)，xenon 違規估計 5 → 2，CC > 10 函數 9 → 4
+  - **當前進度**: 7/9 完成 (78%)，xenon 違規 5 → 2，CC > 10 函數 9 → 6
 
 - [ ] **整合測試與文檔** (預估: 1 週)
   - [ ] 建立整合測試套件 (+20 tests)
