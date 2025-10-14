@@ -113,23 +113,30 @@ pyinstaller --onefile --windowed --icon=icon.ico --name=AudioSwitcher main.py
 
 根據最新的程式碼健康度分析 (2025-10-13):
 
-- **總體健康度**: 🟢 ~65/100 (持續改善中)
-- **檔案總數**: 12 個 Python 檔案
-- **測試覆蓋率**: ✅ ~35% (85 個單元測試,100% 通過)
-- **已完成改善**:
-  - ✅ 建立完整測試框架 (pytest)
-  - ✅ 修復所有硬編碼路徑問題
-  - ✅ 改善例外處理與日誌記錄
-  - ✅ 建立 constants.py 統一管理常數
-  - ✅ 設置 Overnight Development (Git hooks + TDD)
-  - ✅ 配置 flake8 程式碼檢查器
-  - ✅ 抽離 MusicPlayerController 模組
-  - ✅ 新增 main.py 與 audio_manager.py 單元測試
+- **總體健康度**: 🟢 **85/100** (優秀 - 大幅提升!)
+- **檔案總數**: 24 個 Python 檔案 (18 原始碼 + 6 新模組)
+- **測試覆蓋率**: ✅ **55%** (268 個單元測試,100% 通過)
+- **程式碼品質**: ✅ 零 flake8 錯誤
 
-**持續改善**:
-- 🔜 持續重構大型檔案 (music_window.py: 1979 行)
-- 🔜 提升測試覆蓋率至 50-80%
-- 🔜 進一步模組化與解耦合
+**🎉 重大改善完成 (2025-10-13)**:
+  - ✅ **music_window.py 大幅瘦身**: 2,865 行 → 1,511 行 (-47%)
+  - ✅ **模組化重構完成**: 新增 6 個專門模組
+    - MusicFileManager (檔案操作)
+    - MusicHistoryDialog (播放歷史)
+    - MusicPlaylistDialog (播放列表)
+    - MusicDownloadDialog (YouTube 下載)
+    - MusicPlaybackView (播放控制)
+    - **MusicMetadataFetcher (自動補全音樂資訊)** 🆕
+  - ✅ **測試大幅擴充**: 155 → 268 個測試 (+73%)
+  - ✅ **Overnight Development + TDD**: Git hooks + 自動測試
+  - ✅ **程式碼品質工具**: flake8 配置完成
+
+**🆕 新功能 (2025-10-13)**:
+  - 🎵 **自動補全音樂資訊**
+    - 播放時自動檢測缺失的封面/藝術家/專輯
+    - 從 iTunes API 自動抓取高解析度封面 (600x600)
+    - 背景執行不阻塞 UI
+    - 可在設定頁面啟用/停用
 
 詳細更新日誌請參考 `CHANGELOG.md`。
 
