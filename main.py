@@ -22,6 +22,8 @@ from logger import logger
 import threading
 from tkinter import messagebox
 import tkinter as tk
+import ttkbootstrap as ttk
+from ttkbootstrap.constants import *
 
 
 class AudioSwitcherApp:

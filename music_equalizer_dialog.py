@@ -1,9 +1,9 @@
 """音樂等化器對話框模組
 
-提供圖形化等化器設定介面。
+提供圖形化等化器設定介面（使用 ttkbootstrap 現代化風格）。
 """
-import tkinter as tk
-from tkinter import ttk
+import ttkbootstrap as ttk
+from ttkbootstrap.constants import *
 
 
 class MusicEqualizerDialog:
@@ -47,57 +47,42 @@ class MusicEqualizerDialog:
             except:
                 self.dialog = None
 
-        # 建立對話框
-        self.dialog = tk.Toplevel(self.parent)
-        self.dialog.title("等化器設定")
+        # 建立對話框（使用 ttkbootstrap 風格）
+        self.dialog = ttk.Toplevel(self.parent)
+        self.dialog.title("🎚️ 等化器設定")
         self.dialog.geometry("800x600")
         self.dialog.resizable(False, False)
 
-        # 深色主題顏色
-        bg_color = "#1e1e1e"
-        card_bg = "#2d2d2d"
-        text_color = "#e0e0e0"
-        accent_color = "#0078d4"
-
-        self.dialog.configure(bg=bg_color)
-
         # 主框架
-        main_frame = tk.Frame(self.dialog, bg=bg_color)
-        main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+        main_frame = ttk.Frame(self.dialog, padding=20)
+        main_frame.pack(fill=BOTH, expand=YES)
 
         # === 頂部：啟用開關和預設選單 ===
-        top_frame = tk.Frame(main_frame, bg=bg_color)
-        top_frame.pack(fill=tk.X, pady=(0, 20))
+        top_frame = ttk.Frame(main_frame)
+        top_frame.pack(fill=X, pady=(0, 20))
 
         # 啟用/停用開關
-        self.enable_var = tk.BooleanVar(value=self.equalizer.is_enabled())
-        self.enable_checkbox = tk.Checkbutton(
+        self.enable_var = ttk.BooleanVar(value=self.equalizer.is_enabled())
+        self.enable_checkbox = ttk.Checkbutton(
             top_frame,
             text="啟用等化器",
             variable=self.enable_var,
             command=self._on_enable_toggle,
-            bg=bg_color,
-            fg=text_color,
-            selectcolor=card_bg,
-            activebackground=bg_color,
-            activeforeground=text_color,
-            font=("Segoe UI", 12, "bold")
+            bootstyle="success-round-toggle"
         )
-        self.enable_checkbox.pack(side=tk.LEFT, padx=(0, 20))
+        self.enable_checkbox.pack(side=LEFT, padx=(0, 20))
 
         # 預設模式選單
-        preset_frame = tk.Frame(top_frame, bg=bg_color)
-        preset_frame.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        preset_frame = ttk.Frame(top_frame)
+        preset_frame.pack(side=LEFT, fill=X, expand=YES)
 
-        tk.Label(
+        ttk.Label(
             preset_frame,
             text="預設模式:",
-            bg=bg_color,
-            fg=text_color,
-            font=("Segoe UI", 10)
-        ).pack(side=tk.LEFT, padx=(0, 10))
+            font=("Microsoft JhengHei UI", 10)
+        ).pack(side=LEFT, padx=(0, 10))
 
-        self.preset_var = tk.StringVar(value=self.equalizer.get_current_preset())
+        self.preset_var = ttk.StringVar(value=self.equalizer.get_current_preset())
 
         # 準備顯示名稱
         preset_names = self.equalizer.get_preset_names()
@@ -112,9 +97,9 @@ class MusicEqualizerDialog:
             values=preset_display,
             state='readonly',
             width=20,
-            font=("Segoe UI", 10)
+            font=("Microsoft JhengHei UI", 10)
         )
-        self.preset_combo.pack(side=tk.LEFT)
+        self.preset_combo.pack(side=LEFT)
         self.preset_combo.bind('<<ComboboxSelected>>', self._on_preset_change)
 
         # 設定當前值
@@ -123,33 +108,20 @@ class MusicEqualizerDialog:
         self.preset_combo.set(current_display)
 
         # === 中間：頻段滑桿 ===
-        sliders_frame = tk.Frame(main_frame, bg=card_bg)
-        sliders_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 20))
+        sliders_frame = ttk.Frame(main_frame, bootstyle="dark")
+        sliders_frame.pack(fill=BOTH, expand=YES, pady=(0, 20))
 
         # 標題
-        tk.Label(
+        ttk.Label(
             sliders_frame,
             text="頻段調整 (-12dB 到 +12dB)",
-            bg=card_bg,
-            fg=text_color,
-            font=("Segoe UI", 11, "bold")
+            font=("Microsoft JhengHei UI", 11, "bold"),
+            bootstyle="inverse-dark"
         ).pack(pady=(10, 5))
 
-        # 滑桿容器（使用 Canvas 和 Scrollbar）
-        canvas = tk.Canvas(sliders_frame, bg=card_bg, highlightthickness=0)
-        scrollbar = tk.Scrollbar(sliders_frame, orient=tk.VERTICAL, command=canvas.yview)
-        scrollable_frame = tk.Frame(canvas, bg=card_bg)
-
-        scrollable_frame.bind(
-            "<Configure>",
-            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
-        )
-
-        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
-        canvas.configure(yscrollcommand=scrollbar.set)
-
-        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=10, pady=10)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        # 滑桿容器
+        scrollable_frame = ttk.Frame(sliders_frame, padding=10)
+        scrollable_frame.pack(fill=BOTH, expand=YES, padx=10, pady=10)
 
         # 建立滑桿
         self.sliders = []
@@ -160,55 +132,45 @@ class MusicEqualizerDialog:
             gain = band['gain']
 
             # 每個頻段的框架
-            band_frame = tk.Frame(scrollable_frame, bg=card_bg)
-            band_frame.pack(fill=tk.X, pady=5, padx=10)
+            band_frame = ttk.Frame(scrollable_frame)
+            band_frame.pack(fill=X, pady=5, padx=10)
 
             # 頻率標籤
             freq_str = f"{freq}Hz" if freq < 1000 else f"{freq // 1000}kHz"
-            freq_label = tk.Label(
+            freq_label = ttk.Label(
                 band_frame,
                 text=freq_str,
-                bg=card_bg,
-                fg=text_color,
-                font=("Segoe UI", 10),
+                font=("Microsoft JhengHei UI", 10),
                 width=8,
                 anchor='w'
             )
-            freq_label.pack(side=tk.LEFT, padx=(0, 10))
+            freq_label.pack(side=LEFT, padx=(0, 10))
 
             # 滑桿變數
-            slider_var = tk.DoubleVar(value=gain)
+            slider_var = ttk.DoubleVar(value=gain)
 
-            # 滑桿
-            scale = tk.Scale(
+            # 滑桿（使用 ttkbootstrap 的現代化滑桿）
+            scale = ttk.Scale(
                 band_frame,
                 from_=-12.0,
                 to=12.0,
-                resolution=0.5,
-                orient=tk.HORIZONTAL,
+                orient=HORIZONTAL,
                 variable=slider_var,
                 command=lambda val, f=freq: self._on_slider_change(f, float(val)),
-                bg=card_bg,
-                fg=text_color,
-                troughcolor=bg_color,
-                activebackground=accent_color,
-                highlightthickness=0,
-                length=400,
-                showvalue=0
+                bootstyle=SUCCESS,
+                length=400
             )
-            scale.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 10))
+            scale.pack(side=LEFT, fill=X, expand=YES, padx=(0, 10))
 
             # 增益值標籤
-            gain_label = tk.Label(
+            gain_label = ttk.Label(
                 band_frame,
                 text=f"{gain:+.1f}dB",
-                bg=card_bg,
-                fg=text_color,
-                font=("Segoe UI", 10),
+                font=("Microsoft JhengHei UI", 10),
                 width=8,
                 anchor='e'
             )
-            gain_label.pack(side=tk.LEFT)
+            gain_label.pack(side=LEFT)
 
             # 保存滑桿資訊
             self.sliders.append({
@@ -219,41 +181,35 @@ class MusicEqualizerDialog:
             })
 
         # === 底部：說明和按鈕 ===
-        bottom_frame = tk.Frame(main_frame, bg=bg_color)
-        bottom_frame.pack(fill=tk.X)
+        bottom_frame = ttk.Frame(main_frame)
+        bottom_frame.pack(fill=X)
 
         # 說明文字
         note_text = (
             "✨ 提示: 等化器設定會即時應用到音訊播放，無需按套用即可聽到效果。"
             "支援 10 頻段參數 EQ，設定會自動保存。"
         )
-        self.note_label = tk.Label(
+        self.note_label = ttk.Label(
             bottom_frame,
             text=note_text,
-            bg=bg_color,
-            fg="#4caf50",
-            font=("Segoe UI", 9, "italic"),
+            font=("Microsoft JhengHei UI", 9, "italic"),
+            bootstyle=SUCCESS,
             wraplength=700,
-            justify=tk.LEFT
+            justify=LEFT
         )
         self.note_label.pack(pady=(0, 15))
 
         # 按鈕框架
-        button_frame = tk.Frame(bottom_frame, bg=bg_color)
+        button_frame = ttk.Frame(bottom_frame)
         button_frame.pack()
 
-        # 重置按鈕（居中顯示）
-        reset_btn = tk.Button(
+        # 重置按鈕（居中顯示，使用圓角按鈕）
+        reset_btn = ttk.Button(
             button_frame,
             text="🔄 重置為預設值",
             command=self._on_reset,
-            bg=card_bg,
-            fg=text_color,
-            font=("Segoe UI", 10),
-            relief=tk.FLAT,
-            padx=30,
-            pady=10,
-            cursor="hand2"
+            bootstyle="info-outline",
+            width=20
         )
         reset_btn.pack(padx=5)
 
