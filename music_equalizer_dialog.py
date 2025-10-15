@@ -12,8 +12,8 @@ class MusicEqualizerDialog:
     提供 10 頻段等化器的圖形化設定介面，包含：
     - 啟用/停用開關
     - 預設模式選單
-    - 10 個頻段滑桿
-    - 重置和套用按鈕
+    - 10 個頻段滑桿（即時生效）
+    - 重置按鈕
     """
 
     def __init__(self, parent, equalizer, on_equalizer_change=None):
@@ -224,8 +224,8 @@ class MusicEqualizerDialog:
 
         # 說明文字
         note_text = (
-            "提示: 等化器設定會即時應用到音訊播放。"
-            "支援 10 頻段參數 EQ，調整後點擊「套用」保存設定。"
+            "✨ 提示: 等化器設定會即時應用到音訊播放，無需按套用即可聽到效果。"
+            "支援 10 頻段參數 EQ，設定會自動保存。"
         )
         self.note_label = tk.Label(
             bottom_frame,
@@ -242,35 +242,20 @@ class MusicEqualizerDialog:
         button_frame = tk.Frame(bottom_frame, bg=bg_color)
         button_frame.pack()
 
-        # 重置按鈕
+        # 重置按鈕（居中顯示）
         reset_btn = tk.Button(
             button_frame,
-            text="重置",
+            text="🔄 重置為預設值",
             command=self._on_reset,
             bg=card_bg,
             fg=text_color,
             font=("Segoe UI", 10),
             relief=tk.FLAT,
-            padx=20,
-            pady=8,
+            padx=30,
+            pady=10,
             cursor="hand2"
         )
-        reset_btn.pack(side=tk.LEFT, padx=5)
-
-        # 套用按鈕
-        apply_btn = tk.Button(
-            button_frame,
-            text="套用",
-            command=self._on_apply,
-            bg=accent_color,
-            fg="white",
-            font=("Segoe UI", 10, "bold"),
-            relief=tk.FLAT,
-            padx=20,
-            pady=8,
-            cursor="hand2"
-        )
-        apply_btn.pack(side=tk.LEFT, padx=5)
+        reset_btn.pack(padx=5)
 
     def _trigger_equalizer_change(self):
         """觸發等化器變更回調"""
@@ -354,13 +339,8 @@ class MusicEqualizerDialog:
         # 觸發即時同步
         self._trigger_equalizer_change()
 
-    def _on_apply(self):
-        """套用按鈕事件"""
-        # 儲存設定
+        # 自動保存設定
         self.equalizer.save_settings()
-
-        # 可選：顯示提示訊息
-        # messagebox.showinfo("成功", "等化器設定已儲存")
 
     def _on_close(self):
         """關閉按鈕事件"""

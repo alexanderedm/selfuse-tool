@@ -227,13 +227,13 @@ class MusicWindow:
             on_equalizer_change=self._sync_equalizer_to_processor
         )
 
-        # 深色主題顏色
-        bg_color = "#1e1e1e"
-        card_bg = "#2d2d2d"
-        accent_color = "#0078d4"
-        text_color = "#e0e0e0"
-        text_secondary = "#a0a0a0"
-        header_bg = "#0d47a1"
+        # 使用 UI 主題配色（Spotify 風格）
+        bg_color = self.theme.bg_color
+        card_bg = self.theme.card_bg
+        accent_color = self.theme.accent_color
+        text_color = self.theme.text_color
+        text_secondary = self.theme.text_secondary
+        header_bg = self.theme.header_bg
         self.window.configure(bg=bg_color)
 
         # 建立主框架
