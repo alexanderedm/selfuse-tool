@@ -99,8 +99,8 @@ class TestMusicEqualizerDialog(unittest.TestCase):
         """測試 - 切換預設模式"""
         self.dialog.show()
 
-        # 切換到搖滾模式
-        self.dialog.preset_var.set('rock')
+        # 切換到搖滾模式（使用顯示格式: "key - 顯示名稱"）
+        self.dialog.preset_var.set('rock - 搖滾')
         self.dialog._on_preset_change(None)
 
         # 驗證等化器設定已更新
@@ -204,18 +204,6 @@ class TestMusicEqualizerDialog(unittest.TestCase):
         args = self.config_manager.set.call_args[0]
         self.assertEqual(args[0], 'music_equalizer')
 
-    def test_close_button(self):
-        """測試 - 關閉按鈕"""
-        self.dialog.show()
-        dialog_window = self.dialog.dialog
-
-        # 點擊關閉
-        self.dialog._on_close()
-
-        # 驗證視窗已關閉
-        self.assertFalse(dialog_window.winfo_exists())
-        self.assertIsNone(self.dialog.dialog)
-
     def test_display_gain_values(self):
         """測試 - 顯示增益數值"""
         self.dialog.show()
@@ -251,7 +239,10 @@ class TestMusicEqualizerDialog(unittest.TestCase):
             slider_value = dialog.sliders[i]['var'].get()
             self.assertAlmostEqual(slider_value, band['gain'], places=1)
 
-        dialog._on_close()
+        # 清理對話框
+        if dialog.dialog:
+            dialog.dialog.destroy()
+            dialog.dialog = None
 
     def test_preset_display_names(self):
         """測試 - 預設模式顯示中文名稱"""
@@ -286,7 +277,7 @@ class TestMusicEqualizerDialog(unittest.TestCase):
             self.assertEqual(scale.cget('to'), 12.0)
 
     def test_note_about_audio_processing(self):
-        """測試 - 顯示音訊處理限制說明"""
+        """測試 - 顯示音訊處理提示說明"""
         self.dialog.show()
 
         # 驗證對話框包含說明文字
@@ -294,8 +285,8 @@ class TestMusicEqualizerDialog(unittest.TestCase):
         self.assertTrue(hasattr(self.dialog, 'note_label'))
         note_text = self.dialog.note_label.cget('text')
 
-        # 驗證說明內容
-        self.assertIn('音訊效果應用功能', note_text)
+        # 驗證說明內容（新版本提示即時應用）
+        self.assertIn('即時應用', note_text)
 
 
 if __name__ == '__main__':

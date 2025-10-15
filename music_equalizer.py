@@ -1,7 +1,7 @@
 """音樂等化器模組
 
 提供 10 頻段等化器設定管理，支援多種預設模式。
-注意: 當前版本僅實現設定管理，音訊效果應用功能待未來整合音訊處理庫實現。
+已整合 AudioPlayer 實現即時音訊效果應用。
 """
 import copy
 
@@ -255,6 +255,14 @@ class MusicEqualizer:
             list: 頻段列表（副本）
         """
         return copy.deepcopy(self.bands)
+
+    def get_gains(self):
+        """取得所有頻段的增益值
+
+        Returns:
+            list: 增益值列表 [float, float, ...] (10 個值)
+        """
+        return [band['gain'] for band in self.bands]
 
     def save_settings(self):
         """儲存設定到 ConfigManager"""

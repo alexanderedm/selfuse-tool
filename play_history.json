@@ -1,6 +1,34 @@
 {
   "recent_plays": [
     {
+      "song_id": "vqsdUXUxdq8",
+      "title": "BRAIN",
+      "artist": "未知",
+      "category": "Experimental",
+      "played_at": "2025-10-15T03:34:19.915389"
+    },
+    {
+      "song_id": "BryspbM6s3E",
+      "title": "UNDEAD",
+      "artist": "未知",
+      "category": "Electronic",
+      "played_at": "2025-10-14T22:03:01.267042"
+    },
+    {
+      "song_id": "BryspbM6s3E",
+      "title": "UNDEAD",
+      "artist": "未知",
+      "category": "Electronic",
+      "played_at": "2025-10-14T21:47:45.133956"
+    },
+    {
+      "song_id": "fxHjlCBHuzA",
+      "title": "Bye Bye Bye",
+      "artist": "未知",
+      "category": "Electronic",
+      "played_at": "2025-10-14T21:47:37.275047"
+    },
+    {
       "song_id": "BXO1Ne4bJmE",
       "title": "美秀集團 Amazing Show－物語 Tales【Official Music Video】",
       "artist": "美秀集團 Amazing Show",
@@ -79,13 +107,14 @@
     }
   ],
   "play_counts": {
-    "BryspbM6s3E": 2,
+    "BryspbM6s3E": 4,
     "DiTd771WumE": 3,
     "bYWR9Ms1FSM": 1,
     "Z7mCrxjivB0": 1,
-    "fxHjlCBHuzA": 2,
+    "fxHjlCBHuzA": 3,
     "mRma6NkHwWU": 1,
-    "BXO1Ne4bJmE": 1
+    "BXO1Ne4bJmE": 1,
+    "vqsdUXUxdq8": 1
   },
-  "total_plays": 11
+  "total_plays": 15
 }

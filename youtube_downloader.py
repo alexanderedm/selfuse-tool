@@ -356,7 +356,7 @@ class YouTubeDownloader:
                 break
 
         if not subtitle_file:
-            logger.info(f"未找到字幕檔案，跳過歌詞轉換")
+            logger.info("未找到字幕檔案，跳過歌詞轉換")
             return False
 
         try:

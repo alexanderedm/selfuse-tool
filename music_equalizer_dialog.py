@@ -222,14 +222,14 @@ class MusicEqualizerDialog:
 
         # 說明文字
         note_text = (
-            "注意: 當前版本僅保存等化器設定，"
-            "音訊效果應用功能待未來整合音訊處理庫實現。"
+            "提示: 等化器設定會即時應用到音訊播放。"
+            "支援 10 頻段參數 EQ，調整後點擊「套用」保存設定。"
         )
         self.note_label = tk.Label(
             bottom_frame,
             text=note_text,
             bg=bg_color,
-            fg="#ffa500",
+            fg="#4caf50",
             font=("Segoe UI", 9, "italic"),
             wraplength=700,
             justify=tk.LEFT
@@ -269,21 +269,6 @@ class MusicEqualizerDialog:
             cursor="hand2"
         )
         apply_btn.pack(side=tk.LEFT, padx=5)
-
-        # 關閉按鈕
-        close_btn = tk.Button(
-            button_frame,
-            text="關閉",
-            command=self._on_close,
-            bg=card_bg,
-            fg=text_color,
-            font=("Segoe UI", 10),
-            relief=tk.FLAT,
-            padx=20,
-            pady=8,
-            cursor="hand2"
-        )
-        close_btn.pack(side=tk.LEFT, padx=5)
 
     def _on_enable_toggle(self):
         """啟用/停用開關事件"""
