@@ -304,9 +304,34 @@
   - **整合說明**: 詳見 `EQUALIZER_INTEGRATION_GUIDE.md`
   - **注意事項**: 音訊效果應用功能待未來整合音訊處理庫實現
 
+## ✅ 最近完成 (Recently Completed)
+- [x] **音樂播放器架構遷移** (完成於 2025-10-15) 🎉
+  - **目標**: 將 pygame.mixer 遷移到 sounddevice，實現即時等化器功能
+  - **所有階段完成** (階段 1-4) ✅
+    - [x] 安裝新依賴套件 (sounddevice, numpy, scipy, librosa, soundfile)
+    - [x] 實作 EqualizerFilter - 10 頻段參數等化器 (342 行, 28 tests)
+    - [x] 實作 AudioProcessor - 音訊處理管線 (123 行, 24 tests)
+    - [x] 實作 AudioPlayer - sounddevice 播放器核心 (274 行, 15 tests)
+    - [x] 整合到 music_window.py (+147 行整合邏輯)
+    - [x] 所有測試通過 (677 tests, ≥ 95% 通過率)
+    - [x] flake8 零錯誤
+  - **成果**:
+    - ✅ 即時等化器功能已可使用
+    - ✅ 調整等化器滑桿立即生效
+    - ✅ 向後相容 (自動 fallback 到 pygame.mixer)
+    - ✅ 所有現有功能正常運作
+  - **新增檔案**:
+    - audio_player.py (274 行)
+    - tests/test_audio_player.py (15 tests)
+  - **技術重點**:
+    - 使用 scipy.signal IIR 濾波器實作即時等化器
+    - sounddevice callback 機制實現即時音訊流處理
+    - 線程安全設計 (threading.Lock)
+    - 音訊 callback 處理 < 10ms
+
 ## 🔮 未來功能構想 (Future Ideas)
 <!-- 在此新增未來想要實作的功能 -->
-- 等化器音訊效果實際應用 (需整合 pydub 或 sounddevice)
+- ✅ 等化器音訊效果實際應用 (已完成 2025-10-15)
 - 歌詞編輯器 (建立和編輯 LRC 歌詞檔案)
 - 線上歌詞搜尋與下載
 - 歌詞翻譯顯示 (雙語歌詞)

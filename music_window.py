@@ -120,12 +120,50 @@ class MusicWindow:
         # 下載對話框(延遲初始化,當 window 建立後)
         self.download_dialog = None
 
-        # 初始化 pygame mixer
+        # 嘗試使用 AudioPlayer，失敗則 fallback 到 pygame
+        self.use_audio_player = False
+        self.audio_player = None
+        self.audio_processor = None
+
         try:
-            pygame.mixer.init()
-            logger.info("Pygame mixer 初始化成功")
+            from audio_player import AudioPlayer
+            from audio_processor import AudioProcessor
+            from equalizer_filter import EqualizerFilter
+
+            # 建立等化器濾波器 (從 MusicEqualizer 讀取設定)
+            equalizer_filter = EqualizerFilter(sample_rate=44100)
+
+            # 從 MusicEqualizer 載入當前設定
+            preset_name = self.equalizer.get_current_preset()
+            gains = self.equalizer.get_gains()
+            if gains and len(gains) == len(equalizer_filter.frequencies):
+                equalizer_filter.set_all_gains(gains)
+
+            # 建立音訊處理器
+            self.audio_processor = AudioProcessor(sample_rate=44100)
+            self.audio_processor.equalizer = equalizer_filter
+
+            # 建立音訊播放器
+            self.audio_player = AudioPlayer(audio_processor=self.audio_processor)
+            self.audio_player.on_playback_end = self._on_audio_player_end
+
+            # 設定音量
+            self.audio_player.set_volume(self.volume)
+
+            self.use_audio_player = True
+            logger.info("✅ 使用 AudioPlayer（支援即時等化器）")
+
         except Exception as e:
-            logger.error(f"Pygame mixer 初始化失敗: {e}")
+            logger.warning(f"AudioPlayer 初始化失敗，使用 pygame.mixer: {e}")
+            self.use_audio_player = False
+
+        # 初始化 pygame mixer (作為 fallback)
+        if not self.use_audio_player:
+            try:
+                pygame.mixer.init()
+                logger.info("Pygame mixer 初始化成功")
+            except Exception as e:
+                logger.error(f"Pygame mixer 初始化失敗: {e}")
 
     def show(self):
         """顯示音樂播放器視窗"""
@@ -383,19 +421,22 @@ class MusicWindow:
                 self.song_tree.insert('', 'end', values=(song['title'], duration_str))
 
     def _play_song(self, song):
-        """播放歌曲
+        """播放歌曲（自動選擇播放器）
 
         Args:
             song (dict): 歌曲資訊
         """
         try:
-            pygame.mixer.music.load(song['audio_path'])
-            pygame.mixer.music.play()
+            # 使用適當的播放器播放
+            if self.use_audio_player:
+                self._play_with_audio_player(song)
+            else:
+                self._play_with_pygame(song)
+
+            # 共同的後續處理
+            self.current_song = song
             self.is_playing = True
             self.is_paused = False
-            self.current_song = song
-            self.start_time = time.time()
-            self.pause_position = 0
 
             # 記錄播放歷史
             try:
@@ -435,6 +476,34 @@ class MusicWindow:
             logger.error(f"播放失敗: {e}")
             messagebox.showerror("播放錯誤", f"無法播放歌曲:\n{str(e)}")
 
+    def _play_with_audio_player(self, song):
+        """使用 AudioPlayer 播放
+
+        Args:
+            song (dict): 歌曲資訊
+        """
+        # 同步等化器設定到 AudioProcessor
+        self._sync_equalizer_to_processor()
+
+        # 播放音樂
+        result = self.audio_player.play(song['audio_path'])
+        if not result:
+            raise Exception("AudioPlayer 播放失敗")
+
+        self.start_time = time.time()
+        self.pause_position = 0
+
+    def _play_with_pygame(self, song):
+        """使用 pygame.mixer 播放（fallback）
+
+        Args:
+            song (dict): 歌曲資訊
+        """
+        pygame.mixer.music.load(song['audio_path'])
+        pygame.mixer.music.play()
+        self.start_time = time.time()
+        self.pause_position = 0
+
     def _on_metadata_updated(self, song, metadata):
         """元數據更新完成的回調
 
@@ -472,14 +541,22 @@ class MusicWindow:
 
     def _resume_playback(self):
         """恢復播放"""
-        pygame.mixer.music.unpause()
+        if self.use_audio_player:
+            self.audio_player.resume()
+        else:
+            pygame.mixer.music.unpause()
+
         self.is_paused = False
         self.start_time = time.time() - self.pause_position
         self._update_playback_ui(is_paused=False)
 
     def _pause_playback(self):
         """暫停播放"""
-        pygame.mixer.music.pause()
+        if self.use_audio_player:
+            self.audio_player.pause()
+        else:
+            pygame.mixer.music.pause()
+
         self.is_paused = True
         self.pause_position = time.time() - self.start_time
         self._update_playback_ui(is_paused=True)
@@ -577,8 +654,14 @@ class MusicWindow:
             value (str): 音量值(0-100)
         """
         volume = float(value) / 100
-        pygame.mixer.music.set_volume(volume)
         self.volume = volume
+
+        # 設定音量
+        if self.use_audio_player:
+            self.audio_player.set_volume(volume)
+        else:
+            pygame.mixer.music.set_volume(volume)
+
         # 儲存音量設定到設定檔
         self.music_manager.config_manager.set_music_volume(int(float(value)))
 
@@ -588,7 +671,11 @@ class MusicWindow:
         Returns:
             bool: 如果播放結束應播放下一首則返回 True
         """
-        return not pygame.mixer.music.get_busy() and not self.is_paused
+        if self.use_audio_player:
+            # AudioPlayer 使用回調處理播放結束
+            return False
+        else:
+            return not pygame.mixer.music.get_busy() and not self.is_paused
 
     def _handle_paused_state(self):
         """處理暫停狀態
@@ -607,8 +694,15 @@ class MusicWindow:
         Returns:
             tuple: (當前位置(秒), 總時長(秒))
         """
-        current_pos = time.time() - self.start_time
-        total_duration = self.current_song.get('duration', 0)
+        if self.use_audio_player:
+            # 從 AudioPlayer 獲取精確位置
+            current_pos = self.audio_player.get_position()
+            total_duration = self.audio_player.get_duration()
+        else:
+            # 從 pygame 計算位置
+            current_pos = time.time() - self.start_time
+            total_duration = self.current_song.get('duration', 0)
+
         return current_pos, total_duration
 
     def _format_time_text(self, current_pos, total_duration):
@@ -957,26 +1051,55 @@ class MusicWindow:
             return
 
         try:
-            # 停止當前播放
-            pygame.mixer.music.stop()
-
-            # 重新載入並從指定位置開始播放
-            pygame.mixer.music.load(self.current_song['audio_path'])
-            pygame.mixer.music.play(start=time)
-
-            # 更新時間追蹤
-            self.start_time = time.time() - time
-            self.is_paused = False
-
-            logger.info(f"跳轉到歌詞位置: {time:.2f} 秒")
+            if self.use_audio_player:
+                # AudioPlayer 支援直接跳轉
+                self.audio_player.seek(time)
+                logger.info(f"跳轉到歌詞位置: {time:.2f} 秒")
+            else:
+                # pygame 需要重新載入
+                pygame.mixer.music.stop()
+                pygame.mixer.music.load(self.current_song['audio_path'])
+                pygame.mixer.music.play(start=time)
+                self.start_time = time.time() - time
+                self.is_paused = False
+                logger.info(f"跳轉到歌詞位置: {time:.2f} 秒")
 
         except Exception as e:
             logger.error(f"跳轉播放位置失敗: {e}")
+
+    def _sync_equalizer_to_processor(self):
+        """同步等化器設定到 AudioProcessor"""
+        if not self.use_audio_player or not self.audio_processor:
+            return
+
+        try:
+            # 取得等化器設定
+            gains = self.equalizer.get_gains()
+
+            # 同步到 AudioProcessor 的 EqualizerFilter
+            if self.audio_processor.equalizer and gains:
+                if len(gains) == len(self.audio_processor.equalizer.frequencies):
+                    self.audio_processor.equalizer.set_all_gains(gains)
+                    logger.info("等化器設定已同步到 AudioProcessor")
+
+        except Exception as e:
+            logger.error(f"同步等化器設定失敗: {e}")
+
+    def _on_audio_player_end(self):
+        """AudioPlayer 播放結束回調"""
+        logger.info("AudioPlayer 播放結束，自動播放下一首")
+
+        # 在主線程中觸發下一首
+        if self.window:
+            self.window.after(0, self._play_next)
 
     def cleanup(self):
         """清理資源(在應用程式完全關閉時呼叫)"""
         # 停止音樂
         if self.is_playing:
-            pygame.mixer.music.stop()
+            if self.use_audio_player:
+                self.audio_player.stop()
+            else:
+                pygame.mixer.music.stop()
 
         logger.info("音樂播放器資源已清理")

@@ -92,7 +92,12 @@ selftool/
 - **comtypes**: COM 介面操作
 - **pywin32**: Windows API
 - **feedparser**: RSS 訂閱解析
-- **pygame**: 音樂播放
+- **pygame**: 音樂播放 (即將遷移到 sounddevice)
+- **sounddevice**: 跨平台音訊輸入輸出 (新增)
+- **numpy**: 數值計算 (新增)
+- **scipy**: 科學計算和訊號處理 (新增)
+- **librosa**: 音訊分析和處理 (新增)
+- **soundfile**: 音訊檔案讀寫 (新增)
 
 ### 運作原理
 
