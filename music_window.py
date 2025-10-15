@@ -219,7 +219,8 @@ class MusicWindow:
         # 初始化等化器對話框
         self.equalizer_dialog = MusicEqualizerDialog(
             parent=self.window,
-            equalizer=self.equalizer
+            equalizer=self.equalizer,
+            on_equalizer_change=self._sync_equalizer_to_processor
         )
 
         # 深色主題顏色

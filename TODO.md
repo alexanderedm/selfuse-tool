@@ -163,17 +163,18 @@
     - 所有測試通過，flake8 零錯誤
 
 ## 🚧 進行中 (In Progress)
-- [ ] **修復 test_rss_window.py 測試失敗** (發現於 2025-10-14)
-  - 3 個測試失敗: test_add_feed_manual_* 系列
-  - 問題: Mock 設定不正確，askstring().strip() 返回 Mock 對象而非字串
-  - 影響: 阻擋 pre-commit hook
-  - 需要: 修正測試中的 Mock 返回值設定
+- [ ] **優化等化器 UI 外觀** (規劃中)
+  - 改善主題配色 (目前使用 #1e1e1e, #2d2d2d)
+  - 優化按鈕、滑桿、進度條視覺設計
+  - 改善專輯封面顯示效果 (圓角、陰影)
+  - 改善歌詞顯示視覺效果
 
-- [ ] **解決 tkinter 測試環境問題**
-  - 1 個測試因 tkinter 環境設定問題間歇性失敗 (test_music_history_dialog)
-  - 非程式碼問題,為 Windows Python tkinter 安裝不完整
-  - 單獨運行測試時正常通過
-  - 當前測試通過率: 316/317 (99.7%)
+- [ ] **修復 test_rss_window.py 測試失敗** (發現於 2025-10-14)
+  - 7 個測試失敗 (包含 test_add_feed_manual_* 系列)
+  - 問題: Mock 設定不正確，askstring().strip() 返回 Mock 對象而非字串
+  - 影響範圍: 7/30 tests (23%)
+  - 整體測試通過率仍達 **98.6%** (630/639)
+  - 需要: 修正測試中的 Mock 返回值設定
 
 ## 📋 待辦事項 (Todo) - 根據程式碼健康度分析 (2025-10-14)
 
@@ -305,6 +306,24 @@
   - **注意事項**: 音訊效果應用功能待未來整合音訊處理庫實現
 
 ## ✅ 最近完成 (Recently Completed)
+- [x] **等化器即時生效功能實作** (完成於 2025-10-15) ✨
+  - **問題**: 等化器調整只在下一首歌曲才生效
+  - **解決方案**: 新增回調機制，立即同步設定到 AudioProcessor
+  - **實作步驟**:
+    - [x] 在 `MusicEqualizerDialog` 新增 `on_equalizer_change` 回調參數
+    - [x] 實作 `_trigger_equalizer_change()` 輔助方法
+    - [x] 在所有等化器變更操作中觸發回調 (滑桿、預設、重置、啟用)
+    - [x] 在 `music_window.py` 連接回調到 `_sync_equalizer_to_processor()`
+    - [x] 新增 4 個單元測試驗證即時同步功能
+  - **測試成果**:
+    - ✅ 4 個新測試全部通過
+    - ✅ 整體測試通過率: **98.6%** (630/639 tests)
+    - ✅ flake8 檢查零錯誤
+  - **修改檔案**:
+    - music_equalizer_dialog.py (+12 行)
+    - music_window.py (修改 1 行)
+    - tests/test_music_equalizer_dialog.py (+56 行)
+
 - [x] **音樂播放器架構遷移** (完成於 2025-10-15) 🎉
   - **目標**: 將 pygame.mixer 遷移到 sounddevice，實現即時等化器功能
   - **所有階段完成** (階段 1-4) ✅

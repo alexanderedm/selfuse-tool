@@ -288,6 +288,72 @@ class TestMusicEqualizerDialog(unittest.TestCase):
         # 驗證說明內容（新版本提示即時應用）
         self.assertIn('即時應用', note_text)
 
+    def test_slider_change_triggers_realtime_sync(self):
+        """測試 - 滑桿改變會觸發即時同步到 AudioProcessor"""
+        # 建立 mock 回調函數
+        sync_callback = Mock()
+        self.dialog.on_equalizer_change = sync_callback
+
+        self.dialog.show()
+
+        # 修改滑桿
+        frequency = 1000
+        new_gain = 5.0
+        self.dialog._on_slider_change(frequency, new_gain)
+
+        # 驗證回調被呼叫
+        sync_callback.assert_called_once()
+
+    def test_preset_change_triggers_realtime_sync(self):
+        """測試 - 預設變更會觸發即時同步到 AudioProcessor"""
+        # 建立 mock 回調函數
+        sync_callback = Mock()
+        self.dialog.on_equalizer_change = sync_callback
+
+        self.dialog.show()
+
+        # 切換預設
+        self.dialog.preset_var.set('rock - 搖滾')
+        self.dialog._on_preset_change(None)
+
+        # 驗證回調被呼叫
+        sync_callback.assert_called_once()
+
+    def test_enable_toggle_triggers_realtime_sync(self):
+        """測試 - 啟用/停用切換會觸發即時同步到 AudioProcessor"""
+        # 建立 mock 回調函數
+        sync_callback = Mock()
+        self.dialog.on_equalizer_change = sync_callback
+
+        self.dialog.show()
+
+        # 切換啟用狀態
+        self.dialog.enable_var.set(True)
+        self.dialog._on_enable_toggle()
+
+        # 驗證回調被呼叫
+        sync_callback.assert_called_once()
+
+    def test_reset_triggers_realtime_sync(self):
+        """測試 - 重置會觸發即時同步到 AudioProcessor"""
+        # 建立 mock 回調函數
+        sync_callback = Mock()
+        self.dialog.on_equalizer_change = sync_callback
+
+        self.dialog.show()
+
+        # 先設定一些增益
+        self.equalizer.set_band_gain(1000, 6.0)
+
+        # 重置計數器
+        sync_callback.reset_mock()
+
+        # 點擊重置
+        self.dialog._on_reset()
+
+        # 驗證回調被呼叫
+        sync_callback.assert_called_once()
+
 
 if __name__ == '__main__':
     unittest.main()

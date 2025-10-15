@@ -16,15 +16,17 @@ class MusicEqualizerDialog:
     - 重置和套用按鈕
     """
 
-    def __init__(self, parent, equalizer):
+    def __init__(self, parent, equalizer, on_equalizer_change=None):
         """初始化等化器對話框
 
         Args:
             parent: 父視窗
             equalizer: MusicEqualizer 實例
+            on_equalizer_change: 等化器變更時的回調函數 (可選)
         """
         self.parent = parent
         self.equalizer = equalizer
+        self.on_equalizer_change = on_equalizer_change
         self.dialog = None
 
         # UI 元件
@@ -270,9 +272,20 @@ class MusicEqualizerDialog:
         )
         apply_btn.pack(side=tk.LEFT, padx=5)
 
+    def _trigger_equalizer_change(self):
+        """觸發等化器變更回調"""
+        if self.on_equalizer_change:
+            try:
+                self.on_equalizer_change()
+            except Exception as e:
+                from logger import logger
+                logger.error(f"等化器變更回調執行失敗: {e}")
+
     def _on_enable_toggle(self):
         """啟用/停用開關事件"""
         self.equalizer.set_enabled(self.enable_var.get())
+        # 觸發即時同步
+        self._trigger_equalizer_change()
 
     def _on_preset_change(self, event):
         """預設模式改變事件"""
@@ -288,6 +301,9 @@ class MusicEqualizerDialog:
 
         # 更新滑桿
         self._update_sliders()
+
+        # 觸發即時同步
+        self._trigger_equalizer_change()
 
     def _on_slider_change(self, frequency, value):
         """滑桿改變事件
@@ -310,6 +326,9 @@ class MusicEqualizerDialog:
         current_display = f"{current_preset} - {self.equalizer.get_preset_display_name(current_preset)}"
         self.preset_var.set(current_display)
 
+        # 觸發即時同步
+        self._trigger_equalizer_change()
+
     def _update_sliders(self):
         """更新所有滑桿以反映等化器狀態"""
         bands = self.equalizer.get_bands()
@@ -331,6 +350,9 @@ class MusicEqualizerDialog:
         current_preset = self.equalizer.get_current_preset()
         current_display = f"{current_preset} - {self.equalizer.get_preset_display_name(current_preset)}"
         self.preset_var.set(current_display)
+
+        # 觸發即時同步
+        self._trigger_equalizer_change()
 
     def _on_apply(self):
         """套用按鈕事件"""
