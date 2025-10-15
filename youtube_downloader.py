@@ -4,6 +4,7 @@ import json
 import subprocess
 from logger import logger
 from constants import DEFAULT_DOWNLOAD_PATH, YTDLP_SEARCH_TIMEOUT, YTDLP_DOWNLOAD_TIMEOUT, YTDLP_MAX_SEARCH_RESULTS
+from subtitle_converter import SubtitleConverter
 
 
 class YouTubeDownloader:
@@ -18,6 +19,8 @@ class YouTubeDownloader:
         self.output_dir = output_dir or DEFAULT_DOWNLOAD_PATH
         # 確保輸出目錄存在
         os.makedirs(self.output_dir, exist_ok=True)
+        # 初始化字幕轉換器
+        self.subtitle_converter = SubtitleConverter()
 
     def extract_video_id(self, url):
         """從 URL 提取影片 ID
@@ -177,6 +180,12 @@ class YouTubeDownloader:
             '--embed-thumbnail',  # 嵌入縮圖
             '--add-metadata',  # 添加元數據
             '--no-warnings',
+            # 🎤 字幕/歌詞下載
+            '--write-auto-sub',  # 下載自動生成的字幕
+            '--write-sub',  # 下載上傳者提供的字幕
+            '--sub-lang', 'zh-TW,zh-Hans,zh,en,ja,ko',  # 嘗試多種語言
+            '--sub-format', 'vtt',  # 使用 VTT 格式（更容易解析）
+            '--convert-subs', 'vtt',  # 轉換所有字幕為 VTT
             # 🔑 關鍵設定 1: 使用 mweb 客戶端 (2025 推薦,最穩定)
             '--extractor-args', 'youtube:player_client=mweb,android;skip=hls,dash',
             # 🔑 關鍵設定 2: 網路優化
@@ -307,6 +316,84 @@ class YouTubeDownloader:
 
         return True, None
 
+    def _process_subtitles(self, output_path, safe_title, video_id):
+        """處理下載的字幕檔案，轉換為 LRC 格式
+
+        Args:
+            output_path (str): 輸出目錄
+            safe_title (str): 安全的檔案名稱
+            video_id (str): 影片 ID
+
+        Returns:
+            bool: 是否成功處理字幕
+        """
+        # 尋找可能的字幕檔案
+        base_filename = f"{safe_title}-{video_id}"
+        subtitle_extensions = ['.vtt', '.srt']
+        subtitle_languages = ['zh-TW', 'zh-Hans', 'zh', 'en', 'ja', 'ko']
+
+        subtitle_file = None
+        subtitle_format = None
+
+        # 嘗試尋找字幕檔案（優先順序：語言 > 格式）
+        for lang in subtitle_languages + ['']:
+            for ext in subtitle_extensions:
+                # 可能的檔名格式：
+                # 1. filename.zh-TW.vtt
+                # 2. filename.vtt
+                if lang:
+                    possible_file = os.path.join(output_path, f"{base_filename}.{lang}{ext}")
+                else:
+                    possible_file = os.path.join(output_path, f"{base_filename}{ext}")
+
+                if os.path.exists(possible_file):
+                    subtitle_file = possible_file
+                    subtitle_format = ext[1:]  # 移除 '.'
+                    logger.info(f"找到字幕檔案: {os.path.basename(subtitle_file)}")
+                    break
+
+            if subtitle_file:
+                break
+
+        if not subtitle_file:
+            logger.info(f"未找到字幕檔案，跳過歌詞轉換")
+            return False
+
+        try:
+            # 讀取字幕內容
+            with open(subtitle_file, 'r', encoding='utf-8') as f:
+                subtitle_content = f.read()
+
+            # 轉換為 LRC 格式
+            lrc_content = self.subtitle_converter.convert_to_lrc(
+                subtitle_content,
+                subtitle_format
+            )
+
+            if lrc_content:
+                # 儲存 LRC 檔案
+                lrc_file = os.path.join(output_path, f"{base_filename}.lrc")
+                with open(lrc_file, 'w', encoding='utf-8') as f:
+                    f.write(lrc_content)
+
+                logger.info(f"✅ 成功轉換並儲存歌詞: {os.path.basename(lrc_file)}")
+
+                # 刪除原始字幕檔案（可選）
+                try:
+                    os.remove(subtitle_file)
+                    logger.debug(f"已刪除原始字幕檔案: {os.path.basename(subtitle_file)}")
+                except Exception as e:
+                    logger.warning(f"無法刪除字幕檔案: {e}")
+
+                return True
+            else:
+                logger.warning("字幕轉換失敗")
+                return False
+
+        except Exception as e:
+            logger.error(f"處理字幕時發生錯誤: {e}")
+            return False
+
     def download_audio(self, url, category="下載", progress_callback=None):
         """下載 YouTube 音訊
 
@@ -351,9 +438,14 @@ class YouTubeDownloader:
             if not success:
                 return {'success': False, 'message': f'下載失敗: {error_msg}', 'song_info': None}
 
-            # 儲存元數據並返回結果
+            # 儲存元數據
             song_metadata = self._save_metadata(video_info, url, audio_filename, json_path)
             logger.info(f"下載完成: {audio_filename}")
+
+            # 處理字幕/歌詞
+            subtitle_success = self._process_subtitles(output_path, safe_title, video_id)
+            if subtitle_success:
+                logger.info("🎤 歌詞已自動轉換並儲存")
 
             return {
                 'success': True,
