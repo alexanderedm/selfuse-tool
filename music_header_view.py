@@ -11,7 +11,8 @@ class MusicHeaderView:
         on_download_click=None,
         on_playlist_click=None,
         on_history_click=None,
-        on_most_played_click=None
+        on_most_played_click=None,
+        on_equalizer_click=None
     ):
         """初始化 MusicHeaderView
 
@@ -21,12 +22,14 @@ class MusicHeaderView:
             on_playlist_click: 播放列表按鈕點擊回調
             on_history_click: 播放歷史按鈕點擊回調
             on_most_played_click: 最常播放按鈕點擊回調
+            on_equalizer_click: 等化器按鈕點擊回調
         """
         self.parent = parent
         self.on_download_click = on_download_click
         self.on_playlist_click = on_playlist_click
         self.on_history_click = on_history_click
         self.on_most_played_click = on_most_played_click
+        self.on_equalizer_click = on_equalizer_click
 
         # 深色主題顏色
         self.bg_color = "#1e1e1e"
@@ -40,6 +43,7 @@ class MusicHeaderView:
         self.most_played_button = None
         self.playlist_button = None
         self.history_button = None
+        self.equalizer_button = None
 
         # 建立 UI
         self._create_ui()
@@ -128,6 +132,22 @@ class MusicHeaderView:
         )
         self.history_button.pack(side=tk.RIGHT, padx=(5, 0))
 
+        # 等化器按鈕
+        self.equalizer_button = tk.Button(
+            button_frame,
+            text="🎚️ 等化器",
+            font=("Microsoft JhengHei UI", 10),
+            bg="#353535",
+            fg=self.text_color,
+            activebackground="#505050",
+            activeforeground="white",
+            borderwidth=0,
+            padx=15,
+            pady=5,
+            command=self._on_equalizer_button_click
+        )
+        self.equalizer_button.pack(side=tk.RIGHT, padx=(5, 0))
+
     def _on_download_button_click(self):
         """下載按鈕點擊處理"""
         if self.on_download_click:
@@ -148,6 +168,11 @@ class MusicHeaderView:
         if self.on_history_click:
             self.on_history_click()
 
+    def _on_equalizer_button_click(self):
+        """等化器按鈕點擊處理"""
+        if self.on_equalizer_click:
+            self.on_equalizer_click()
+
     def destroy(self):
         """清理資源"""
         if self.header_frame:
@@ -158,3 +183,4 @@ class MusicHeaderView:
         self.most_played_button = None
         self.playlist_button = None
         self.history_button = None
+        self.equalizer_button = None

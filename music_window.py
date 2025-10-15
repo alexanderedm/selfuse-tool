@@ -23,6 +23,8 @@ from music_playback_view import MusicPlaybackView
 from music_song_actions import MusicSongActions
 from music_lyrics_view import MusicLyricsView
 from lyrics_parser import LyricsParser
+from music_equalizer import MusicEqualizer
+from music_equalizer_dialog import MusicEqualizerDialog
 from PIL import Image, ImageTk, ImageDraw
 import requests
 from io import BytesIO
@@ -103,6 +105,12 @@ class MusicWindow:
         # 歌詞解析器
         self.lyrics_parser = LyricsParser()
 
+        # 等化器
+        self.equalizer = MusicEqualizer(self.music_manager.config_manager)
+
+        # 等化器對話框(延遲初始化,當 window 建立後)
+        self.equalizer_dialog = None
+
         # 歷史對話框(延遲初始化,當 window 建立後)
         self.history_dialog = None
 
@@ -170,6 +178,12 @@ class MusicWindow:
             on_download_complete=self._on_download_complete
         )
 
+        # 初始化等化器對話框
+        self.equalizer_dialog = MusicEqualizerDialog(
+            parent=self.window,
+            equalizer=self.equalizer
+        )
+
         # 深色主題顏色
         bg_color = "#1e1e1e"
         card_bg = "#2d2d2d"
@@ -190,7 +204,8 @@ class MusicWindow:
             on_download_click=self._open_download_dialog,
             on_playlist_click=self._show_playlists,
             on_history_click=self._show_play_history,
-            on_most_played_click=self._show_most_played
+            on_most_played_click=self._show_most_played,
+            on_equalizer_click=self._show_equalizer
         )
 
         # === 主要內容區 ===
@@ -844,6 +859,11 @@ class MusicWindow:
     def _show_playlists(self):
         """顯示播放列表管理對話框"""
         self.playlist_dialog.show_playlists()
+
+    def _show_equalizer(self):
+        """顯示等化器設定對話框"""
+        if self.equalizer_dialog:
+            self.equalizer_dialog.show()
 
     def _add_song_to_playlist(self, song):
         """加入歌曲到播放列表"""

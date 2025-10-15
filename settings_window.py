@@ -22,8 +22,9 @@ class SettingsWindow:
             # 如果沒有提供根視窗,建立獨立的視窗
             window = tk.Tk()
         window.title("⚙ 音訊切換工具 - 設定")
-        window.geometry("600x750")
-        window.resizable(False, False)
+        window.geometry("700x850")
+        window.resizable(True, True)
+        window.minsize(600, 750)  # 設定最小尺寸以確保內容可見
 
         # 設定深色主題顏色
         bg_color = "#1e1e1e"
