@@ -163,11 +163,13 @@
     - 所有測試通過，flake8 零錯誤
 
 ## 🚧 進行中 (In Progress)
-- [ ] **優化等化器 UI 外觀** (規劃中)
-  - 改善主題配色 (目前使用 #1e1e1e, #2d2d2d)
-  - 優化按鈕、滑桿、進度條視覺設計
-  - 改善專輯封面顯示效果 (圓角、陰影)
-  - 改善歌詞顯示視覺效果
+- [ ] **音樂播放器 UI 全面現代化** (進行中 2025-10-15)
+  - [x] 等化器對話框改用 ttkbootstrap（圓角按鈕、現代滑桿） ✅
+  - [ ] 主視窗改用 ttkbootstrap 現代風格
+  - [ ] MusicHeaderView 按鈕現代化
+  - [ ] MusicPlaybackView 控制項現代化
+  - [ ] 改善專輯封面顯示效果 (圓角、陰影)
+  - [ ] 改善歌詞顯示視覺效果
 
 - [ ] **修復 test_rss_window.py 測試失敗** (發現於 2025-10-14)
   - 7 個測試失敗 (包含 test_add_feed_manual_* 系列)
@@ -306,6 +308,26 @@
   - **注意事項**: 音訊效果應用功能待未來整合音訊處理庫實現
 
 ## ✅ 最近完成 (Recently Completed)
+- [x] **等化器對話框現代化 UI** (完成於 2025-10-15) 🎨
+  - **目標**: 實作圓角按鈕、現代化滑桿等 UI 元件
+  - **技術方案**: 使用 ttkbootstrap 現代化 UI 框架
+  - **實作成果**:
+    - [x] 轉換 `MusicEqualizerDialog` 為 ttkbootstrap 風格
+    - [x] 圓角按鈕 (bootstyle=success-outline, info-outline)
+    - [x] 圓角開關元件 (bootstyle=success-round-toggle)
+    - [x] 現代化滑桿 (bootstyle=SUCCESS)
+    - [x] Spotify 風格 darkly 主題
+    - [x] 簡化布局和配色
+  - **新增模組**:
+    - ui_theme_modern.py - ttkbootstrap 主題封裝 (235 行)
+    - ui_preview.py - 現代化 UI 展示視窗 (127 行)
+    - test_equalizer_ui.py - 測試腳本
+  - **修改檔案**:
+    - music_equalizer_dialog.py - 完全改用 ttkbootstrap
+    - main.py - 添加 ttkbootstrap import
+  - **程式碼品質**: flake8 警告已知（ttkbootstrap 官方 import 方式）
+  - **提交**: `1797893` - feat(ui): 實作等化器對話框現代化 UI（ttkbootstrap）
+
 - [x] **等化器即時生效功能實作** (完成於 2025-10-15) ✨
   - **問題**: 等化器調整只在下一首歌曲才生效
   - **解決方案**: 新增回調機制，立即同步設定到 AudioProcessor
