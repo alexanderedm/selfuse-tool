@@ -17,6 +17,7 @@ from rss_window import RSSWindow
 from clipboard_monitor import ClipboardMonitor
 from music_manager import MusicManager
 from music_window import MusicWindow
+from changelog_window import ChangelogWindow
 from logger import logger
 import threading
 from tkinter import messagebox
@@ -45,6 +46,7 @@ class AudioSwitcherApp:
             )
             self.music_manager = MusicManager(self.config_manager)
             self.music_window = None
+            self.changelog_window = None
             logger.info("應用程式初始化完成")
         except Exception as e:
             logger.exception("初始化應用程式時發生錯誤")
@@ -306,6 +308,32 @@ class AudioSwitcherApp:
             logger.error(f"無法開啟 Log 檔案: {e}")
             self.show_notification(f"無法開啟 Log: {e}", "錯誤")
 
+    def open_changelog(self):
+        """開啟更新日誌視窗"""
+        try:
+            logger.log_window_event("更新日誌視窗", "嘗試開啟")
+
+            if self.changelog_window is None or self.changelog_window.window is None:
+                logger.info("建立新的更新日誌視窗實例")
+                self.changelog_window = ChangelogWindow(tk_root=self.tk_root)
+                self.changelog_window.show()
+                logger.log_window_event("更新日誌視窗", "已開啟")
+            else:
+                # 如果視窗已存在,將其帶到前景
+                logger.info("更新日誌視窗已存在,嘗試帶到前景")
+                try:
+                    self.changelog_window.window.lift()
+                    self.changelog_window.window.focus_force()
+                    logger.log_window_event("更新日誌視窗", "已帶到前景")
+                except Exception as e:
+                    logger.error(f"無法將更新日誌視窗帶到前景: {e}")
+                    # 視窗可能已關閉,重新建立
+                    logger.info("重新建立更新日誌視窗")
+                    self.changelog_window = ChangelogWindow(tk_root=self.tk_root)
+                    self.changelog_window.show()
+        except Exception as e:
+            logger.exception("開啟更新日誌視窗時發生錯誤")
+
     def open_music_player(self):
         """開啟音樂播放器"""
         try:
@@ -425,6 +453,7 @@ class AudioSwitcherApp:
             ),
             pystray.Menu.SEPARATOR,
             item("查看日誌", self.open_log_viewer),
+            item("📝 更新日誌", self.open_changelog),
             item(
                 "開機自動啟動",
                 self.toggle_auto_start,
