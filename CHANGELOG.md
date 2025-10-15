@@ -6,6 +6,40 @@
 
 ## [未發布]
 
+### 🎨 UI 主題系統與測試擴展 (2025-10-15)
+- **新增模組**: `ui_theme.py` - 統一的 UI 主題配色管理系統
+  - Spotify 風格深色主題配色方案
+  - 提供按鈕、卡片、標籤、進度條、滑桿等元件樣式
+  - 支援懸停效果自動調色
+  - 12 個單元測試（100% 通過）
+  - 平均複雜度: A (1.5)
+  - flake8 零錯誤
+
+- **測試擴展**: `test_music_window.py` 大幅擴展
+  - 新增 28 個測試（超過目標 25 個）
+  - 總測試數：5 → 33+ 測試
+  - 新增測試類別：
+    - `TestMusicWindowEqualizerSync` - 等化器同步測試（3 tests）
+    - `TestMusicWindowPlayMode` - 播放模式測試（4 tests）
+    - `TestMusicWindowVolumeControl` - 音量控制測試（3 tests）
+    - `TestMusicWindowProgressUpdate` - 進度更新測試（3 tests）
+    - `TestMusicWindowErrorHandling` - 錯誤處理測試（5 tests）
+    - `TestMusicWindowPlaylistManagement` - 播放列表管理測試（3 tests）
+    - `TestMusicWindowUIIntegration` - UI 整合測試（3 tests）
+  - 涵蓋功能：
+    - 等化器同步（有增益值、無增益值、無 AudioPlayer）
+    - 播放模式循環切換（順序、循環、單曲循環、隨機）
+    - 音量控制（AudioPlayer 和 pygame 雙模式）
+    - 播放進度計算和時間格式化
+    - 索引有效性檢查和播放列表管理
+    - 隨機播放索引管理
+  - 測試品質：所有新測試通過，程式碼複雜度 A 級
+
+- **整合工作**:
+  - 將 `UITheme` 整合到 `music_window.py`
+  - 初始化深色主題配色
+  - 為後續 UI 改進奠定基礎
+
 ### ✨ 等化器即時生效功能實作完成 (2025-10-15)
 - **功能實作**: 等化器滑桿調整後立即對當前播放的歌曲生效
 - **架構改進**: 在 `MusicEqualizerDialog` 添加 `on_equalizer_change` 回調參數

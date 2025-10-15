@@ -25,6 +25,7 @@ from music_lyrics_view import MusicLyricsView
 from lyrics_parser import LyricsParser
 from music_equalizer import MusicEqualizer
 from music_equalizer_dialog import MusicEqualizerDialog
+from ui_theme import UITheme
 from PIL import Image, ImageTk, ImageDraw
 import requests
 from io import BytesIO
@@ -104,6 +105,9 @@ class MusicWindow:
 
         # 歌詞解析器
         self.lyrics_parser = LyricsParser()
+
+        # UI 主題
+        self.theme = UITheme(theme_name='dark')
 
         # 等化器
         self.equalizer = MusicEqualizer(self.music_manager.config_manager)
