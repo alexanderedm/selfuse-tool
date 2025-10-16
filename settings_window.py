@@ -320,48 +320,80 @@ class SettingsWindow:
 
     def show(self):
         """顯示設定視窗"""
-        if self.window is not None:
-            self.window.lift()
-            self.window.focus_force()
-            return
+        from logger import logger
 
-        self.window = self._create_window()
+        try:
+            if self.window is not None:
+                logger.info("[設定視窗] 視窗已存在,帶到前景")
+                self.window.lift()
+                self.window.focus_force()
+                return
 
-        # 如果是 Toplevel 視窗,設定置頂和聚焦
-        if self.tk_root and isinstance(self.window, ctk.CTkToplevel):
-            self.window.transient(self.tk_root)
-            self.window.lift()
-            self.window.focus_force()
+            logger.info("[設定視窗] 建立新視窗")
+            self.window = self._create_window()
 
-        # 設定深色主題顏色
-        bg_color = "#1e1e1e"
-        card_bg = "#2d2d2d"
-        text_color = "#e0e0e0"
-        text_secondary = "#a0a0a0"
-        accent_bg = "#1a3a52"
+            logger.info("[設定視窗] 視窗已建立,設定置頂和聚焦")
+            # 如果是 Toplevel 視窗,設定置頂和聚焦
+            if self.tk_root and isinstance(self.window, ctk.CTkToplevel):
+                self.window.transient(self.tk_root)
+                self.window.lift()
+                self.window.focus_force()
 
-        # 建立主框架
-        main_frame = ctk.CTkFrame(self.window, fg_color="transparent")
-        main_frame.pack(fill="both", expand=True, padx=30, pady=30)
+            # 設定深色主題顏色
+            bg_color = "#1e1e1e"
+            card_bg = "#2d2d2d"
+            text_color = "#e0e0e0"
+            text_secondary = "#a0a0a0"
+            accent_bg = "#1a3a52"
 
-        # 取得所有裝置
-        devices = self.audio_manager.get_all_output_devices()
+            logger.info("[設定視窗] 建立主框架")
+            # 建立主框架
+            main_frame = ctk.CTkFrame(self.window, fg_color="transparent")
+            main_frame.pack(fill="both", expand=True, padx=30, pady=30)
 
-        # 建立各個區塊
-        self._create_title_section(main_frame, bg_color, text_color, text_secondary)
-        device_a_combo, device_b_combo = self._create_device_section(
-            main_frame, devices, card_bg, text_color, text_secondary
-        )
-        self._create_current_device_info(main_frame, accent_bg)
-        self._create_music_path_section(main_frame, card_bg, text_color, text_secondary)
-        self._create_metadata_section(main_frame, card_bg, text_color, text_secondary)
-        self._create_button_section(main_frame, devices, device_a_combo, device_b_combo, bg_color)
+            logger.info("[設定視窗] 取得音訊裝置列表")
+            # 取得所有裝置
+            devices = self.audio_manager.get_all_output_devices()
+            logger.info(f"[設定視窗] 找到 {len(devices)} 個裝置")
 
-        # 儲存裝置列表的參考
-        self.devices = devices
+            # 建立各個區塊
+            logger.info("[設定視窗] 建立標題區塊")
+            self._create_title_section(main_frame, bg_color, text_color, text_secondary)
 
-        # 關閉視窗時的處理
-        self.window.protocol("WM_DELETE_WINDOW", self._close_window)
+            logger.info("[設定視窗] 建立裝置選擇區塊")
+            device_a_combo, device_b_combo = self._create_device_section(
+                main_frame, devices, card_bg, text_color, text_secondary
+            )
+
+            logger.info("[設定視窗] 建立當前裝置資訊")
+            self._create_current_device_info(main_frame, accent_bg)
+
+            logger.info("[設定視窗] 建立音樂路徑設定")
+            self._create_music_path_section(main_frame, card_bg, text_color, text_secondary)
+
+            logger.info("[設定視窗] 建立元數據設定")
+            self._create_metadata_section(main_frame, card_bg, text_color, text_secondary)
+
+            logger.info("[設定視窗] 建立按鈕區塊")
+            self._create_button_section(main_frame, devices, device_a_combo, device_b_combo, bg_color)
+
+            # 儲存裝置列表的參考
+            self.devices = devices
+
+            # 關閉視窗時的處理
+            self.window.protocol("WM_DELETE_WINDOW", self._close_window)
+
+            logger.info("[設定視窗] 所有 UI 元件建立完成")
+
+        except Exception as e:
+            logger.exception("[設定視窗] 顯示視窗時發生錯誤")
+            messagebox.showerror("錯誤", f"無法開啟設定視窗:\n{str(e)}")
+            if self.window:
+                try:
+                    self.window.destroy()
+                except:
+                    pass
+                self.window = None
 
     def _browse_music_directory(self):
         """瀏覽並選擇音樂根目錄"""
