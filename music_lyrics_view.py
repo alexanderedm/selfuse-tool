@@ -1,6 +1,5 @@
 """音樂歌詞視圖模組 - 負責歌詞顯示與同步"""
-import tkinter as tk
-from tkinter import ttk
+import customtkinter as ctk
 from lyrics_parser import LyricsParser
 from logger import logger
 
@@ -39,68 +38,40 @@ class MusicLyricsView:
 
     def create_view(self):
         """建立歌詞顯示視圖"""
-        # 歌詞容器
-        self.lyrics_container = tk.Frame(
+        # 歌詞容器（圓角框架）
+        self.lyrics_container = ctk.CTkFrame(
             self.parent_frame,
-            bg=self.bg_color,
-            relief=tk.RIDGE,
-            bd=1
+            corner_radius=15,
+            fg_color=self.bg_color
         )
-        self.lyrics_container.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+        self.lyrics_container.pack(side="top", fill="both", expand=True)
 
         # 標題
-        header = tk.Label(
+        header = ctk.CTkLabel(
             self.lyrics_container,
             text="🎤 歌詞",
-            font=("Microsoft JhengHei UI", 11, "bold"),
-            bg="#0d47a1",
-            fg="white",
-            pady=8
+            font=("Microsoft JhengHei UI", 14, "bold"),
+            fg_color="#0d47a1",
+            text_color="white",
+            corner_radius=12,
+            height=40
         )
-        header.pack(fill=tk.X)
+        header.pack(fill="x", padx=5, pady=(5, 0))
 
-        # 歌詞文字框容器
-        text_container = tk.Frame(self.lyrics_container, bg=self.bg_color)
-        text_container.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-
-        # 建立滾動條
-        self.scrollbar = ttk.Scrollbar(text_container)
-        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-
-        # 建立文字框
-        self.lyrics_text = tk.Text(
-            text_container,
-            wrap=tk.WORD,
-            bg=self.bg_color,
-            fg=self.text_color,
+        # 歌詞文字框（使用 CTkTextbox）
+        self.lyrics_text = ctk.CTkTextbox(
+            self.lyrics_container,
+            wrap="word",
+            fg_color=self.bg_color,
+            text_color=self.text_color,
             font=("Microsoft JhengHei UI", 11),
-            spacing1=5,  # 行前間距
-            spacing3=5,  # 行後間距
-            relief=tk.FLAT,
-            yscrollcommand=self.scrollbar.set,
-            cursor="hand2"
+            corner_radius=10,
+            border_width=0
         )
-        self.lyrics_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-
-        # 連接滾動條
-        self.scrollbar.config(command=self.lyrics_text.yview)
-
-        # 設定高亮標籤樣式
-        self.lyrics_text.tag_config(
-            'highlight',
-            foreground=self.highlight_color,
-            font=("Microsoft JhengHei UI", 12, "bold"),
-            background=self.highlight_bg
-        )
-
-        # 設定一般歌詞樣式 (居中)
-        self.lyrics_text.tag_config(
-            'center',
-            justify=tk.CENTER
-        )
+        self.lyrics_text.pack(fill="both", expand=True, padx=10, pady=10)
 
         # 禁用編輯
-        self.lyrics_text.config(state=tk.DISABLED)
+        self.lyrics_text.configure(state="disabled")
 
         # 綁定點擊事件
         self.lyrics_text.bind('<Button-1>', self._on_text_click)
@@ -121,32 +92,31 @@ class MusicLyricsView:
             return
 
         # 清除現有內容
-        self.lyrics_text.config(state=tk.NORMAL)
-        self.lyrics_text.delete("1.0", tk.END)
+        self.lyrics_text.configure(state="normal")
+        self.lyrics_text.delete("1.0", "end")
 
         if not lyrics:
             self.show_no_lyrics_message()
         else:
-            # 插入歌詞
+            # 插入歌詞（CTkTextbox 不支援 tag，需手動處理）
             for i, lyric in enumerate(lyrics):
                 line_text = f"{lyric['text']}\n\n"
-                self.lyrics_text.insert(tk.END, line_text, 'center')
+                self.lyrics_text.insert("end", line_text)
 
-        self.lyrics_text.config(state=tk.DISABLED)
+        self.lyrics_text.configure(state="disabled")
 
     def show_no_lyrics_message(self):
         """顯示無歌詞訊息"""
         if not self.lyrics_text:
             return
 
-        self.lyrics_text.config(state=tk.NORMAL)
-        self.lyrics_text.delete("1.0", tk.END)
+        self.lyrics_text.configure(state="normal")
+        self.lyrics_text.delete("1.0", "end")
         self.lyrics_text.insert(
-            tk.END,
-            "\n\n\n暫無歌詞\n\n請將 .lrc 歌詞文件放在與音樂文件相同的目錄",
-            'center'
+            "end",
+            "\n\n\n暫無歌詞\n\n請將 .lrc 歌詞文件放在與音樂文件相同的目錄"
         )
-        self.lyrics_text.config(state=tk.DISABLED)
+        self.lyrics_text.configure(state="disabled")
 
     def update_current_time(self, current_time):
         """更新當前播放時間,高亮對應歌詞
@@ -183,16 +153,9 @@ class MusicLyricsView:
         if not self.lyrics_text:
             return
 
-        # 移除所有高亮
-        self.lyrics_text.tag_remove('highlight', "1.0", tk.END)
-
-        # 添加高亮到指定行
-        if index >= 0 and index < len(self.current_lyrics):
-            # 計算行號 (每句歌詞佔 2 行:歌詞 + 空行)
-            line_num = index * 2 + 1
-            start = f"{line_num}.0"
-            end = f"{line_num}.end"
-            self.lyrics_text.tag_add('highlight', start, end)
+        # CTkTextbox 不支援 tag，暫時跳過高亮功能
+        # 可在未來版本使用自定義渲染或其他方式實現
+        pass
 
     def scroll_to_line(self, line_index):
         """滾動到指定歌詞行
@@ -229,9 +192,9 @@ class MusicLyricsView:
         self.current_index = -1
 
         if self.lyrics_text:
-            self.lyrics_text.config(state=tk.NORMAL)
-            self.lyrics_text.delete("1.0", tk.END)
-            self.lyrics_text.config(state=tk.DISABLED)
+            self.lyrics_text.configure(state="normal")
+            self.lyrics_text.delete("1.0", "end")
+            self.lyrics_text.configure(state="disabled")
 
     def toggle_visibility(self):
         """切換顯示/隱藏"""

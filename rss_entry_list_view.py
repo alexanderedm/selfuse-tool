@@ -1,4 +1,5 @@
 """RSS Entry List View 模組 - 文章列表視圖"""
+import customtkinter as ctk
 import tkinter as tk
 from tkinter import ttk, messagebox
 import webbrowser
@@ -36,116 +37,104 @@ class RSSEntryListView:
         accent_color = "#0078d4"
         text_color = "#e0e0e0"
 
-        # 中間容器
-        middle_container = tk.Frame(self.parent, bg=card_bg, relief=tk.RIDGE, bd=1)
-        middle_container.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
+        # 中間容器（圓角框架）
+        middle_container = ctk.CTkFrame(
+            self.parent,
+            corner_radius=15,
+            fg_color=card_bg
+        )
+        middle_container.pack(side="left", fill="both", expand=True, padx=(0, 10))
 
         # 標題
-        entries_header = tk.Label(
+        entries_header = ctk.CTkLabel(
             middle_container,
             text="📋 文章列表",
-            font=("Microsoft JhengHei UI", 11, "bold"),
-            bg=header_bg,
-            fg="white",
-            pady=8
+            font=("Microsoft JhengHei UI", 12, "bold"),
+            fg_color=header_bg,
+            text_color="white",
+            corner_radius=12,
+            height=40
         )
-        entries_header.pack(fill=tk.X)
+        entries_header.pack(fill="x", padx=5, pady=(5, 0))
 
         # 搜尋框
-        search_frame = tk.Frame(middle_container, bg=card_bg)
-        search_frame.pack(fill=tk.X, padx=5, pady=5)
+        search_frame = ctk.CTkFrame(middle_container, fg_color="transparent")
+        search_frame.pack(fill="x", padx=5, pady=5)
 
-        search_label = tk.Label(
+        search_label = ctk.CTkLabel(
             search_frame,
             text="🔍",
-            font=("Microsoft JhengHei UI", 12),
-            bg=card_bg,
-            fg=text_color
+            font=("Microsoft JhengHei UI", 12)
         )
-        search_label.pack(side=tk.LEFT, padx=(5, 5))
+        search_label.pack(side="left", padx=(5, 5))
 
-        self.search_var = tk.StringVar()
-        self.search_var.trace('w', lambda *args: self.apply_filter())
+        self.search_var = ctk.StringVar()
+        self.search_var.trace_add('write', lambda *args: self.apply_filter())
 
-        search_entry = tk.Entry(
+        search_entry = ctk.CTkEntry(
             search_frame,
             textvariable=self.search_var,
+            placeholder_text="搜尋文章...",
             font=("Microsoft JhengHei UI", 10),
-            bg="#353535",
-            fg=text_color,
-            insertbackground=text_color,
-            relief=tk.FLAT,
-            bd=5
+            corner_radius=8,
+            height=35
         )
-        search_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 5))
+        search_entry.pack(side="left", fill="x", expand=True, padx=(0, 5))
 
         # 清除搜尋按鈕
-        clear_search_btn = ttk.Button(
+        clear_search_btn = ctk.CTkButton(
             search_frame,
             text="✕",
             command=self.clear_search,
-            width=3,
-            style="Accent.TButton"
+            width=35,
+            height=35,
+            corner_radius=8,
+            font=("Microsoft JhengHei UI", 12)
         )
-        clear_search_btn.pack(side=tk.LEFT, padx=(0, 5))
+        clear_search_btn.pack(side="left", padx=(0, 5))
 
         # 篩選按鈕列
-        filter_frame = tk.Frame(middle_container, bg=card_bg)
-        filter_frame.pack(fill=tk.X, padx=5, pady=(0, 5))
+        filter_frame = ctk.CTkFrame(middle_container, fg_color="transparent")
+        filter_frame.pack(fill="x", padx=5, pady=(0, 5))
 
-        self.filter_mode = tk.StringVar(value='all')
+        self.filter_mode = ctk.StringVar(value='all')
 
-        filter_all_btn = tk.Radiobutton(
+        filter_all_btn = ctk.CTkRadioButton(
             filter_frame,
             text="📋 全部",
             variable=self.filter_mode,
             value='all',
             command=self.apply_filter,
-            bg=card_bg,
-            fg=text_color,
-            selectcolor=card_bg,
-            activebackground=card_bg,
-            activeforeground=accent_color,
-            font=("Microsoft JhengHei UI", 9)
+            font=("Microsoft JhengHei UI", 10)
         )
-        filter_all_btn.pack(side=tk.LEFT, padx=5)
+        filter_all_btn.pack(side="left", padx=5)
 
-        filter_unread_btn = tk.Radiobutton(
+        filter_unread_btn = ctk.CTkRadioButton(
             filter_frame,
             text="● 未讀",
             variable=self.filter_mode,
             value='unread',
             command=self.apply_filter,
-            bg=card_bg,
-            fg=text_color,
-            selectcolor=card_bg,
-            activebackground=card_bg,
-            activeforeground=accent_color,
-            font=("Microsoft JhengHei UI", 9)
+            font=("Microsoft JhengHei UI", 10)
         )
-        filter_unread_btn.pack(side=tk.LEFT, padx=5)
+        filter_unread_btn.pack(side="left", padx=5)
 
-        filter_fav_btn = tk.Radiobutton(
+        filter_fav_btn = ctk.CTkRadioButton(
             filter_frame,
             text="⭐ 收藏",
             variable=self.filter_mode,
             value='favorite',
             command=self.apply_filter,
-            bg=card_bg,
-            fg=text_color,
-            selectcolor=card_bg,
-            activebackground=card_bg,
-            activeforeground=accent_color,
-            font=("Microsoft JhengHei UI", 9)
+            font=("Microsoft JhengHei UI", 10)
         )
-        filter_fav_btn.pack(side=tk.LEFT, padx=5)
+        filter_fav_btn.pack(side="left", padx=5)
 
-        # 文章列表 TreeView
-        entries_frame = tk.Frame(middle_container, bg=card_bg)
-        entries_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        # 文章列表 TreeView（包在圓角框架中）
+        entries_frame = ctk.CTkFrame(middle_container, fg_color="transparent")
+        entries_frame.pack(fill="both", expand=True, padx=5, pady=5)
 
         entries_scrollbar = ttk.Scrollbar(entries_frame)
-        entries_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        entries_scrollbar.pack(side="right", fill="y")
 
         self.entries_tree = ttk.Treeview(
             entries_frame,
@@ -159,7 +148,7 @@ class RSSEntryListView:
         self.entries_tree.column('status', width=30, anchor='center')
         self.entries_tree.column('title', width=320)
         self.entries_tree.column('published', width=130)
-        self.entries_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.entries_tree.pack(side="left", fill="both", expand=True)
         entries_scrollbar.config(command=self.entries_tree.yview)
 
         # 綁定事件
@@ -288,7 +277,7 @@ class RSSEntryListView:
         is_read = self.rss_manager.is_read(entry['id'])
         is_fav = self.rss_manager.is_favorite(entry['id'])
 
-        # 建立右鍵選單
+        # 建立右鍵選單（使用 tkinter Menu）
         menu = tk.Menu(self.parent, tearoff=0)
 
         # 已讀/未讀切換

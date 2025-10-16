@@ -1,6 +1,6 @@
 """RSS 閱讀視窗模組"""
-import tkinter as tk
-from tkinter import ttk, messagebox, simpledialog
+import customtkinter as ctk
+from tkinter import messagebox, simpledialog
 import threading
 from logger import logger
 from rss_feed_list_view import RSSFeedListView
@@ -43,98 +43,69 @@ class RSSWindow:
         logger.info("建立新的 RSS 視窗")
         # 使用共用的根視窗建立 Toplevel 視窗
         if self.tk_root:
-            self.window = tk.Toplevel(self.tk_root)
+            self.window = ctk.CTkToplevel(self.tk_root)
+            self.window.transient(self.tk_root)
         else:
             # 如果沒有提供根視窗,建立獨立的視窗
-            self.window = tk.Tk()
+            self.window = ctk.CTk()
+
         self.window.title("📰 RSS 訂閱管理")
         self.window.geometry("1200x700")
         self.window.resizable(True, True)
 
+        # 自動置頂並聚焦
+        self.window.lift()
+        self.window.focus_force()
+
         # 設定深色主題顏色
         bg_color = "#1e1e1e"  # 深灰背景
         card_bg = "#2d2d2d"  # 卡片背景
-        accent_color = "#0078d4"  # 藍色強調
         text_color = "#e0e0e0"  # 淺色文字
         text_secondary = "#a0a0a0"  # 次要文字
-        header_bg = "#0d47a1"  # 深藍標題
-        self.window.configure(bg=bg_color)
 
         # 建立主框架
-        main_frame = tk.Frame(self.window, bg=bg_color)
-        main_frame.pack(fill=tk.BOTH, expand=True, padx=15, pady=15)
+        main_frame = ctk.CTkFrame(self.window, fg_color="transparent")
+        main_frame.pack(fill="both", expand=True, padx=15, pady=15)
 
         # === 頂部標題列 ===
-        title_frame = tk.Frame(main_frame, bg=bg_color)
-        title_frame.pack(fill=tk.X, pady=(0, 15))
+        title_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+        title_frame.pack(fill="x", pady=(0, 15))
 
-        title_label = tk.Label(
+        title_label = ctk.CTkLabel(
             title_frame,
             text="📰 RSS 訂閱管理",
             font=("Microsoft JhengHei UI", 18, "bold"),
-            bg=bg_color,
-            fg=text_color
+            text_color=text_color
         )
-        title_label.pack(side=tk.LEFT)
+        title_label.pack(side="left")
 
         # 按鈕框架
-        button_frame = tk.Frame(title_frame, bg=bg_color)
-        button_frame.pack(side=tk.RIGHT)
+        button_frame = ctk.CTkFrame(title_frame, fg_color="transparent")
+        button_frame.pack(side="right")
 
-        # 自訂深色主題樣式 - 綁定到此視窗
-        style = ttk.Style(self.window)
-        style.theme_use('clam')  # 使用 clam 主題以便自訂
-
-        # 按鈕樣式
-        style.configure("Accent.TButton",
-                       font=("Microsoft JhengHei UI", 9),
-                       background="#0078d4",
-                       foreground="white",
-                       borderwidth=0,
-                       relief="flat")
-        style.map("Accent.TButton",
-                 background=[('active', '#005a9e')],
-                 relief=[('pressed', 'flat')])
-
-        # TreeView 深色樣式
-        style.configure("Treeview",
-                       background=card_bg,
-                       foreground=text_color,
-                       fieldbackground=card_bg,
-                       borderwidth=0,
-                       rowheight=30,
-                       font=("Microsoft JhengHei UI", 9))
-        style.configure("Treeview.Heading",
-                       background=header_bg,
-                       foreground="white",
-                       borderwidth=0,
-                       relief="flat",
-                       font=("Microsoft JhengHei UI", 10, "bold"))
-        style.map("Treeview",
-                 background=[('selected', accent_color)],
-                 foreground=[('selected', 'white')])
-        style.map("Treeview.Heading",
-                 background=[('active', header_bg)])
-
-        add_button = ttk.Button(
+        add_button = ctk.CTkButton(
             button_frame,
             text="➕ 新增訂閱",
             command=self._add_feed_manual,
-            style="Accent.TButton"
+            corner_radius=10,
+            height=38,
+            font=("Microsoft JhengHei UI", 10)
         )
-        add_button.pack(side=tk.LEFT, padx=5)
+        add_button.pack(side="left", padx=5)
 
-        refresh_button = ttk.Button(
+        refresh_button = ctk.CTkButton(
             button_frame,
             text="🔄 重新整理",
             command=self._refresh_feeds,
-            style="Accent.TButton"
+            corner_radius=10,
+            height=38,
+            font=("Microsoft JhengHei UI", 10)
         )
-        refresh_button.pack(side=tk.LEFT, padx=5)
+        refresh_button.pack(side="left", padx=5)
 
         # === 主要內容區 (三欄式佈局) ===
-        content_frame = tk.Frame(main_frame, bg=bg_color)
-        content_frame.pack(fill=tk.BOTH, expand=True)
+        content_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+        content_frame.pack(fill="both", expand=True)
 
         # 初始化篩選管理器
         self.filter_manager = RSSFilterManager(self.rss_manager)
@@ -158,12 +129,11 @@ class RSSWindow:
         self.preview_view = RSSPreviewView(content_frame)
 
         # 載入中標籤(初始隱藏) - 放在預覽區域
-        self.loading_label = tk.Label(
+        self.loading_label = ctk.CTkLabel(
             content_frame,
             text="⏳ 載入中...",
             font=("Microsoft JhengHei UI", 11),
-            bg=card_bg,
-            fg=text_secondary
+            text_color=text_secondary
         )
 
         # 關閉視窗時的處理
@@ -195,7 +165,7 @@ class RSSWindow:
         self.preview_view.clear_preview()
 
         # 顯示載入中
-        self.loading_label.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
+        self.loading_label.place(relx=0.5, rely=0.5, anchor="center")
         self.window.update()
 
         # 在背景執行緒中載入

@@ -1,6 +1,5 @@
 """使用統計視窗模組"""
-import tkinter as tk
-from tkinter import ttk
+import customtkinter as ctk
 
 
 class StatsWindow:
@@ -24,7 +23,6 @@ class StatsWindow:
         self._populate_stats_content(stats_container, colors)
 
         self.window.protocol("WM_DELETE_WINDOW", self._close_window)
-        self.window.mainloop()
 
     def _try_raise_existing_window(self):
         """嘗試提升已存在的視窗
@@ -41,12 +39,17 @@ class StatsWindow:
     def _initialize_window(self):
         """初始化視窗"""
         if self.tk_root:
-            self.window = tk.Toplevel(self.tk_root)
+            self.window = ctk.CTkToplevel(self.tk_root)
+            self.window.transient(self.tk_root)
         else:
-            self.window = tk.Tk()
+            self.window = ctk.CTk()
         self.window.title("📊 使用統計")
         self.window.geometry("700x500")
         self.window.resizable(True, True)
+
+        # 自動置頂並聚焦
+        self.window.lift()
+        self.window.focus_force()
 
     def _get_theme_colors(self):
         """取得主題顏色配置
@@ -70,35 +73,32 @@ class StatsWindow:
             colors (dict): 顏色配置
 
         Returns:
-            tk.Frame: 主框架
+            ctk.CTkFrame: 主框架
         """
-        self.window.configure(bg=colors['bg'])
-        main_frame = tk.Frame(self.window, bg=colors['bg'])
-        main_frame.pack(fill=tk.BOTH, expand=True, padx=30, pady=30)
+        main_frame = ctk.CTkFrame(self.window, fg_color="transparent")
+        main_frame.pack(fill="both", expand=True, padx=30, pady=30)
         return main_frame
 
     def _create_title_section(self, main_frame, colors):
         """建立標題區域
 
         Args:
-            main_frame (tk.Frame): 主框架
+            main_frame (ctk.CTkFrame): 主框架
             colors (dict): 顏色配置
         """
-        title_label = tk.Label(
+        title_label = ctk.CTkLabel(
             main_frame,
             text="📊 裝置使用統計",
             font=("Microsoft JhengHei UI", 18, "bold"),
-            bg=colors['bg'],
-            fg=colors['text']
+            text_color=colors['text']
         )
         title_label.pack(pady=(0, 10))
 
-        subtitle_label = tk.Label(
+        subtitle_label = ctk.CTkLabel(
             main_frame,
             text="查看您的音訊裝置使用情況",
             font=("Microsoft JhengHei UI", 10),
-            bg=colors['bg'],
-            fg=colors['text_secondary']
+            text_color=colors['text_secondary']
         )
         subtitle_label.pack(pady=(0, 25))
 
@@ -106,21 +106,25 @@ class StatsWindow:
         """建立統計內容容器
 
         Args:
-            main_frame (tk.Frame): 主框架
+            main_frame (ctk.CTkFrame): 主框架
             colors (dict): 顏色配置
 
         Returns:
-            tk.Frame: 統計容器
+            ctk.CTkFrame: 統計容器
         """
-        stats_container = tk.Frame(main_frame, bg=colors['card_bg'], relief=tk.RIDGE, bd=1)
-        stats_container.pack(fill=tk.BOTH, expand=True, pady=(0, 20))
+        stats_container = ctk.CTkFrame(
+            main_frame,
+            corner_radius=15,
+            fg_color=colors['card_bg']
+        )
+        stats_container.pack(fill="both", expand=True, pady=(0, 20))
         return stats_container
 
     def _populate_stats_content(self, stats_container, colors):
         """填充統計內容
 
         Args:
-            stats_container (tk.Frame): 統計容器
+            stats_container (ctk.CTkFrame): 統計容器
             colors (dict): 顏色配置
         """
         stats = self.config_manager.get_usage_stats()
@@ -134,27 +138,25 @@ class StatsWindow:
         """顯示無資料訊息
 
         Args:
-            container (tk.Frame): 容器框架
+            container (ctk.CTkFrame): 容器框架
             colors (dict): 顏色配置
         """
-        no_data_frame = tk.Frame(container, bg=colors['card_bg'])
+        no_data_frame = ctk.CTkFrame(container, fg_color="transparent")
         no_data_frame.pack(expand=True)
 
-        no_data_icon = tk.Label(
+        no_data_icon = ctk.CTkLabel(
             no_data_frame,
             text="📭",
             font=("Segoe UI Emoji", 48),
-            bg=colors['card_bg'],
-            fg=colors['text_secondary']
+            text_color=colors['text_secondary']
         )
         no_data_icon.pack(pady=20)
 
-        no_data_label = tk.Label(
+        no_data_label = ctk.CTkLabel(
             no_data_frame,
             text="目前尚無使用統計資料",
             font=("Microsoft JhengHei UI", 12),
-            bg=colors['card_bg'],
-            fg=colors['text_secondary']
+            text_color=colors['text_secondary']
         )
         no_data_label.pack()
 
@@ -162,12 +164,12 @@ class StatsWindow:
         """顯示裝置統計資料
 
         Args:
-            container (tk.Frame): 容器框架
+            container (ctk.CTkFrame): 容器框架
             stats (dict): 統計資料
             colors (dict): 顏色配置
         """
-        stats_inner = tk.Frame(container, bg=colors['card_bg'])
-        stats_inner.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+        stats_inner = ctk.CTkFrame(container, fg_color="transparent")
+        stats_inner.pack(fill="both", expand=True, padx=20, pady=20)
 
         sorted_stats = sorted(stats.items(), key=lambda x: x[1]['total_seconds'], reverse=True)
         total_seconds = sum(data['total_seconds'] for _, data in sorted_stats)
@@ -179,17 +181,21 @@ class StatsWindow:
         """建立裝置統計卡片
 
         Args:
-            parent (tk.Frame): 父框架
+            parent (ctk.CTkFrame): 父框架
             idx (int): 裝置索引
             data (dict): 裝置資料
             total_seconds (float): 總使用秒數
             colors (dict): 顏色配置
         """
-        card = tk.Frame(parent, bg=colors['card_light'], relief=tk.RAISED, bd=1)
-        card.pack(fill=tk.X, pady=8, padx=5)
+        card = ctk.CTkFrame(
+            parent,
+            corner_radius=12,
+            fg_color=colors['card_light']
+        )
+        card.pack(fill="x", pady=8, padx=5)
 
-        card_inner = tk.Frame(card, bg=colors['card_light'])
-        card_inner.pack(fill=tk.X, padx=15, pady=15)
+        card_inner = ctk.CTkFrame(card, fg_color="transparent")
+        card_inner.pack(fill="x", padx=15, pady=15)
 
         self._create_device_info_section(card_inner, idx, data, colors)
         self._create_device_stats_section(card_inner, data, total_seconds, colors)
@@ -199,100 +205,96 @@ class StatsWindow:
         """建立裝置資訊區域（圖示和名稱）
 
         Args:
-            card_inner (tk.Frame): 卡片內框架
+            card_inner (ctk.CTkFrame): 卡片內框架
             idx (int): 裝置索引
             data (dict): 裝置資料
             colors (dict): 顏色配置
         """
-        left_frame = tk.Frame(card_inner, bg=colors['card_light'])
-        left_frame.pack(side=tk.LEFT, fill=tk.Y)
+        left_frame = ctk.CTkFrame(card_inner, fg_color="transparent")
+        left_frame.pack(side="left", fill="y")
 
         icon = "🥇" if idx == 0 else "🥈" if idx == 1 else "🎵"
 
-        device_icon = tk.Label(
+        device_icon = ctk.CTkLabel(
             left_frame,
             text=icon,
-            font=("Segoe UI Emoji", 24),
-            bg=colors['card_light']
+            font=("Segoe UI Emoji", 24)
         )
-        device_icon.pack(side=tk.LEFT, padx=(0, 15))
+        device_icon.pack(side="left", padx=(0, 15))
 
-        name_frame = tk.Frame(left_frame, bg=colors['card_light'])
-        name_frame.pack(side=tk.LEFT)
+        name_frame = ctk.CTkFrame(left_frame, fg_color="transparent")
+        name_frame.pack(side="left")
 
-        device_name = tk.Label(
+        device_name = ctk.CTkLabel(
             name_frame,
             text=data['name'],
             font=("Microsoft JhengHei UI", 12, "bold"),
-            bg=colors['card_light'],
-            fg=colors['text'],
-            anchor=tk.W
+            text_color=colors['text'],
+            anchor="w"
         )
-        device_name.pack(anchor=tk.W)
+        device_name.pack(anchor="w")
 
     def _create_device_stats_section(self, card_inner, data, total_seconds, colors):
         """建立裝置統計數據區域
 
         Args:
-            card_inner (tk.Frame): 卡片內框架
+            card_inner (ctk.CTkFrame): 卡片內框架
             data (dict): 裝置資料
             total_seconds (float): 總使用秒數
             colors (dict): 顏色配置
         """
-        right_frame = tk.Frame(card_inner, bg=colors['card_light'])
-        right_frame.pack(side=tk.RIGHT)
+        right_frame = ctk.CTkFrame(card_inner, fg_color="transparent")
+        right_frame.pack(side="right")
 
         time_str = self._format_time(data['total_seconds'])
-        time_label = tk.Label(
+        time_label = ctk.CTkLabel(
             right_frame,
             text=f"⏱ {time_str}",
             font=("Microsoft JhengHei UI", 11),
-            bg=colors['card_light'],
-            fg=colors['accent']
+            text_color=colors['accent']
         )
-        time_label.pack(anchor=tk.E)
+        time_label.pack(anchor="e")
 
-        count_label = tk.Label(
+        count_label = ctk.CTkLabel(
             right_frame,
             text=f"🔄 切換 {data['switch_count']} 次",
             font=("Microsoft JhengHei UI", 10),
-            bg=colors['card_light'],
-            fg=colors['text_secondary']
+            text_color=colors['text_secondary']
         )
-        count_label.pack(anchor=tk.E, pady=(3, 0))
+        count_label.pack(anchor="e", pady=(3, 0))
 
         if total_seconds > 0:
             percentage = (data['total_seconds'] / total_seconds) * 100
-            percentage_label = tk.Label(
+            percentage_label = ctk.CTkLabel(
                 right_frame,
                 text=f"📊 占比 {percentage:.1f}%",
                 font=("Microsoft JhengHei UI", 9),
-                bg=colors['card_light'],
-                fg=colors['text_secondary']
+                text_color=colors['text_secondary']
             )
-            percentage_label.pack(anchor=tk.E, pady=(3, 0))
+            percentage_label.pack(anchor="e", pady=(3, 0))
 
     def _create_progress_bar(self, card_inner, data, total_seconds, colors):
         """建立進度條
 
         Args:
-            card_inner (tk.Frame): 卡片內框架
+            card_inner (ctk.CTkFrame): 卡片內框架
             data (dict): 裝置資料
             total_seconds (float): 總使用秒數
             colors (dict): 顏色配置
         """
-        progress_frame = tk.Frame(card_inner, bg=colors['card_light'])
-        progress_frame.pack(fill=tk.X, pady=(10, 0))
+        progress_frame = ctk.CTkFrame(card_inner, fg_color="transparent")
+        progress_frame.pack(fill="x", pady=(10, 0))
 
         if total_seconds > 0:
             percentage = (data['total_seconds'] / total_seconds) * 100
-            progress_bar = ttk.Progressbar(
+            progress_bar = ctk.CTkProgressBar(
                 progress_frame,
-                length=600,
-                mode='determinate',
-                value=percentage
+                width=600,
+                height=10,
+                corner_radius=5
             )
-            progress_bar.pack(fill=tk.X)
+            progress_bar.pack(fill="x")
+            progress_bar.set(percentage / 100)
 
     def _format_time(self, seconds):
         """將秒數轉換為易讀格式

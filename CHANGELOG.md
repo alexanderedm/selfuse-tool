@@ -10,6 +10,26 @@
 ## [未發布]
 
 ### 新增 (Added)
+- **Phase 4: 完成所有視窗 CustomTkinter 遷移** (2025-10-16)
+  - 完成剩餘 8 個模組的遷移，達成 100% CustomTkinter UI 現代化
+  - 遷移模組列表：
+    - `music_lyrics_view.py` - 歌詞顯示視圖（CTkTextbox + 圓角框架）
+    - `settings_window.py` - 設定視窗（CTkSwitch、CTkOptionMenu、CTkEntry）
+    - `stats_window.py` - 統計視窗（CTkProgressBar、圓角卡片）
+    - `changelog_window.py` - 更新日誌視窗（CTkTextbox、簡化設計）
+    - `rss_window.py` - RSS 主視窗（圓角框架、現代化按鈕）
+    - `rss_feed_list_view.py` - RSS Feed 列表（圓角框架包裹 Treeview）
+    - `rss_entry_list_view.py` - RSS 文章列表（CTkEntry + CTkRadioButton）
+    - `rss_preview_view.py` - RSS 預覽視圖（CTkTextbox + 圓角設計）
+  - 設計特點：
+    - 圓角標準：主框架 15px、卡片 12px、按鈕 10px、輸入框 8px
+    - 統一按鈕高度：38-40px（標準）、32-35px（小型）
+    - 所有對話框自動置頂（transient、lift、focus_force）
+    - 保留 ttk.Treeview（包在 CTkFrame 圓角框架中）
+    - flake8 零錯誤
+  - **遷移進度：16/16（100%）**
+  - **Phase 4 完成！所有視窗已完全現代化**
+
 - **對話框視窗 CustomTkinter 遷移** (2025-10-16 - Phase 3)
   - 遷移 `music_playlist_dialog.py` 到 CustomTkinter（播放列表管理）
     - 所有按鈕使用圓角設計（corner_radius=10）
@@ -39,15 +59,25 @@
   - 測試通過率 > 98%
 - **CustomTkinter UI 現代化升級** (2025-10-16 - Overnight Development)
   - 遷移核心視窗到 CustomTkinter，獲得現代化圓角 UI
-  - 遷移完成的模組（8/16）：
-    - `music_window.py` - 主視窗（ctk.CTk）
-    - `music_header_view.py` - 頂部按鈕區域（圓角按鈕，更大按鈕設計）
-    - `music_search_view.py` - 搜尋框（圓角輸入框 + placeholder）
-    - `music_playback_view.py` - 播放控制區域（圓角框架 + 現代化控制元件）
-    - `music_library_view.py` - 音樂庫視圖（圓角框架 + 排序功能）
-    - `music_playlist_dialog.py` - 播放列表對話框
-    - `music_download_dialog.py` - YouTube 下載對話框
-    - `music_history_dialog.py` - 播放歷史對話框
+  - 遷移完成的模組（16/16 - 100%）：
+    - Phase 1-3: 音樂播放器核心（8個模組）
+      - `music_window.py` - 主視窗（ctk.CTk）
+      - `music_header_view.py` - 頂部按鈕區域（圓角按鈕，更大按鈕設計）
+      - `music_search_view.py` - 搜尋框（圓角輸入框 + placeholder）
+      - `music_playback_view.py` - 播放控制區域（圓角框架 + 現代化控制元件）
+      - `music_library_view.py` - 音樂庫視圖（圓角框架 + 排序功能）
+      - `music_playlist_dialog.py` - 播放列表對話框
+      - `music_download_dialog.py` - YouTube 下載對話框
+      - `music_history_dialog.py` - 播放歷史對話框
+    - Phase 4: 其他視窗和 RSS 模組（8個模組）
+      - `music_lyrics_view.py` - 歌詞顯示視窗
+      - `settings_window.py` - 設定視窗
+      - `stats_window.py` - 統計視窗
+      - `changelog_window.py` - 更新日誌視窗
+      - `rss_window.py` - RSS 閱讀器主視窗
+      - `rss_feed_list_view.py` - RSS Feed 列表
+      - `rss_entry_list_view.py` - RSS 文章列表
+      - `rss_preview_view.py` - RSS 預覽視圖
   - 播放控制區域升級：
     - 大圓角主框架（corner_radius=15）
     - 播放按鈕：75x75px 大圓形按鈕（最顯眼）
@@ -62,15 +92,7 @@
   - CustomTkinter 自動管理深色主題
   - 移除舊的 ttkbootstrap 測試檔案
   - flake8 零錯誤
-  - 待遷移（8/16 模組）：
-    - `music_lyrics_view.py` - 歌詞顯示視窗
-    - `music_equalizer_dialog.py` - 等化器對話框（已有 auto-focus）
-    - `settings_window.py` - 設定視窗
-    - `rss_window.py` - RSS 閱讀器主視窗
-    - `stats_window.py` - 統計視窗
-    - `changelog_window.py` - 更新日誌視窗
-    - `rss_feed_list_view.py` - RSS Feed 列表
-    - `rss_entry_list_view.py` - RSS 文章列表
+  - **所有 16 個模組遷移完成（100%）**
 
 - **Discord Rich Presence 整合** (2025-10-16)
   - 在 Discord 顯示當前播放的音樂資訊

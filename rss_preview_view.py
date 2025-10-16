@@ -1,6 +1,6 @@
 """RSS Preview View 模組 - 預覽視圖"""
-import tkinter as tk
-from tkinter import ttk, scrolledtext, messagebox
+import customtkinter as ctk
+from tkinter import messagebox
 import webbrowser
 import html
 from logger import logger
@@ -28,58 +28,50 @@ class RSSPreviewView:
         card_bg = "#2d2d2d"
         header_bg = "#0d47a1"
         text_color = "#e0e0e0"
-        text_secondary = "#a0a0a0"
 
-        # 右側容器
-        right_container = tk.Frame(self.parent, bg=card_bg, relief=tk.RIDGE, bd=1)
-        right_container.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        # 右側容器（圓角框架）
+        right_container = ctk.CTkFrame(
+            self.parent,
+            corner_radius=15,
+            fg_color=card_bg
+        )
+        right_container.pack(side="left", fill="both", expand=True)
 
         # 標題框架
-        preview_header_frame = tk.Frame(right_container, bg=header_bg)
-        preview_header_frame.pack(fill=tk.X)
+        preview_header_frame = ctk.CTkFrame(right_container, fg_color=header_bg, corner_radius=(12, 12, 0, 0))
+        preview_header_frame.pack(fill="x")
 
-        preview_header = tk.Label(
+        preview_header = ctk.CTkLabel(
             preview_header_frame,
             text="📖 完整內文",
-            font=("Microsoft JhengHei UI", 11, "bold"),
-            bg=header_bg,
-            fg="white",
-            pady=8
+            font=("Microsoft JhengHei UI", 12, "bold"),
+            text_color="white",
+            height=40
         )
-        preview_header.pack(side=tk.LEFT, padx=10)
+        preview_header.pack(side="left", padx=10)
 
         # 在瀏覽器開啟按鈕
-        self.open_browser_button = ttk.Button(
+        self.open_browser_button = ctk.CTkButton(
             preview_header_frame,
             text="🌐 在瀏覽器開啟",
             command=self._open_in_browser,
-            style="Accent.TButton"
+            corner_radius=10,
+            width=150,
+            height=35,
+            font=("Microsoft JhengHei UI", 10)
         )
-        self.open_browser_button.pack(side=tk.RIGHT, padx=10, pady=5)
+        self.open_browser_button.pack(side="right", padx=10, pady=5)
 
-        # 內文預覽文字框
-        preview_frame = tk.Frame(right_container, bg=card_bg)
-        preview_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
-
-        self.preview_text = scrolledtext.ScrolledText(
-            preview_frame,
-            wrap=tk.WORD,
+        # 內文預覽文字框（使用 CTkTextbox）
+        self.preview_text = ctk.CTkTextbox(
+            right_container,
+            wrap="word",
             font=("Microsoft JhengHei UI", 10),
-            bg="#252525",
-            fg=text_color,
-            relief=tk.FLAT,
-            padx=15,
-            pady=15,
-            insertbackground=text_color
+            corner_radius=10,
+            fg_color="#252525",
+            text_color=text_color
         )
-        self.preview_text.pack(fill=tk.BOTH, expand=True)
-        self.preview_text.config(state=tk.DISABLED)
-
-        # 設定文字標籤樣式 - 深色主題
-        self.preview_text.tag_config("title", font=("Microsoft JhengHei UI", 14, "bold"), foreground="#4fc3f7")
-        self.preview_text.tag_config("meta", font=("Microsoft JhengHei UI", 9), foreground=text_secondary)
-        self.preview_text.tag_config("content", font=("Microsoft JhengHei UI", 10), foreground=text_color, spacing1=5, spacing3=5)
-        self.preview_text.tag_config("link", font=("Microsoft JhengHei UI", 9), foreground="#4fc3f7", underline=True)
+        self.preview_text.pack(fill="both", expand=True, padx=10, pady=10)
 
         # 初始化顯示提示
         self.clear_preview()
@@ -92,38 +84,38 @@ class RSSPreviewView:
         """
         self.current_entry = entry
 
-        self.preview_text.config(state=tk.NORMAL)
-        self.preview_text.delete(1.0, tk.END)
+        self.preview_text.configure(state="normal")
+        self.preview_text.delete("0.0", "end")
 
         # 標題
-        self.preview_text.insert(tk.END, entry['title'] + "\n\n", "title")
+        self.preview_text.insert("end", f"{entry['title']}\n\n")
 
         # 發布時間和連結
         meta_text = f"📅 發布時間: {entry['published']}\n🔗 連結: {entry['link']}\n\n"
-        self.preview_text.insert(tk.END, meta_text, "meta")
+        self.preview_text.insert("end", meta_text)
 
         # 分隔線
-        self.preview_text.insert(tk.END, "─" * 80 + "\n\n", "meta")
+        self.preview_text.insert("end", "─" * 80 + "\n\n")
 
         # 完整內文
         content = entry.get('content', entry.get('summary', '無內容'))
         if content and content != '無內容':
             # 解碼 HTML 實體
             content = html.unescape(content)
-            self.preview_text.insert(tk.END, content, "content")
+            self.preview_text.insert("end", content)
         else:
-            self.preview_text.insert(tk.END, "無法取得完整內容,請點擊「在瀏覽器開啟」查看", "meta")
+            self.preview_text.insert("end", "無法取得完整內容,請點擊「在瀏覽器開啟」查看")
 
-        self.preview_text.config(state=tk.DISABLED)
+        self.preview_text.configure(state="disabled")
 
     def clear_preview(self):
         """清空預覽"""
         self.current_entry = None
 
-        self.preview_text.config(state=tk.NORMAL)
-        self.preview_text.delete(1.0, tk.END)
-        self.preview_text.insert(tk.END, "請選擇文章以閱讀完整內容", "meta")
-        self.preview_text.config(state=tk.DISABLED)
+        self.preview_text.configure(state="normal")
+        self.preview_text.delete("0.0", "end")
+        self.preview_text.insert("end", "請選擇文章以閱讀完整內容")
+        self.preview_text.configure(state="disabled")
 
     def set_current_entry(self, entry):
         """設定當前文章

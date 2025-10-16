@@ -1,6 +1,6 @@
 """設定視窗模組"""
-import tkinter as tk
-from tkinter import ttk, messagebox, filedialog
+import customtkinter as ctk
+from tkinter import messagebox, filedialog
 
 
 class SettingsWindow:
@@ -17,134 +17,109 @@ class SettingsWindow:
         """建立並配置設定視窗"""
         # 使用共用的根視窗建立 Toplevel 視窗
         if self.tk_root:
-            window = tk.Toplevel(self.tk_root)
+            window = ctk.CTkToplevel(self.tk_root)
         else:
             # 如果沒有提供根視窗,建立獨立的視窗
-            window = tk.Tk()
+            window = ctk.CTk()
         window.title("⚙ 音訊切換工具 - 設定")
         window.geometry("700x850")
         window.resizable(True, True)
         window.minsize(600, 750)  # 設定最小尺寸以確保內容可見
 
-        # 設定深色主題顏色
-        bg_color = "#1e1e1e"
-        window.configure(bg=bg_color)
         return window
 
     def _create_title_section(self, main_frame, bg_color, text_color, text_secondary):
         """建立標題區塊"""
-        title_label = tk.Label(
+        title_label = ctk.CTkLabel(
             main_frame,
             text="⚙ 音訊裝置設定",
-            font=("Microsoft JhengHei UI", 16, "bold"),
-            bg=bg_color,
-            fg=text_color
+            font=("Microsoft JhengHei UI", 18, "bold"),
+            text_color=text_color
         )
         title_label.pack(pady=(0, 10))
 
-        subtitle_label = tk.Label(
+        subtitle_label = ctk.CTkLabel(
             main_frame,
             text="選擇兩個要快速切換的音訊輸出裝置",
             font=("Microsoft JhengHei UI", 10),
-            bg=bg_color,
-            fg=text_secondary
+            text_color=text_secondary
         )
         subtitle_label.pack(pady=(0, 25))
 
     def _create_device_section(self, main_frame, devices, card_bg, text_color, text_secondary):
         """建立音訊裝置選擇區塊"""
         # === 裝置選擇區 ===
-        devices_frame = tk.Frame(main_frame, bg=card_bg, relief=tk.RIDGE, bd=1)
-        devices_frame.pack(fill=tk.X, pady=(0, 20))
+        devices_frame = ctk.CTkFrame(main_frame, corner_radius=12, fg_color=card_bg)
+        devices_frame.pack(fill="x", pady=(0, 20))
 
-        inner_frame = tk.Frame(devices_frame, bg=card_bg)
+        inner_frame = ctk.CTkFrame(devices_frame, fg_color="transparent")
         inner_frame.pack(padx=20, pady=20)
 
         # 取得所有裝置名稱
         device_names = [f"{d['name']}" for d in devices]
 
-        # 設定深色主題樣式
-        style = ttk.Style()
-        style.theme_use('clam')
-
-        # Combobox 深色樣式
-        style.configure("Settings.TCombobox",
-                       font=("Microsoft JhengHei UI", 10),
-                       fieldbackground=card_bg,
-                       background=card_bg,
-                       foreground=text_color,
-                       arrowcolor=text_color,
-                       bordercolor=text_secondary,
-                       lightcolor=card_bg,
-                       darkcolor=card_bg)
-        style.map('Settings.TCombobox',
-                 fieldbackground=[('readonly', card_bg)],
-                 selectbackground=[('readonly', card_bg)],
-                 selectforeground=[('readonly', text_color)])
-
         # 裝置 A 選擇
         device_a_combo = self._create_single_device_selector(
             inner_frame, devices, "🎧", "裝置 A",
-            card_bg, text_color, is_device_a=True
+            card_bg, text_color, is_device_a=True, device_names=device_names
         )
 
         # 分隔線
-        separator = ttk.Separator(inner_frame, orient='horizontal')
-        separator.pack(fill=tk.X, pady=15)
+        separator = ctk.CTkFrame(inner_frame, height=2, fg_color=text_secondary)
+        separator.pack(fill="x", pady=15)
 
         # 裝置 B 選擇
         device_b_combo = self._create_single_device_selector(
             inner_frame, devices, "🔊", "裝置 B",
-            card_bg, text_color, is_device_a=False
+            card_bg, text_color, is_device_a=False, device_names=device_names
         )
 
         return device_a_combo, device_b_combo
 
     def _create_single_device_selector(self, parent, devices, icon, label_text,
-                                      card_bg, text_color, is_device_a):
+                                      card_bg, text_color, is_device_a, device_names):
         """建立單個裝置選擇器"""
-        device_frame = tk.Frame(parent, bg=card_bg)
-        device_frame.pack(fill=tk.X, pady=10)
+        device_frame = ctk.CTkFrame(parent, fg_color="transparent")
+        device_frame.pack(fill="x", pady=10)
 
-        device_icon = tk.Label(
+        device_icon = ctk.CTkLabel(
             device_frame,
             text=icon,
-            font=("Segoe UI Emoji", 16),
-            bg=card_bg
+            font=("Segoe UI Emoji", 16)
         )
-        device_icon.pack(side=tk.LEFT, padx=(0, 10))
+        device_icon.pack(side="left", padx=(0, 10))
 
-        device_label_frame = tk.Frame(device_frame, bg=card_bg)
-        device_label_frame.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        device_label_frame = ctk.CTkFrame(device_frame, fg_color="transparent")
+        device_label_frame.pack(side="left", fill="x", expand=True)
 
-        device_label = tk.Label(
+        device_label = ctk.CTkLabel(
             device_label_frame,
             text=label_text,
-            font=("Microsoft JhengHei UI", 11, "bold"),
-            bg=card_bg,
-            fg=text_color,
-            anchor=tk.W
+            font=("Microsoft JhengHei UI", 12, "bold"),
+            text_color=text_color,
+            anchor="w"
         )
-        device_label.pack(anchor=tk.W)
+        device_label.pack(anchor="w")
 
         # 建立變數
         if is_device_a:
-            self.device_a_var = tk.StringVar()
+            self.device_a_var = ctk.StringVar()
             device_var = self.device_a_var
         else:
-            self.device_b_var = tk.StringVar()
+            self.device_b_var = ctk.StringVar()
             device_var = self.device_b_var
 
-        device_names = [f"{d['name']}" for d in devices]
-        device_combo = ttk.Combobox(
+        # 使用 CTkOptionMenu 取代 Combobox
+        device_combo = ctk.CTkOptionMenu(
             device_label_frame,
-            textvariable=device_var,
+            variable=device_var,
             values=device_names,
-            state="readonly",
-            width=50,
+            width=450,
+            height=38,
+            corner_radius=8,
             font=("Microsoft JhengHei UI", 10)
         )
-        device_combo.pack(fill=tk.X, pady=(5, 0))
+        device_combo.pack(fill="x", pady=(5, 0))
 
         # 設定目前的裝置
         current_device = (self.config_manager.get_device_a() if is_device_a
@@ -152,97 +127,89 @@ class SettingsWindow:
         if current_device:
             try:
                 index = next(i for i, d in enumerate(devices) if d['id'] == current_device['id'])
-                device_combo.current(index)
+                device_var.set(device_names[index])
             except StopIteration:
                 pass
+
+        # 模擬 current() 方法
+        device_combo.current = lambda: (device_names.index(device_var.get())
+                                       if device_var.get() in device_names else -1)
 
         return device_combo
 
     def _create_current_device_info(self, main_frame, accent_bg):
         """建立當前裝置資訊區塊"""
-        current_frame = tk.Frame(main_frame, bg=accent_bg, relief=tk.FLAT, bd=1)
-        current_frame.pack(fill=tk.X, pady=(0, 20))
+        current_frame = ctk.CTkFrame(main_frame, corner_radius=10, fg_color=accent_bg)
+        current_frame.pack(fill="x", pady=(0, 20))
 
         current_device = self.audio_manager.get_default_device()
         current_text = f"🎵 目前使用: {current_device['name'] if current_device else '未知'}"
 
-        current_info = tk.Label(
+        current_info = ctk.CTkLabel(
             current_frame,
             text=current_text,
             font=("Microsoft JhengHei UI", 10),
-            bg=accent_bg,
-            fg="#4fc3f7",
-            pady=10
+            text_color="#4fc3f7",
+            height=40
         )
         current_info.pack()
 
     def _create_music_path_section(self, main_frame, card_bg, text_color, text_secondary):
         """建立音樂根目錄設定區塊"""
-        music_path_frame = tk.Frame(main_frame, bg=card_bg, relief=tk.RIDGE, bd=1)
-        music_path_frame.pack(fill=tk.X, pady=(0, 20))
+        music_path_frame = ctk.CTkFrame(main_frame, corner_radius=12, fg_color=card_bg)
+        music_path_frame.pack(fill="x", pady=(0, 20))
 
-        music_path_inner = tk.Frame(music_path_frame, bg=card_bg)
+        music_path_inner = ctk.CTkFrame(music_path_frame, fg_color="transparent")
         music_path_inner.pack(padx=20, pady=20)
 
         # 標題
-        music_path_title_frame = tk.Frame(music_path_inner, bg=card_bg)
-        music_path_title_frame.pack(fill=tk.X, pady=(0, 10))
+        music_path_title_frame = ctk.CTkFrame(music_path_inner, fg_color="transparent")
+        music_path_title_frame.pack(fill="x", pady=(0, 10))
 
-        music_path_icon = tk.Label(
+        music_path_icon = ctk.CTkLabel(
             music_path_title_frame,
             text="🎵",
-            font=("Segoe UI Emoji", 16),
-            bg=card_bg
+            font=("Segoe UI Emoji", 16)
         )
-        music_path_icon.pack(side=tk.LEFT, padx=(0, 10))
+        music_path_icon.pack(side="left", padx=(0, 10))
 
-        music_path_label = tk.Label(
+        music_path_label = ctk.CTkLabel(
             music_path_title_frame,
             text="音樂根目錄",
-            font=("Microsoft JhengHei UI", 11, "bold"),
-            bg=card_bg,
-            fg=text_color,
-            anchor=tk.W
+            font=("Microsoft JhengHei UI", 12, "bold"),
+            text_color=text_color,
+            anchor="w"
         )
-        music_path_label.pack(side=tk.LEFT)
+        music_path_label.pack(side="left")
 
         # 路徑顯示和瀏覽按鈕
-        path_control_frame = tk.Frame(music_path_inner, bg=card_bg)
-        path_control_frame.pack(fill=tk.X)
+        path_control_frame = ctk.CTkFrame(music_path_inner, fg_color="transparent")
+        path_control_frame.pack(fill="x")
 
         # 取得目前的音樂根目錄
         from constants import DEFAULT_MUSIC_ROOT_PATH
         current_music_path = self.config_manager.config.get('music_root_path', DEFAULT_MUSIC_ROOT_PATH)
 
-        self.music_path_var = tk.StringVar(value=current_music_path)
-        music_path_entry = tk.Entry(
+        self.music_path_var = ctk.StringVar(value=current_music_path)
+        music_path_entry = ctk.CTkEntry(
             path_control_frame,
             textvariable=self.music_path_var,
             font=("Microsoft JhengHei UI", 10),
-            bg="#353535",
-            fg=text_color,
-            insertbackground=text_color,
-            relief=tk.FLAT,
-            bd=5
+            corner_radius=8,
+            height=38
         )
-        music_path_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 10))
+        music_path_entry.pack(side="left", fill="x", expand=True, padx=(0, 10))
 
-        browse_button = tk.Button(
+        browse_button = ctk.CTkButton(
             path_control_frame,
             text="📁 瀏覽",
             font=("Microsoft JhengHei UI", 10),
-            bg="#0078d4",
-            fg="white",
-            activebackground="#005a9e",
-            activeforeground="white",
-            relief=tk.FLAT,
-            bd=0,
-            padx=15,
-            pady=8,
-            cursor="hand2",
+            corner_radius=10,
+            width=100,
+            height=38,
             command=self._browse_music_directory
         )
-        browse_button.pack(side=tk.RIGHT)
+        browse_button.pack(side="right")
 
         # 路徑說明
         hints = [
@@ -252,66 +219,56 @@ class SettingsWindow:
         ]
 
         for hint_text, font_size, color in hints:
-            hint_label = tk.Label(
+            hint_label = ctk.CTkLabel(
                 music_path_inner,
                 text=hint_text,
                 font=("Microsoft JhengHei UI", font_size),
-                bg=card_bg,
-                fg=color,
-                anchor=tk.W
+                text_color=color,
+                anchor="w"
             )
-            hint_label.pack(fill=tk.X, pady=(5 if font_size == 9 else 2, 0))
+            hint_label.pack(fill="x", pady=(5 if font_size == 9 else 2, 0))
 
     def _create_metadata_section(self, main_frame, card_bg, text_color, text_secondary):
         """建立音樂資訊自動補全設定區塊"""
-        metadata_frame = tk.Frame(main_frame, bg=card_bg, relief=tk.RIDGE, bd=1)
-        metadata_frame.pack(fill=tk.X, pady=(0, 20))
+        metadata_frame = ctk.CTkFrame(main_frame, corner_radius=12, fg_color=card_bg)
+        metadata_frame.pack(fill="x", pady=(0, 20))
 
-        metadata_inner = tk.Frame(metadata_frame, bg=card_bg)
+        metadata_inner = ctk.CTkFrame(metadata_frame, fg_color="transparent")
         metadata_inner.pack(padx=20, pady=20)
 
         # 標題
-        metadata_title_frame = tk.Frame(metadata_inner, bg=card_bg)
-        metadata_title_frame.pack(fill=tk.X, pady=(0, 10))
+        metadata_title_frame = ctk.CTkFrame(metadata_inner, fg_color="transparent")
+        metadata_title_frame.pack(fill="x", pady=(0, 10))
 
-        metadata_icon = tk.Label(
+        metadata_icon = ctk.CTkLabel(
             metadata_title_frame,
             text="🔄",
-            font=("Segoe UI Emoji", 16),
-            bg=card_bg
+            font=("Segoe UI Emoji", 16)
         )
-        metadata_icon.pack(side=tk.LEFT, padx=(0, 10))
+        metadata_icon.pack(side="left", padx=(0, 10))
 
-        metadata_label = tk.Label(
+        metadata_label = ctk.CTkLabel(
             metadata_title_frame,
             text="音樂資訊自動補全",
-            font=("Microsoft JhengHei UI", 11, "bold"),
-            bg=card_bg,
-            fg=text_color,
-            anchor=tk.W
+            font=("Microsoft JhengHei UI", 12, "bold"),
+            text_color=text_color,
+            anchor="w"
         )
-        metadata_label.pack(side=tk.LEFT)
+        metadata_label.pack(side="left")
 
-        # 啟用選項
-        self.auto_fetch_var = tk.BooleanVar(
+        # 啟用選項（使用 CTkSwitch 取代 Checkbutton）
+        self.auto_fetch_var = ctk.BooleanVar(
             value=self.config_manager.get("auto_fetch_metadata", True)
         )
 
-        metadata_check_frame = tk.Frame(metadata_inner, bg=card_bg)
-        metadata_check_frame.pack(fill=tk.X)
-
-        metadata_checkbox = tk.Checkbutton(
-            metadata_check_frame,
+        metadata_switch = ctk.CTkSwitch(
+            metadata_inner,
             text="啟用自動補全音樂資訊",
             variable=self.auto_fetch_var,
-            font=("Microsoft JhengHei UI", 10),
-            bg=card_bg,
-            fg=text_color,
-            selectcolor=card_bg,
-            activebackground=card_bg,
-            activeforeground=text_color
+            font=("Microsoft JhengHei UI", 11),
+            height=32
         )
-        metadata_checkbox.pack(anchor=tk.W)
+        metadata_switch.pack(anchor="w", pady=(0, 10))
 
         # 功能說明
         hints = [
@@ -320,36 +277,43 @@ class SettingsWindow:
         ]
 
         for hint_text, font_size, color in hints:
-            hint_label = tk.Label(
+            hint_label = ctk.CTkLabel(
                 metadata_inner,
                 text=hint_text,
                 font=("Microsoft JhengHei UI", font_size),
-                bg=card_bg,
-                fg=color,
-                anchor=tk.W
+                text_color=color,
+                anchor="w"
             )
-            hint_label.pack(fill=tk.X, pady=(5 if font_size == 9 else 2, 0))
+            hint_label.pack(fill="x", pady=(5 if font_size == 9 else 2, 0))
 
     def _create_button_section(self, main_frame, devices, device_a_combo, device_b_combo, bg_color):
         """建立按鈕區塊"""
-        button_frame = tk.Frame(main_frame, bg=bg_color)
+        button_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
         button_frame.pack(pady=(10, 0))
 
         # 儲存按鈕
-        save_button = ttk.Button(
+        save_button = ctk.CTkButton(
             button_frame,
             text="✓ 儲存設定",
             command=lambda: self._save_settings(devices, device_a_combo, device_b_combo),
-            width=15
+            width=150,
+            height=40,
+            corner_radius=10,
+            font=("Microsoft JhengHei UI", 11)
         )
         save_button.grid(row=0, column=0, padx=5)
 
         # 取消按鈕
-        cancel_button = ttk.Button(
+        cancel_button = ctk.CTkButton(
             button_frame,
             text="✕ 取消",
             command=self._close_window,
-            width=15
+            width=150,
+            height=40,
+            corner_radius=10,
+            font=("Microsoft JhengHei UI", 11),
+            fg_color="#6c757d",
+            hover_color="#5a6268"
         )
         cancel_button.grid(row=0, column=1, padx=5)
 
@@ -363,7 +327,7 @@ class SettingsWindow:
         self.window = self._create_window()
 
         # 如果是 Toplevel 視窗,設定置頂和聚焦
-        if self.tk_root and isinstance(self.window, tk.Toplevel):
+        if self.tk_root and isinstance(self.window, ctk.CTkToplevel):
             self.window.transient(self.tk_root)
             self.window.lift()
             self.window.focus_force()
@@ -376,8 +340,8 @@ class SettingsWindow:
         accent_bg = "#1a3a52"
 
         # 建立主框架
-        main_frame = tk.Frame(self.window, bg=bg_color)
-        main_frame.pack(fill=tk.BOTH, expand=True, padx=30, pady=30)
+        main_frame = ctk.CTkFrame(self.window, fg_color="transparent")
+        main_frame.pack(fill="both", expand=True, padx=30, pady=30)
 
         # 取得所有裝置
         devices = self.audio_manager.get_all_output_devices()

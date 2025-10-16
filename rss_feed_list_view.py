@@ -1,4 +1,5 @@
 """RSS Feed List View 模組 - 訂閱列表視圖"""
+import customtkinter as ctk
 import tkinter as tk
 from tkinter import ttk, messagebox
 import webbrowser
@@ -29,28 +30,33 @@ class RSSFeedListView:
         card_bg = "#2d2d2d"
         header_bg = "#0d47a1"
 
-        # 左側容器
-        left_container = tk.Frame(self.parent, bg=card_bg, relief=tk.RIDGE, bd=1)
-        left_container.pack(side=tk.LEFT, fill=tk.BOTH, expand=False, padx=(0, 10))
-        left_container.config(width=240)
+        # 左側容器（圓角框架）
+        left_container = ctk.CTkFrame(
+            self.parent,
+            corner_radius=15,
+            fg_color=card_bg,
+            width=240
+        )
+        left_container.pack(side="left", fill="both", expand=False, padx=(0, 10))
 
         # 標題
-        feeds_header = tk.Label(
+        feeds_header = ctk.CTkLabel(
             left_container,
             text="📑 訂閱列表",
-            font=("Microsoft JhengHei UI", 11, "bold"),
-            bg=header_bg,
-            fg="white",
-            pady=8
+            font=("Microsoft JhengHei UI", 12, "bold"),
+            fg_color=header_bg,
+            text_color="white",
+            corner_radius=12,
+            height=40
         )
-        feeds_header.pack(fill=tk.X)
+        feeds_header.pack(fill="x", padx=5, pady=(5, 0))
 
-        # 訂閱列表 TreeView
-        feeds_frame = tk.Frame(left_container, bg=card_bg)
-        feeds_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        # 訂閱列表 TreeView（包在圓角框架中）
+        feeds_frame = ctk.CTkFrame(left_container, fg_color="transparent")
+        feeds_frame.pack(fill="both", expand=True, padx=5, pady=5)
 
         feeds_scrollbar = ttk.Scrollbar(feeds_frame)
-        feeds_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        feeds_scrollbar.pack(side="right", fill="y")
 
         self.feeds_tree = ttk.Treeview(
             feeds_frame,
@@ -58,7 +64,7 @@ class RSSFeedListView:
             show='tree',
             yscrollcommand=feeds_scrollbar.set
         )
-        self.feeds_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.feeds_tree.pack(side="left", fill="both", expand=True)
         feeds_scrollbar.config(command=self.feeds_tree.yview)
 
         # 綁定事件
@@ -123,7 +129,7 @@ class RSSFeedListView:
 
         feed_url = values[0]
 
-        # 建立右鍵選單
+        # 建立右鍵選單（使用 tkinter Menu）
         menu = tk.Menu(self.parent, tearoff=0)
         menu.add_command(label="🗑 移除此訂閱", command=lambda: self.remove_feed(feed_url))
         menu.add_command(label="🌐 在瀏覽器中開啟", command=lambda: webbrowser.open(feed_url))
