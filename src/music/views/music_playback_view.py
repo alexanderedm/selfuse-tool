@@ -58,7 +58,7 @@ class MusicPlaybackView:
         self.main_frame = ctk.CTkFrame(
             self.parent_frame,
             corner_radius=15,
-            width=280
+            width=320
         )
         self.main_frame.pack(side="left", fill="both", expand=False, padx=(10, 0))
         self.main_frame.pack_propagate(False)
