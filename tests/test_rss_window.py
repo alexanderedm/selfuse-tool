@@ -27,7 +27,9 @@ def mock_tk_components(func):
         mock_button,
         mock_style,
         mock_frame,
-        mock_label
+        mock_label,
+        *args,  # 接受額外的參數（來自其他 patch decorator）
+        **kwargs
     ):
         return func(
             self,
@@ -39,7 +41,9 @@ def mock_tk_components(func):
             mock_button,
             mock_style,
             mock_frame,
-            mock_label
+            mock_label,
+            *args,  # 傳遞額外的參數給原函數
+            **kwargs
         )
     return wrapper
 
@@ -286,7 +290,8 @@ class TestRSSWindow(unittest.TestCase):
         # 驗證建立 RSSFeedListView
         mock_feed_list_view.assert_called_once()
         call_args = mock_feed_list_view.call_args
-        self.assertEqual(call_args[1]['rss_manager'], self.mock_rss_manager)
+        # RSSFeedListView 使用位置參數 (content_frame, rss_manager, on_feed_select_callback=...)
+        self.assertEqual(call_args[0][1], self.mock_rss_manager)  # 第二個位置參數
         self.assertIsNotNone(call_args[1]['on_feed_select_callback'])
 
     @mock_tk_components
@@ -504,11 +509,10 @@ class TestRSSWindow(unittest.TestCase):
         # 驗證顯示載入標籤
         rss_window.loading_label.place.assert_called_once()
 
-    @mock_tk_components
     @patch('rss_window.threading.Thread')
+    @mock_tk_components
     def test_load_entries_spawns_background_thread(
         self,
-        mock_thread,
         mock_preview_view,
         mock_entry_list_view,
         mock_filter_manager,
@@ -517,7 +521,8 @@ class TestRSSWindow(unittest.TestCase):
         mock_button,
         mock_style,
         mock_frame,
-        mock_label
+        mock_label,
+        mock_thread
     ):
         """測試啟動背景執行緒"""
         from rss_window import RSSWindow
@@ -793,13 +798,11 @@ class TestRSSWindow(unittest.TestCase):
 
     # ========== E. 操作功能測試 (5 tests) ==========
 
-    @mock_tk_components
-    @patch('rss_window.simpledialog.askstring')
     @patch('rss_window.messagebox.showinfo')
+    @patch('rss_window.simpledialog.askstring')
+    @mock_tk_components
     def test_add_feed_manual_success(
         self,
-        mock_showinfo,
-        mock_askstring,
         mock_preview_view,
         mock_entry_list_view,
         mock_filter_manager,
@@ -808,7 +811,9 @@ class TestRSSWindow(unittest.TestCase):
         mock_button,
         mock_style,
         mock_frame,
-        mock_label
+        mock_label,
+        mock_askstring,
+        mock_showinfo
     ):
         """測試成功新增 feed"""
         from rss_window import RSSWindow
@@ -820,8 +825,9 @@ class TestRSSWindow(unittest.TestCase):
         mock_feed_list_view_instance = Mock()
         mock_feed_list_view_class.return_value = mock_feed_list_view_instance
 
-        # 模擬使用者輸入
-        mock_askstring.return_value = 'https://example.com/feed'
+        # 模擬使用者輸入（直接返回字串，這樣 .strip() 才能正常運作）
+        mock_askstring.return_value = 'https://example.com/feed  '
+
         # 模擬成功新增
         self.mock_rss_manager.add_feed.return_value = {
             'success': True,
@@ -840,11 +846,10 @@ class TestRSSWindow(unittest.TestCase):
         # 驗證重新載入訂閱列表
         self.assertEqual(mock_feed_list_view_instance.load_feeds.call_count, 2)  # show() + _add_feed_manual()
 
-    @mock_tk_components
     @patch('rss_window.simpledialog.askstring')
+    @mock_tk_components
     def test_add_feed_manual_empty_url(
         self,
-        mock_askstring,
         mock_preview_view,
         mock_entry_list_view,
         mock_filter_manager,
@@ -853,7 +858,8 @@ class TestRSSWindow(unittest.TestCase):
         mock_button,
         mock_style,
         mock_frame,
-        mock_label
+        mock_label,
+        mock_askstring
     ):
         """測試空 URL"""
         from rss_window import RSSWindow
@@ -873,13 +879,11 @@ class TestRSSWindow(unittest.TestCase):
         # 驗證不呼叫 add_feed
         self.mock_rss_manager.add_feed.assert_not_called()
 
-    @mock_tk_components
-    @patch('rss_window.simpledialog.askstring')
     @patch('rss_window.messagebox.showerror')
+    @patch('rss_window.simpledialog.askstring')
+    @mock_tk_components
     def test_add_feed_manual_failure(
         self,
-        mock_showerror,
-        mock_askstring,
         mock_preview_view,
         mock_entry_list_view,
         mock_filter_manager,
@@ -888,7 +892,9 @@ class TestRSSWindow(unittest.TestCase):
         mock_button,
         mock_style,
         mock_frame,
-        mock_label
+        mock_label,
+        mock_askstring,
+        mock_showerror
     ):
         """測試新增失敗"""
         from rss_window import RSSWindow
@@ -897,8 +903,9 @@ class TestRSSWindow(unittest.TestCase):
         mock_window = Mock()
         mock_toplevel.return_value = mock_window
 
-        # 模擬使用者輸入
-        mock_askstring.return_value = 'invalid_url'
+        # 模擬使用者輸入（直接返回字串）
+        mock_askstring.return_value = '  invalid_url  '
+
         # 模擬新增失敗
         self.mock_rss_manager.add_feed.return_value = {
             'success': False,
