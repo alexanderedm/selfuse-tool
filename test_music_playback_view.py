@@ -1,7 +1,7 @@
 """MusicPlaybackView 模組的單元測試"""
 import unittest
 from unittest.mock import Mock, patch, MagicMock
-import tkinter as tk
+import customtkinter as ctk
 from music_playback_view import MusicPlaybackView
 
 
@@ -10,11 +10,11 @@ class TestMusicPlaybackView(unittest.TestCase):
 
     def setUp(self):
         """測試前的設定"""
-        # 建立 Tk 根視窗
+        # 建立 CTk 根視窗
         try:
-            self.root = tk.Tk()
-        except tk.TclError:
-            self.skipTest("tkinter 環境設定問題")
+            self.root = ctk.CTk()
+        except Exception:
+            self.skipTest("customtkinter 環境設定問題")
 
         # 建立模擬的回調函數
         self.on_play_pause_mock = Mock()
@@ -29,7 +29,7 @@ class TestMusicPlaybackView(unittest.TestCase):
         self.music_manager_mock.config_manager.get_music_volume = Mock(return_value=50)
 
         # 建立父框架
-        self.parent_frame = tk.Frame(self.root)
+        self.parent_frame = ctk.CTkFrame(self.root)
 
         # 建立 MusicPlaybackView 實例
         self.view = MusicPlaybackView(
@@ -61,10 +61,10 @@ class TestMusicPlaybackView(unittest.TestCase):
         self.assertIsNotNone(self.view.current_song_label)
         self.assertIsNotNone(self.view.artist_label)
         self.assertIsNotNone(self.view.time_label)
-        self.assertIsNotNone(self.view.progress_bar)
+        self.assertIsNotNone(self.view.progress_slider)
         self.assertIsNotNone(self.view.play_pause_button)
         self.assertIsNotNone(self.view.play_mode_button)
-        self.assertIsNotNone(self.view.volume_scale)
+        self.assertIsNotNone(self.view.volume_slider)
 
     def test_initial_state(self):
         """測試初始狀態"""
@@ -82,12 +82,12 @@ class TestMusicPlaybackView(unittest.TestCase):
     def test_volume_change(self):
         """測試音量改變"""
         # 模擬用戶拖動音量滑桿
-        # 需要觸發 Scale 的 command 回調
-        self.view.volume_scale.set(75)
+        # 設定音量
+        self.view.volume_slider.set(75)
         # 手動觸發 command 回調
-        self.view.on_volume_change("75")
+        self.view._on_volume_change_internal(75)
         # 音量改變回調應該被呼叫
-        self.on_volume_change_mock.assert_called_with("75")
+        self.on_volume_change_mock.assert_called_with(75)
 
     def test_mode_button_click(self):
         """測試播放模式按鈕點擊"""
@@ -131,8 +131,8 @@ class TestMusicPlaybackView(unittest.TestCase):
         """測試更新進度"""
         self.view.update_progress(30.5)
 
-        # 檢查進度條
-        progress = self.view.progress_bar['value']
+        # 檢查進度滑桿
+        progress = self.view.progress_slider.get()
         self.assertAlmostEqual(progress, 30.5, places=1)
 
     def test_update_time_label(self):
@@ -181,7 +181,7 @@ class TestMusicPlaybackView(unittest.TestCase):
         # 檢查是否重置到初始狀態
         self.assertEqual(self.view.current_song_label.cget('text'), '未播放')
         self.assertEqual(self.view.artist_label.cget('text'), '')
-        self.assertEqual(self.view.progress_bar['value'], 0)
+        self.assertEqual(self.view.progress_slider.get(), 0)
         self.assertEqual(self.view.time_label.cget('text'), '00:00 / 00:00')
         self.assertEqual(self.view.play_pause_button.cget('text'), '▶')
 

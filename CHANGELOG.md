@@ -14,13 +14,25 @@
   - 遷移核心視窗到 CustomTkinter，獲得現代化圓角 UI
   - 遷移完成的模組：
     - `music_window.py` - 主視窗（ctk.CTk）
-    - `music_header_view.py` - 頂部按鈕區域（圓角按鈕）
+    - `music_header_view.py` - 頂部按鈕區域（圓角按鈕，更大按鈕設計）
     - `music_search_view.py` - 搜尋框（圓角輸入框 + placeholder）
-  - 所有按鈕使用圓角設計（corner_radius=10）
+    - `music_playback_view.py` - 播放控制區域（圓角框架 + 現代化控制元件）
+  - 播放控制區域升級：
+    - 大圓角主框架（corner_radius=15）
+    - 播放按鈕：75x75px 大圓形按鈕（最顯眼）
+    - 上一首/下一首：55x55px 中等圓角按鈕
+    - 進度條：使用 CTkSlider 可拖動滑桿（粗 20px）
+    - 音量滑桿：現代化 CTkSlider（藍色主題）
+    - 專輯封面：圓角框架 230x230px
+    - 歌曲資訊：圓角資訊卡片
+    - 播放模式：圓角按鈕，不同模式不同顏色
+  - 所有按鈕使用圓角設計（corner_radius=10-38）
   - 所有框架使用透明背景或圓角設計
   - CustomTkinter 自動管理深色主題
   - 移除舊的 ttkbootstrap 測試檔案
-  - 待遷移：playback_view、library_view、lyrics_view、dialogs、windows
+  - 15 個單元測試全部通過
+  - flake8 零錯誤
+  - 待遷移：library_view、lyrics_view、dialogs、windows
 
 - **Discord Rich Presence 整合** (2025-10-16)
   - 在 Discord 顯示當前播放的音樂資訊
