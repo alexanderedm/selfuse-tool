@@ -2,15 +2,7 @@
 
 ## 我的個人希望新增功能或改進修正方面建議
 - [ ] **完全個人化工具之個人助理**
-  - 簡單來說就是一個有RAG功能的語言模型整合在選單中的其中一個選項
-  - 可以從眾多資料中提供我個人化的建議
-    - RSS訂閱,API
-    - 個人手動輸入
-    - 剪貼簿(這部分可能比較多無用資訊,把搜尋相關性降低)
-    - 其他
-  - 收集的關於我個人的資料可以分類
-    - 擁有物(我可以手動輸入我目前有的資源或物品等等來幫助ai判別我能力範圍)
-    - 以上的資料也都可以單獨成為一個類別
+  - 參閱RAGPRD.md
 
 - [ ] **本地音樂撥放器改進修正建議**
   - 資料夾歌曲又無法右鍵或拖拉來移動資料夾了
@@ -183,17 +175,25 @@
 - [ ] **CustomTkinter UI 全面遷移** (進行中 2025-10-16 - Overnight Development)
   - [x] Phase 1: 核心視窗遷移 ✅
     - [x] music_window.py - 主視窗（ctk.CTk）✅
-    - [x] music_header_view.py - 頂部按鈕區域（圓角按鈕）✅
+    - [x] music_header_view.py - 頂部按鈕區域（圓角按鈕，更大設計）✅
     - [x] music_search_view.py - 搜尋框（圓角輸入框）✅
-  - [ ] Phase 2: View 模組遷移
-    - [ ] music_playback_view.py - 播放控制區
+  - [x] Phase 2: View 模組遷移 ✅ (2025-10-16)
+    - [x] music_playback_view.py - 播放控制區 ✅
+      - 大圓角主框架（corner_radius=15）
+      - 75x75px 大圓形播放按鈕
+      - 55x55px 中等圓角上一首/下一首按鈕
+      - CTkSlider 進度條和音量滑桿（粗 20px）
+      - 230x230px 圓角專輯封面框架
+      - 圓角歌曲資訊卡片
+      - 15 個單元測試全部通過
+      - flake8 零錯誤
     - [ ] music_library_view.py - 資料夾樹和歌曲列表（保留 ttk.Treeview）
     - [ ] music_lyrics_view.py - 歌詞顯示（ctk.CTkTextbox）
   - [ ] Phase 3: 對話框遷移
     - [ ] music_playlist_dialog.py
     - [ ] music_download_dialog.py
     - [ ] music_history_dialog.py
-    - [ ] music_equalizer_dialog.py（已完成）✅
+    - [x] music_equalizer_dialog.py（已完成）✅
   - [ ] Phase 4: 其他視窗遷移
     - [ ] settings_window.py
     - [ ] rss_window.py
@@ -203,7 +203,7 @@
     - [ ] rss_feed_list_view.py
     - [ ] rss_entry_list_view.py
     - [ ] rss_preview_view.py
-  - **當前進度**: 3/16 模組已遷移（18.75%）
+  - **當前進度**: 4/16 模組已遷移（25%）
   - **目標**: 所有視窗和對話框使用 CustomTkinter，獲得統一的圓角現代化 UI
 
 - [ ] **修復 test_rss_window.py 測試失敗** (發現於 2025-10-14)
