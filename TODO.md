@@ -1,14 +1,15 @@
 # 專案待辦清單 (Todo List)
 
 ## 我的個人希望新增功能或改進修正方面建議
-- [x] **完全個人化工具之個人助理** (完成於 2025-10-16) ✅
-  - [x] 實作 AI 團隊協作助理系統
-  - [x] 5 個 AI 代理（創意家、風險分析師、務實主義者、批判思考者、優化專家）
-  - [x] RAG 檢索系統（ChromaDB 向量資料庫）
-  - [x] 會議管理器（討論、投票、負責人選舉）
-  - [x] CustomTkinter UI 介面
-  - [x] 整合到系統托盤選單
+- [ ] **完全個人化工具之個人助理** (已回退 2025-10-16)
+  - [ ] 實作 AI 團隊協作助理系統
+  - [ ] 5 個 AI 代理（創意家、風險分析師、務實主義者、批判思考者、優化專家）
+  - [ ] RAG 檢索系統（ChromaDB 向量資料庫）
+  - [ ] 會議管理器（討論、投票、負責人選舉）
+  - [ ] CustomTkinter UI 介面
+  - [ ] 整合到系統托盤選單
   - 參閱 RAGPRD.md
+  - **注意**：功能實作需要較長時間（Ollama 安裝、RAG 資料準備等），用戶要求暫時回退
 
 - [x] **本地音樂播放器改進修正建議** (完成於 2025-10-16) ✅
   - [x] 資料夾歌曲右鍵移動功能 - 已實現並整合到 MusicLibraryView
@@ -23,17 +24,6 @@
   - [x] music_library_view.py - 已有 ttk.Treeview 內建滾動（確認無需修改）
   - 解決視窗顯示不全問題
   - flake8 零錯誤
-
-- [x] **AI 團隊協作助理系統** (完成於 2025-10-16)
-  - [x] ai_agent.py - AI 代理類別（5 種角色）
-  - [x] rag_system.py - RAG 檢索系統（ChromaDB）
-  - [x] meeting_manager.py - 會議管理器（討論、投票、選舉）
-  - [x] ai_assistant.py - AI 助理主控制器
-  - [x] ai_assistant_window.py - CustomTkinter UI 介面
-  - [x] 整合到 main.py 系統托盤選單
-  - 連接本地 LLM（Ollama、LM Studio）
-  - 支援上下文管理和自動摘要
-  - 所有模組 flake8 零錯誤
 
 - [x] **音樂播放器關鍵修復與改進** (完成於 2025-10-16)
   - 修復 `MusicPlaybackView` 屬性缺失問題 (progress_bar, volume_scale)

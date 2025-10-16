@@ -18,7 +18,6 @@ from clipboard_monitor import ClipboardMonitor
 from music_manager import MusicManager
 from music_window import MusicWindow
 from changelog_window import ChangelogWindow
-from ai_assistant_window import AIAssistantWindow
 from logger import logger
 import threading
 from tkinter import messagebox
@@ -48,7 +47,6 @@ class AudioSwitcherApp:
             self.music_manager = MusicManager(self.config_manager)
             self.music_window = None
             self.changelog_window = None
-            self.ai_assistant_window = None
             logger.info("應用程式初始化完成")
         except Exception as e:
             logger.exception("初始化應用程式時發生錯誤")
@@ -430,32 +428,6 @@ class AudioSwitcherApp:
         else:
             self.show_notification("沒有正在播放的音樂", "音樂播放器")
 
-    def open_ai_assistant(self):
-        """開啟 AI 助理視窗"""
-        try:
-            logger.log_window_event("AI助理視窗", "嘗試開啟")
-
-            if self.ai_assistant_window is None or self.ai_assistant_window.window is None:
-                logger.info("建立新的 AI 助理視窗實例")
-                self.ai_assistant_window = AIAssistantWindow(tk_root=self.tk_root)
-                self.ai_assistant_window.show()
-                logger.log_window_event("AI助理視窗", "已開啟")
-            else:
-                # 如果視窗已存在,將其帶到前景
-                logger.info("AI助理視窗已存在,嘗試帶到前景")
-                try:
-                    self.ai_assistant_window.window.lift()
-                    self.ai_assistant_window.window.focus_force()
-                    logger.log_window_event("AI助理視窗", "已帶到前景")
-                except Exception as e:
-                    logger.error(f"無法將 AI助理視窗帶到前景: {e}")
-                    # 視窗可能已關閉,重新建立
-                    logger.info("重新建立 AI 助理視窗")
-                    self.ai_assistant_window = AIAssistantWindow(tk_root=self.tk_root)
-                    self.ai_assistant_window.show()
-        except Exception as e:
-            logger.exception("開啟 AI 助理視窗時發生錯誤")
-
     def create_menu(self):
         """建立右鍵選單
 
@@ -469,7 +441,6 @@ class AudioSwitcherApp:
             pystray.Menu.SEPARATOR,
             item("RSS 訂閱管理", self.open_rss_viewer),
             item("本地音樂播放器", self.open_music_player),
-            item("🤖 AI 助理", self.open_ai_assistant),
             pystray.Menu.SEPARATOR,
             item(
                 "🎵 音樂控制",

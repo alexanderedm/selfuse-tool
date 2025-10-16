@@ -9,36 +9,21 @@
 
 ## [未發布]
 
-### 新增 (Added)
-- **🤖 AI 團隊協作助理系統** (2025-10-16)
-  - 實作完整的多 AI 協作系統，模擬專家團隊討論
-  - **核心模組**：
-    - `ai_agent.py` - AI 代理類別（5 種角色：創意家、風險分析師、務實主義者、批判思考者、優化專家）
-    - `rag_system.py` - RAG 檢索系統（ChromaDB 向量資料庫整合）
-    - `meeting_manager.py` - 會議管理器（討論輪次、投票系統、負責人選舉）
+### 已移除 (Removed)
+- **🤖 AI 團隊協作助理系統** (已回退於 2025-10-16)
+  - 移除原因：功能實作需要較長設定時間（Ollama 安裝、RAG 資料準備等），應使用者要求暫時回退
+  - 已刪除檔案：
+    - `ai_agent.py` - AI 代理類別
+    - `rag_system.py` - RAG 檢索系統
+    - `meeting_manager.py` - 會議管理器
     - `ai_assistant.py` - AI 助理主控制器
     - `ai_assistant_window.py` - CustomTkinter UI 介面
-  - **工作流程**：
-    1. 使用者輸入開放式問題
-    2. RAG 系統檢索個人化背景資料
-    3. 5 個 AI 代理進行多輪討論（可設定輪數）
-    4. 共識投票（超過半數同意結束討論）
-    5. 提名並選出負責人
-    6. 負責人撰寫最終提案
-    7. 輸出：最終提案 + 完整會議記錄
-  - **技術特點**：
-    - 連接本地 LLM（Ollama、LM Studio 等，OpenAI API 格式）
-    - 支援上下文管理（超過限制時自動摘要）
-    - 所有輸出使用繁體中文
-    - flake8 零錯誤
-  - **UI 特色**：
-    - CustomTkinter 現代化圓角設計
-    - 可滾動主框架（CTkScrollableFrame）
-    - 進度即時顯示
-    - 完整會議記錄展示
-  - **整合到主程式**：在系統托盤選單新增「🤖 AI 助理」選項
-  - **依賴**：chromadb >= 0.4.0, openai >= 1.0.0
+    - `AI_SETUP_GUIDE.md` - 設定指南
+    - `rag_manager_tool.py` - RAG 資料管理工具
+  - 已從 main.py 移除相關整合程式碼
+  - **注意**：功能保留在版本歷史中，未來可視需求重新引入
 
+### 新增 (Added)
 - **UI 滾動功能改進** (2025-10-16)
   - `settings_window.py` - 新增 CTkScrollableFrame 主框架，解決高度 850px 內容顯示不全問題
   - `stats_window.py` - 統計容器改用 CTkScrollableFrame，支援多裝置卡片滾動
