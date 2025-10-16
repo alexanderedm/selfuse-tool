@@ -436,10 +436,10 @@ class MusicLibraryView:
             import os
             import shutil
 
-            # 獲取原始檔案路徑
-            source_path = song.get('filepath')
-            if not source_path or not os.path.exists(source_path):
-                logger.error(f"歌曲檔案不存在: {source_path}")
+            # 獲取原始音訊檔案路徑
+            source_audio_path = song.get('audio_path')
+            if not source_audio_path or not os.path.exists(source_audio_path):
+                logger.error(f"音訊檔案不存在: {source_audio_path}")
                 return False
 
             # 建立目標路徑
@@ -447,17 +447,30 @@ class MusicLibraryView:
             target_dir = os.path.join(music_root, target_category)
             os.makedirs(target_dir, exist_ok=True)
 
-            filename = os.path.basename(source_path)
-            target_path = os.path.join(target_dir, filename)
+            # 獲取檔案名稱（不含副檔名）
+            audio_filename = os.path.basename(source_audio_path)
+            base_name = os.path.splitext(audio_filename)[0]
 
-            # 移動檔案
-            shutil.move(source_path, target_path)
+            # 移動音訊檔案
+            target_audio_path = os.path.join(target_dir, audio_filename)
+            logger.info(f"移動音訊檔案: {source_audio_path} -> {target_audio_path}")
+            shutil.move(source_audio_path, target_audio_path)
 
-            logger.info(f"歌曲已移動: {source_path} -> {target_path}")
+            # 移動 JSON 檔案（如果存在）
+            source_json_path = os.path.join(
+                os.path.dirname(source_audio_path),
+                f"{base_name}.json"
+            )
+            if os.path.exists(source_json_path):
+                target_json_path = os.path.join(target_dir, f"{base_name}.json")
+                logger.info(f"移動 JSON 檔案: {source_json_path} -> {target_json_path}")
+                shutil.move(source_json_path, target_json_path)
+
+            logger.info(f"歌曲移動成功: {song['title']} -> {target_category}")
             return True
 
         except Exception as e:
-            logger.error(f"移動歌曲失敗: {e}")
+            logger.error(f"移動歌曲失敗: {e}", exc_info=True)
             return False
 
     def _delete_song(self, song):
@@ -474,17 +487,27 @@ class MusicLibraryView:
         if result:
             try:
                 import os
-                filepath = song.get('filepath')
-                if filepath and os.path.exists(filepath):
-                    os.remove(filepath)
-                    logger.info(f"歌曲已刪除: {filepath}")
+
+                # 刪除音訊檔案
+                audio_path = song.get('audio_path')
+                if audio_path and os.path.exists(audio_path):
+                    logger.info(f"刪除音訊檔案: {audio_path}")
+                    os.remove(audio_path)
+
+                    # 刪除對應的 JSON 檔案
+                    base_name = os.path.splitext(os.path.basename(audio_path))[0]
+                    json_path = os.path.join(os.path.dirname(audio_path), f"{base_name}.json")
+                    if os.path.exists(json_path):
+                        logger.info(f"刪除 JSON 檔案: {json_path}")
+                        os.remove(json_path)
+
                     messagebox.showinfo("成功", "歌曲已刪除")
                     # 重新載入音樂庫
                     self.reload_library()
                 else:
-                    messagebox.showerror("錯誤", "找不到歌曲檔案")
+                    messagebox.showerror("錯誤", "找不到音訊檔案")
             except Exception as e:
-                logger.error(f"刪除歌曲失敗: {e}")
+                logger.error(f"刪除歌曲失敗: {e}", exc_info=True)
                 messagebox.showerror("錯誤", f"刪除失敗: {e}")
 
     def _load_music_library(self):
