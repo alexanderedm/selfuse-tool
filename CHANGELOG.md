@@ -9,11 +9,48 @@
 
 ## [未發布]
 
+### 新增 (Added)
+- **Discord Rich Presence 整合** (2025-10-16)
+  - 在 Discord 顯示當前播放的音樂資訊
+  - 顯示歌曲名稱、藝術家、專輯資訊
+  - 顯示播放進度條和總時長
+  - 支援專輯封面顯示（透過 URL）
+  - 自動連接 Discord，播放時即時更新狀態
+  - 可透過環境變數 `DISCORD_CLIENT_ID` 設定 Application ID
+  - 新增模組：`discord_presence.py`（17 個測試全部通過）
+
+- **多來源音樂元數據補全** (2025-10-16)
+  - 整合多個音樂元數據來源，提高補全成功率
+  - 支援 YouTube Music API（ytmusicapi）
+  - 支援 iTunes API
+  - 未來支援 Spotify API（框架已建立）
+  - 智慧 Fallback 機制：YouTube Music → iTunes → Spotify
+  - 自動選擇最高解析度封面圖片
+  - 新增模組：`music_metadata_multi_source.py`（16 個測試全部通過）
+  - 依賴：ytmusicapi >= 1.0.0
+
+### 變更 (Changed)
+- **music_window.py 整合 Discord Rich Presence**
+  - 播放歌曲時自動更新 Discord 狀態
+  - 應用程式關閉時自動清除 Discord 狀態
+  - 支援透過 config.json 的 `discord_rpc_enabled` 設定啟用/停用
+
 ### 修復 (Fixed)
 - 修復等化器對話框導致主視窗背景變白的問題（回退 ttkbootstrap）
   - 原因：ttkbootstrap 會影響全域 tkinter 主題，需整個應用遷移才能使用
   - 解決：改用原生 tkinter + 手動深色主題配色（#1e1e1e 背景、#2d2d2d 卡片）
   - Commits: 79eca1c, 3baaeee
+
+### 技術細節 (Technical)
+- 新增依賴套件：
+  - pypresence >= 4.2.0（Discord Rich Presence）
+  - ytmusicapi >= 1.0.0（YouTube Music API）
+  - chromadb >= 0.4.0（RAG 助理，待實作）
+  - openai >= 1.0.0（RAG 助理，待實作）
+  - langchain >= 0.1.0（RAG 助理，待實作）
+  - python-dotenv >= 1.0.0（環境變數管理）
+- 新增環境變數範本檔案：`.env.example`
+- 總測試數量：677 → 708 個測試（+33 個）
 
 ---
 

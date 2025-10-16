@@ -26,6 +26,7 @@ from lyrics_parser import LyricsParser
 from music_equalizer import MusicEqualizer
 from music_equalizer_dialog import MusicEqualizerDialog
 from ui_theme import UITheme
+from discord_presence import DiscordPresence
 from PIL import Image, ImageTk, ImageDraw
 import requests
 from io import BytesIO
@@ -123,6 +124,12 @@ class MusicWindow:
 
         # 下載對話框(延遲初始化,當 window 建立後)
         self.download_dialog = None
+
+        # Discord Rich Presence
+        self.discord_presence = DiscordPresence()
+        if self.discord_presence.client_id and self.music_manager.config_manager.get('discord_rpc_enabled', default=True):
+            self.discord_presence.connect()
+            logger.info("Discord Rich Presence 已啟用")
 
         # 嘗試使用 AudioPlayer，失敗則 fallback 到 pygame
         self.use_audio_player = False
@@ -474,6 +481,9 @@ class MusicWindow:
                         self.window.after(0, lambda: self._on_metadata_updated(song, metadata))
 
                 self.metadata_fetcher.fetch_metadata_async(song, on_fetch_complete)
+
+            # 更新 Discord Rich Presence
+            self._update_discord_presence(song)
 
             logger.info(f"開始播放: {song['title']}")
 
@@ -1098,6 +1108,39 @@ class MusicWindow:
         if self.window:
             self.window.after(0, self._play_next)
 
+    def _update_discord_presence(self, song):
+        """更新 Discord Rich Presence 狀態
+
+        Args:
+            song (dict): 當前播放的歌曲資訊
+        """
+        if not self.discord_presence or not self.discord_presence.connected:
+            return
+
+        try:
+            # 取得歌曲資訊
+            song_name = song.get('title', 'Unknown')
+            artist = song.get('uploader', 'Unknown Artist')
+            album = song.get('album', None)
+            duration = song.get('duration', 0)
+
+            # 取得封面 URL（如果有）
+            album_cover_url = song.get('thumbnail', None)
+
+            # 更新 Discord 狀態
+            self.discord_presence.update_playing(
+                song_name=song_name,
+                artist=artist,
+                album=album,
+                total_time=duration,
+                album_cover_url=album_cover_url
+            )
+
+            logger.info(f"Discord Rich Presence 已更新: {song_name} - {artist}")
+
+        except Exception as e:
+            logger.error(f"更新 Discord Rich Presence 失敗: {e}")
+
     def cleanup(self):
         """清理資源(在應用程式完全關閉時呼叫)"""
         # 停止音樂
@@ -1106,5 +1149,11 @@ class MusicWindow:
                 self.audio_player.stop()
             else:
                 pygame.mixer.music.stop()
+
+        # 清除並斷開 Discord Rich Presence
+        if self.discord_presence:
+            self.discord_presence.clear()
+            self.discord_presence.disconnect()
+            logger.info("Discord Rich Presence 已斷開")
 
         logger.info("音樂播放器資源已清理")

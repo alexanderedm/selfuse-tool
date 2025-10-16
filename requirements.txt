@@ -16,3 +16,12 @@ librosa>=0.10.0
 soundfile>=0.12.0
 # CustomTkinter for modern UI
 customtkinter>=5.2.0
+# RAG assistant dependencies
+chromadb>=0.4.0
+openai>=1.0.0
+langchain>=0.1.0
+python-dotenv>=1.0.0
+# Discord Rich Presence
+pypresence>=4.2.0
+# YouTube Music API
+ytmusicapi>=1.0.0
