@@ -22,10 +22,20 @@ class SettingsWindow:
         else:
             # 如果沒有提供根視窗,建立獨立的視窗
             window = ctk.CTk()
+
         window.title("⚙ 音訊切換工具 - 設定")
-        window.geometry("700x850")
+        window.geometry("700x850+100+100")  # 添加位置參數，確保視窗在可見區域
         window.resizable(True, True)
         window.minsize(600, 750)  # 設定最小尺寸以確保內容可見
+
+        # 確保視窗顯示在最上層
+        window.attributes('-topmost', True)
+        window.update()  # 強制更新視窗
+        window.attributes('-topmost', False)  # 取消置頂，讓使用者可以正常操作
+
+        # 確保視窗不是最小化狀態
+        window.state('normal')
+        window.deiconify()  # 確保視窗可見
 
         return window
 
@@ -384,6 +394,17 @@ class SettingsWindow:
             self.window.protocol("WM_DELETE_WINDOW", self._close_window)
 
             logger.info("[設定視窗] 所有 UI 元件建立完成")
+
+            # 強制更新並確保視窗顯示
+            self.window.update_idletasks()
+            self.window.update()
+
+            # 再次確保視窗可見並置於前景
+            self.window.deiconify()
+            self.window.lift()
+            self.window.focus_force()
+
+            logger.info(f"[設定視窗] 視窗狀態: {self.window.state()}, 位置: {self.window.geometry()}")
 
         except Exception as e:
             logger.exception("[設定視窗] 顯示視窗時發生錯誤")
