@@ -1,5 +1,5 @@
 """音樂播放器視窗模組"""
-import tkinter as tk
+import customtkinter as ctk
 from tkinter import ttk, messagebox, simpledialog
 import pygame
 import threading
@@ -193,11 +193,15 @@ class MusicWindow:
 
         logger.info("建立新的音樂播放器視窗")
 
+        # 設定 CustomTkinter 主題
+        ctk.set_appearance_mode("dark")
+        ctk.set_default_color_theme("blue")
+
         # 使用共用的根視窗建立 Toplevel 視窗
         if self.tk_root:
-            self.window = tk.Toplevel(self.tk_root)
+            self.window = ctk.CTkToplevel(self.tk_root)
         else:
-            self.window = tk.Tk()
+            self.window = ctk.CTk()
 
         self.window.title("🎵 本地音樂播放器")
         self.window.geometry("900x600")
@@ -234,18 +238,17 @@ class MusicWindow:
             on_equalizer_change=self._sync_equalizer_to_processor
         )
 
-        # 使用 UI 主題配色（Spotify 風格）
+        # 使用 UI 主題配色（Spotify 風格）- CustomTkinter 會自動管理深色主題
         bg_color = self.theme.bg_color
         card_bg = self.theme.card_bg
         accent_color = self.theme.accent_color
         text_color = self.theme.text_color
         text_secondary = self.theme.text_secondary
         header_bg = self.theme.header_bg
-        self.window.configure(bg=bg_color)
 
-        # 建立主框架
-        main_frame = tk.Frame(self.window, bg=bg_color)
-        main_frame.pack(fill=tk.BOTH, expand=True, padx=15, pady=15)
+        # 建立主框架（圓角框架）
+        main_frame = ctk.CTkFrame(self.window, corner_radius=15)
+        main_frame.pack(fill="both", expand=True, padx=15, pady=15)
 
         # === 頂部標題和功能按鈕 ===
         # 使用 MusicHeaderView 顯示頂部標題和按鈕
@@ -259,12 +262,12 @@ class MusicWindow:
         )
 
         # === 主要內容區 ===
-        content_frame = tk.Frame(main_frame, bg=bg_color)
-        content_frame.pack(fill=tk.BOTH, expand=True)
+        content_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+        content_frame.pack(fill="both", expand=True)
 
         # 建立容器用於音樂庫視圖和搜尋框
-        library_container = tk.Frame(content_frame, bg=bg_color)
-        library_container.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
+        library_container = ctk.CTkFrame(content_frame, fg_color="transparent")
+        library_container.pack(side="left", fill="both", expand=True, padx=(0, 10))
 
         # 使用 MusicSearchView 顯示搜尋框
         self.search_view = MusicSearchView(
@@ -292,8 +295,8 @@ class MusicWindow:
         self.song_tree = self.library_view.song_tree
 
         # 建立右側容器 (包含播放控制和歌詞)
-        right_container = tk.Frame(content_frame, bg=bg_color)
-        right_container.pack(side=tk.LEFT, fill=tk.BOTH, expand=False)
+        right_container = ctk.CTkFrame(content_frame, fg_color="transparent")
+        right_container.pack(side="left", fill="both", expand=False)
 
         # 使用 MusicPlaybackView 建立播放控制區
         self.playback_view = MusicPlaybackView(

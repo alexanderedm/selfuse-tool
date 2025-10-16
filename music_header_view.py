@@ -1,5 +1,5 @@
 """音樂播放器頂部標題和按鈕視圖模組"""
-import tkinter as tk
+import customtkinter as ctk
 
 
 class MusicHeaderView:
@@ -51,102 +51,77 @@ class MusicHeaderView:
     def _create_ui(self):
         """建立 UI 元件"""
         # === 頂部標題和功能按鈕 ===
-        self.header_frame = tk.Frame(self.parent, bg=self.bg_color)
-        self.header_frame.pack(fill=tk.X, pady=(0, 15))
+        self.header_frame = ctk.CTkFrame(self.parent, fg_color="transparent")
+        self.header_frame.pack(fill="x", pady=(0, 15))
 
         # 標題標籤
-        self.title_label = tk.Label(
+        self.title_label = ctk.CTkLabel(
             self.header_frame,
             text="🎵 本地音樂播放器",
-            font=("Microsoft JhengHei UI", 18, "bold"),
-            bg=self.bg_color,
-            fg=self.text_color
+            font=("Microsoft JhengHei UI", 18, "bold")
         )
-        self.title_label.pack(side=tk.LEFT)
+        self.title_label.pack(side="left")
 
         # 右側按鈕區域
-        button_frame = tk.Frame(self.header_frame, bg=self.bg_color)
-        button_frame.pack(side=tk.RIGHT)
+        button_frame = ctk.CTkFrame(self.header_frame, fg_color="transparent")
+        button_frame.pack(side="right")
 
-        # YouTube 下載按鈕
-        self.download_button = tk.Button(
+        # YouTube 下載按鈕（圓角按鈕）
+        self.download_button = ctk.CTkButton(
             button_frame,
             text="📥 下載",
             font=("Microsoft JhengHei UI", 10),
-            bg=self.accent_color,
-            fg="white",
-            activebackground="#005a9e",
-            activeforeground="white",
-            borderwidth=0,
-            padx=15,
-            pady=5,
+            height=32,
+            corner_radius=10,
+            fg_color="#0078d4",
+            hover_color="#005a9e",
             command=self._on_download_button_click
         )
-        self.download_button.pack(side=tk.RIGHT, padx=(5, 0))
+        self.download_button.pack(side="right", padx=(5, 0))
 
-        # 最常播放按鈕
-        self.most_played_button = tk.Button(
+        # 最常播放按鈕（圓角按鈕）
+        self.most_played_button = ctk.CTkButton(
             button_frame,
             text="🏆 最常播放",
             font=("Microsoft JhengHei UI", 10),
-            bg="#353535",
-            fg=self.text_color,
-            activebackground="#505050",
-            activeforeground="white",
-            borderwidth=0,
-            padx=15,
-            pady=5,
+            height=32,
+            corner_radius=10,
             command=self._on_most_played_button_click
         )
-        self.most_played_button.pack(side=tk.RIGHT, padx=(5, 0))
+        self.most_played_button.pack(side="right", padx=(5, 0))
 
-        # 播放列表按鈕
-        self.playlist_button = tk.Button(
+        # 播放列表按鈕（圓角按鈕）
+        self.playlist_button = ctk.CTkButton(
             button_frame,
             text="📋 播放列表",
             font=("Microsoft JhengHei UI", 10),
-            bg="#353535",
-            fg=self.text_color,
-            activebackground="#505050",
-            activeforeground="white",
-            borderwidth=0,
-            padx=15,
-            pady=5,
+            height=32,
+            corner_radius=10,
             command=self._on_playlist_button_click
         )
-        self.playlist_button.pack(side=tk.RIGHT, padx=(5, 0))
+        self.playlist_button.pack(side="right", padx=(5, 0))
 
-        # 播放歷史按鈕
-        self.history_button = tk.Button(
+        # 播放歷史按鈕（圓角按鈕）
+        self.history_button = ctk.CTkButton(
             button_frame,
             text="📜 播放歷史",
             font=("Microsoft JhengHei UI", 10),
-            bg="#353535",
-            fg=self.text_color,
-            activebackground="#505050",
-            activeforeground="white",
-            borderwidth=0,
-            padx=15,
-            pady=5,
+            height=32,
+            corner_radius=10,
             command=self._on_history_button_click
         )
-        self.history_button.pack(side=tk.RIGHT, padx=(5, 0))
+        self.history_button.pack(side="right", padx=(5, 0))
 
-        # 等化器按鈕
-        self.equalizer_button = tk.Button(
+        # 等化器按鈕（圓角按鈕）
+        self.equalizer_button = ctk.CTkButton(
             button_frame,
             text="🎚️ 等化器",
             font=("Microsoft JhengHei UI", 10),
-            bg="#353535",
-            fg=self.text_color,
-            activebackground="#505050",
-            activeforeground="white",
-            borderwidth=0,
-            padx=15,
-            pady=5,
+            height=32,
+            corner_radius=10,
             command=self._on_equalizer_button_click
         )
-        self.equalizer_button.pack(side=tk.RIGHT, padx=(5, 0))
+        self.equalizer_button.pack(side="right", padx=(5, 0))
 
     def _on_download_button_click(self):
         """下載按鈕點擊處理"""
