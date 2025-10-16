@@ -1,6 +1,13 @@
 {
   "recent_plays": [
     {
+      "song_id": "9B0yX0UIN9M",
+      "title": "I Really Want to Stay at Your House",
+      "artist": "未知",
+      "category": "Uncategorized",
+      "played_at": "2025-10-16T00:24:13.743720"
+    },
+    {
       "song_id": "DiTd771WumE",
       "title": "APT.",
       "artist": "未知",
@@ -254,7 +261,8 @@
     "8Nt9YPnYyjs": 3,
     "1F2GKe8hcGs": 2,
     "MTXs3LIAE24": 1,
-    "U-bXx_4Nwx8": 1
+    "U-bXx_4Nwx8": 1,
+    "9B0yX0UIN9M": 1
   },
-  "total_plays": 34
+  "total_plays": 35
 }
