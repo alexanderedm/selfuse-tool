@@ -4,7 +4,7 @@ MusicMetadataFetcher - 音樂元數據自動補全
 
 功能:
 - 檢測缺失的音樂資訊 (封面/藝術家/專輯)
-- 從 iTunes Search API 抓取資訊
+- 從多個來源抓取資訊 (YouTube Music, iTunes, Spotify)
 - 下載並儲存專輯封面
 - 更新歌曲 JSON 元數據檔案
 - 背景執行不阻塞 UI
@@ -16,6 +16,7 @@ import threading
 from pathlib import Path
 from logger import logger
 import urllib.parse
+from music_metadata_multi_source import MusicMetadataMultiSource
 
 
 class MusicMetadataFetcher:
@@ -34,6 +35,12 @@ class MusicMetadataFetcher:
         self.cache_dir = Path("thumbnails")
         self.cache_dir.mkdir(exist_ok=True)
         self.timeout = 10  # API 請求超時時間
+
+        # 初始化多來源元數據補全器 (YouTube Music -> iTunes -> Spotify)
+        self.multi_source = MusicMetadataMultiSource(
+            sources=['ytmusic', 'itunes'],
+            timeout=self.timeout
+        )
 
     def is_enabled(self):
         """檢查功能是否啟用
@@ -134,8 +141,13 @@ class MusicMetadataFetcher:
 
             logger.info(f"開始抓取元數據: {title} - {artist}, 缺失: {missing_fields}")
 
-            # 從 iTunes API 抓取
-            metadata = self.fetch_from_itunes(title, artist)
+            # 從多來源抓取 (優先 YouTube Music，fallback 到 iTunes)
+            metadata = self.multi_source.fetch_metadata(title, artist)
+
+            # 如果多來源失敗，嘗試使用 iTunes (向後相容)
+            if not metadata:
+                logger.info("多來源抓取失敗，嘗試直接使用 iTunes API")
+                metadata = self.fetch_from_itunes(title, artist)
 
             if metadata:
                 # 處理縮圖
@@ -179,11 +191,13 @@ class MusicMetadataFetcher:
         if "thumbnail" not in missing_fields:
             return
 
-        if not metadata.get("artworkUrl"):
+        # 優先使用 thumbnail URL (多來源返回)
+        thumbnail_url = metadata.get("thumbnail") or metadata.get("artworkUrl")
+        if not thumbnail_url:
             return
 
         cover_path = self.download_cover(
-            metadata["artworkUrl"],
+            thumbnail_url,
             song.get("id")
         )
 

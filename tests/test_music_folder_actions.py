@@ -232,10 +232,12 @@ class TestMusicFolderActions(unittest.TestCase):
         mock_menu_class.return_value = mock_menu
         self.mock_category_tree.identify_row.return_value = "item1"
         # 修正：使用 side_effect 來回傳正確的 values
+
         def item_side_effect(item_id, option=None):
             if option == 'values':
                 return ('all',)
             return {'values': ('all',)}
+
         self.mock_category_tree.item.side_effect = item_side_effect
 
         # 建立 mock event
@@ -259,10 +261,12 @@ class TestMusicFolderActions(unittest.TestCase):
         mock_menu_class.return_value = mock_menu
         self.mock_category_tree.identify_row.return_value = "item1"
         # 修正：使用 side_effect 來回傳正確的 values
+
         def item_side_effect(item_id, option=None):
             if option == 'values':
                 return ('folder:MyFolder',)
             return {'values': ('folder:MyFolder',)}
+
         self.mock_category_tree.item.side_effect = item_side_effect
 
         # 建立 mock event

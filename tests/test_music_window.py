@@ -144,17 +144,9 @@ class TestMusicWindowTreeview(unittest.TestCase):
             self.assertEqual(item3_values[1], '01:05')
 
         finally:
-
-
             try:
-
-
                 root.destroy()
-
-
             except:
-
-
                 pass
 
     @patch('music_window.pygame', new_callable=lambda: MagicMock())
@@ -186,17 +178,9 @@ class TestMusicWindowTreeview(unittest.TestCase):
             self.assertEqual(len(window.playlist), 3)
 
         finally:
-
-
             try:
-
-
                 root.destroy()
-
-
             except:
-
-
                 pass
 
     @patch('music_window.pygame', new_callable=lambda: MagicMock())
@@ -228,17 +212,9 @@ class TestMusicWindowTreeview(unittest.TestCase):
             self.assertEqual(window.playlist, [])
 
         finally:
-
-
             try:
-
-
                 root.destroy()
-
-
             except:
-
-
                 pass
 
     @patch('music_window.pygame', new_callable=lambda: MagicMock())
@@ -277,17 +253,9 @@ class TestMusicWindowTreeview(unittest.TestCase):
             self.music_manager_mock.format_duration.assert_has_calls(expected_calls)
 
         finally:
-
-
             try:
-
-
                 root.destroy()
-
-
             except:
-
-
                 pass
 
 

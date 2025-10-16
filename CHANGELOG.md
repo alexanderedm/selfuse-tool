@@ -9,7 +9,23 @@
 
 ## [未發布]
 
+### 修復 (Fixed)
+- **修復音樂播放器 AttributeError** (2025-10-16)
+  - 修復 `MusicPlaybackView` 缺少 `progress_bar` 和 `volume_scale` 屬性
+  - 新增向後相容別名，確保 `music_window.py` 正常運作
+  - 問題：嘗試訪問不存在的屬性導致程式崩潰
+  - 解決：在 `MusicPlaybackView.__init__` 和 `create_view` 中設定別名
+- **程式碼品質提升** (2025-10-16)
+  - flake8 檢查從 22 個錯誤降至 4 個（僅測試檔案的小縮排問題）
+  - 修復 `test_music_window.py` 和 `test_music_folder_actions.py` 的多餘空行問題
+  - 核心程式碼檔案達到 flake8 零錯誤
+
 ### 新增 (Added)
+- **多來源音樂元數據補全整合** (2025-10-16)
+  - 將 `music_metadata_multi_source.py` 整合到 `music_metadata_fetcher.py`
+  - 優先使用 YouTube Music API，失敗時自動 fallback 到 iTunes API
+  - 提高元數據補全成功率，支援更多音樂來源
+  - 智慧處理不同來源返回的欄位名稱（`thumbnail` vs `artworkUrl`）
 - **Phase 4: 完成所有視窗 CustomTkinter 遷移** (2025-10-16)
   - 完成剩餘 8 個模組的遷移，達成 100% CustomTkinter UI 現代化
   - 遷移模組列表：

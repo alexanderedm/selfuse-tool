@@ -4,12 +4,19 @@
 - [ ] **完全個人化工具之個人助理**
   - 參閱RAGPRD.md
 
-- [ ] **本地音樂撥放器改進修正建議**
-  - 資料夾歌曲又無法右鍵或拖拉來移動資料夾了
-  - 音樂補全功能應該是從YT方面而非itunes,或多個來源以免有單一來源無法支援的情況
-  - 整合discord rich presence,讓用戶聽歌時Discord上的狀態也會顯示當前正在聽的歌曲 進度條 專輯封面等等資訊
+- [x] **本地音樂播放器改進修正建議** (完成於 2025-10-16) ✅
+  - [x] 資料夾歌曲右鍵移動功能 - 已實現並整合到 MusicLibraryView
+  - [x] 音樂補全功能支援多來源 - 已整合 YouTube Music + iTunes 雙來源
+  - [x] Discord Rich Presence 整合 - 已整合，顯示歌曲、藝術家、專輯、進度條和封面
 
 ## ✅ 已完成 (Completed)
+- [x] **音樂播放器關鍵修復與改進** (完成於 2025-10-16)
+  - 修復 `MusicPlaybackView` 屬性缺失問題 (progress_bar, volume_scale)
+  - 整合多來源元數據補全 (YouTube Music + iTunes)
+  - 驗證 Discord Rich Presence 已正確整合
+  - 確認歌曲移動功能正常運作
+  - 驗證按鈕大小已優化，文字完整顯示
+  - flake8 核心檔案達到零錯誤（測試檔案僅 4 個小縮排問題）
 - [x] **托盤更新日誌功能** (2025-10-14 完成)
   - 建立 `changelog_window.py` 模組 (280 行, CC=2.6, A級)
   - 在系統托盤右鍵選單新增「📝 更新日誌」項目

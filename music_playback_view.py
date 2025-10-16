@@ -38,9 +38,11 @@ class MusicPlaybackView:
         self.artist_label = None
         self.time_label = None
         self.progress_slider = None
+        self.progress_bar = None  # 向後相容別名
         self.play_pause_button = None
         self.play_mode_button = None
         self.volume_slider = None
+        self.volume_scale = None  # 向後相容別名
 
         # 專輯封面快取
         self.thumbnail_cache = {}
@@ -259,6 +261,10 @@ class MusicPlaybackView:
         saved_volume = self.music_manager.config_manager.get_music_volume()
         self.volume_slider.set(saved_volume)
         self.volume_slider.pack(fill="x")
+
+        # 設定向後相容別名
+        self.progress_bar = self.progress_slider
+        self.volume_scale = self.volume_slider
 
     def _on_seek(self, value):
         """進度條拖動事件（內部處理）
