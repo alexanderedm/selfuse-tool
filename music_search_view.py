@@ -1,5 +1,5 @@
 """音樂搜尋視圖模組 - 搜尋框和搜尋邏輯"""
-import tkinter as tk
+import customtkinter as ctk
 from logger import logger
 
 
@@ -32,9 +32,9 @@ class MusicSearchView:
         # UI 元件
         self.search_entry = None
 
-        # 建立主框架
-        self.main_frame = tk.Frame(parent, bg=self.card_bg, relief=tk.RIDGE, bd=1)
-        self.main_frame.pack(fill=tk.X, pady=(0, 10))
+        # 建立主框架（圓角框架）
+        self.main_frame = ctk.CTkFrame(parent, corner_radius=10)
+        self.main_frame.pack(fill="x", pady=(0, 10))
 
         # 建立 UI
         self._create_ui()
@@ -42,55 +42,38 @@ class MusicSearchView:
     def _create_ui(self):
         """建立搜尋 UI"""
         # 標題列
-        tk.Label(
+        ctk.CTkLabel(
             self.main_frame,
             text="🔍 搜尋音樂",
-            font=("Microsoft JhengHei UI", 11, "bold"),
-            bg=self.header_bg,
-            fg="white",
-            pady=8
-        ).pack(fill=tk.X)
+            font=("Microsoft JhengHei UI", 11, "bold")
+        ).pack(fill="x", pady=(10, 5), padx=10)
 
-        # 搜尋輸入框
-        search_input_frame = tk.Frame(self.main_frame, bg=self.card_bg)
-        search_input_frame.pack(fill=tk.X, padx=10, pady=10)
+        # 搜尋輸入框容器
+        search_input_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
+        search_input_frame.pack(fill="x", padx=10, pady=(5, 10))
 
-        # 搜尋圖示
-        tk.Label(
+        # 搜尋輸入框（圓角輸入框）
+        self.search_entry = ctk.CTkEntry(
             search_input_frame,
-            text="🔍",
-            font=("Arial", 12),
-            bg=self.card_bg,
-            fg=self.text_secondary
-        ).pack(side=tk.LEFT, padx=(0, 5))
-
-        # 搜尋輸入框
-        self.search_entry = tk.Entry(
-            search_input_frame,
+            placeholder_text="輸入歌曲名稱或藝術家...",
             font=("Microsoft JhengHei UI", 10),
-            bg="#3d3d3d",
-            fg=self.text_color,
-            insertbackground=self.text_color,
-            relief=tk.FLAT,
-            borderwidth=0
+            height=32,
+            corner_radius=8
         )
-        self.search_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, ipady=5)
+        self.search_entry.pack(side="left", fill="x", expand=True, padx=(0, 5))
         self.search_entry.bind('<KeyRelease>', self._on_search_change)
 
-        # 清除按鈕
-        clear_search_button = tk.Button(
+        # 清除按鈕（圓角按鈕）
+        clear_search_button = ctk.CTkButton(
             search_input_frame,
             text="✖",
-            font=("Arial", 10),
-            bg=self.card_bg,
-            fg=self.text_secondary,
-            activebackground="#505050",
-            activeforeground="white",
-            borderwidth=0,
-            padx=5,
+            font=("Arial", 12),
+            width=32,
+            height=32,
+            corner_radius=8,
             command=self._clear_search
         )
-        clear_search_button.pack(side=tk.LEFT, padx=(5, 0))
+        clear_search_button.pack(side="left")
 
     def _on_search_change(self, event):
         """搜尋框內容改變事件"""
@@ -113,7 +96,7 @@ class MusicSearchView:
 
     def _clear_search(self):
         """清除搜尋"""
-        self.search_entry.delete(0, tk.END)
+        self.search_entry.delete(0, "end")
 
         # 觸發清除回調
         if self.on_search_cleared:
@@ -134,7 +117,7 @@ class MusicSearchView:
     def clear(self):
         """清空搜尋框"""
         if self.search_entry:
-            self.search_entry.delete(0, tk.END)
+            self.search_entry.delete(0, "end")
 
     def destroy(self):
         """銷毀視圖"""
