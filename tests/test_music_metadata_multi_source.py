@@ -7,7 +7,7 @@ import os
 # 添加專案根目錄到 Python 路徑
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from music_metadata_multi_source import MusicMetadataMultiSource  # noqa: E402
+from src.music.utils.music_metadata_multi_source import MusicMetadataMultiSource  # noqa: E402
 
 
 class TestMusicMetadataMultiSourceInit:

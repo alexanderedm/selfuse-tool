@@ -30,7 +30,7 @@ pip install -r requirements.txt
 
 3. 執行程式:
 ```bash
-python main.py
+python src/main.py
 ```
 
 ### 方法 2: 使用打包的執行檔 (待發布)
@@ -63,23 +63,47 @@ python main.py
 
 ```
 selftool/
-├── main.py                    # 主程式進入點
-├── audio_manager.py           # 音訊裝置管理模組
-├── config_manager.py          # 設定檔管理模組
-├── settings_window.py         # 設定視窗模組
-├── stats_window.py            # 統計視窗模組
-├── rss_manager.py             # RSS 管理模組
-├── rss_window.py              # RSS 視窗模組
-├── music_manager.py           # 音樂管理模組
-├── music_window.py            # 音樂播放器視窗
-├── youtube_downloader.py      # YouTube 下載器
-├── clipboard_monitor.py       # 剪貼簿監控模組
-├── logger.py                  # 日誌系統
-├── config.json                # 設定檔 (自動生成)
+├── src/                       # 主要原始碼目錄
+│   ├── main.py                # 主程式進入點
+│   ├── core/                  # 核心模組
+│   │   ├── audio_manager.py   # 音訊裝置管理
+│   │   ├── config_manager.py  # 設定檔管理
+│   │   ├── logger.py          # 日誌系統
+│   │   └── constants.py       # 常數定義
+│   ├── audio/                 # 音訊處理模組
+│   │   ├── audio_player.py    # 音訊播放器（sounddevice）
+│   │   ├── audio_processor.py # 音訊處理管線
+│   │   └── equalizer_filter.py # 等化器濾波器
+│   ├── music/                 # 音樂播放器模組
+│   │   ├── windows/           # 視窗組件
+│   │   ├── views/             # 視圖組件
+│   │   ├── dialogs/           # 對話框組件
+│   │   ├── managers/          # 管理器
+│   │   ├── actions/           # 操作邏輯
+│   │   └── utils/             # 工具函數
+│   ├── rss/                   # RSS 閱讀器模組
+│   │   ├── rss_manager.py     # RSS 管理
+│   │   ├── rss_window.py      # RSS 視窗
+│   │   └── ...                # 其他 RSS 組件
+│   ├── windows/               # 通用視窗模組
+│   │   ├── settings_window.py # 設定視窗
+│   │   ├── stats_window.py    # 統計視窗
+│   │   └── changelog_window.py # 更新日誌視窗
+│   └── utils/                 # 通用工具模組
+│       ├── clipboard_monitor.py # 剪貼簿監控
+│       ├── discord_presence.py  # Discord Rich Presence
+│       ├── path_utils.py      # 路徑工具
+│       └── ui_theme.py        # UI 主題
+├── tests/                     # 測試檔案目錄（708 個測試）
+├── docs/                      # 文檔目錄
+│   ├── CHANGELOG.md           # 更新日誌
+│   ├── TODO.md                # 待辦清單
+│   ├── guides/                # 使用指南
+│   └── reports/               # 分析報告
+├── logs/                      # 日誌檔案
+├── config.json                # 設定檔（自動生成）
 ├── requirements.txt           # Python 依賴套件
-├── README.md                  # 本文件
-├── CHANGELOG.md               # 更新日誌
-└── PRD.md                     # 產品需求文件
+└── README.md                  # 本文件
 ```
 
 ## 技術細節
@@ -109,7 +133,7 @@ selftool/
 
 ```bash
 pip install pyinstaller
-pyinstaller --onefile --windowed --icon=icon.ico --name=AudioSwitcher main.py
+pyinstaller --onefile --windowed --icon=icon.ico --name=AudioSwitcher src/main.py
 ```
 
 生成的 `AudioSwitcher.exe` 會在 `dist` 資料夾中。

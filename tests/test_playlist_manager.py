@@ -6,7 +6,7 @@ import pytest
 import json
 import tempfile
 from pathlib import Path
-from playlist_manager import PlaylistManager
+from src.music.managers.playlist_manager import PlaylistManager
 
 
 class TestPlaylistManager:

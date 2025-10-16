@@ -3,7 +3,7 @@ import pytest
 import os
 import json
 from unittest.mock import patch, MagicMock
-from music_manager import MusicManager
+from src.music.managers.music_manager import MusicManager
 
 
 class TestMusicManager:
@@ -12,7 +12,7 @@ class TestMusicManager:
     @pytest.fixture
     def mock_config_manager(self, temp_config_file):
         """建立 mock ConfigManager"""
-        from config_manager import ConfigManager
+        from src.core.config_manager import ConfigManager
         return ConfigManager(temp_config_file)
 
     @pytest.fixture

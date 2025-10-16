@@ -4,7 +4,7 @@ import os
 import json
 import subprocess
 from unittest.mock import Mock, patch, MagicMock, mock_open
-from youtube_downloader import YouTubeDownloader
+from src.music.utils.youtube_downloader import YouTubeDownloader
 
 
 class TestYouTubeDownloader:

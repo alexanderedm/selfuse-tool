@@ -7,7 +7,7 @@ import os
 # 添加專案根目錄到 Python 路徑
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from discord_presence import DiscordPresence  # noqa: E402
+from src.utils.discord_presence import DiscordPresence  # noqa: E402
 
 
 class TestDiscordPresenceInit:

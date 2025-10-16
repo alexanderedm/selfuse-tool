@@ -12,7 +12,7 @@ class TestRSSFilterManager(unittest.TestCase):
 
     def test_init(self):
         """測試初始化"""
-        from rss_filter_manager import RSSFilterManager
+        from src.rss.rss_filter_manager import RSSFilterManager
 
         manager = RSSFilterManager(self.mock_rss_manager)
 
@@ -22,7 +22,7 @@ class TestRSSFilterManager(unittest.TestCase):
 
     def test_set_all_entries(self):
         """測試設定所有文章"""
-        from rss_filter_manager import RSSFilterManager
+        from src.rss.rss_filter_manager import RSSFilterManager
 
         manager = RSSFilterManager(self.mock_rss_manager)
         entries = [{'id': '1', 'title': 'Test', 'published': '2025-01-01'}]
@@ -34,7 +34,7 @@ class TestRSSFilterManager(unittest.TestCase):
 
     def test_set_entries(self):
         """測試設定文章 (別名方法)"""
-        from rss_filter_manager import RSSFilterManager
+        from src.rss.rss_filter_manager import RSSFilterManager
 
         manager = RSSFilterManager(self.mock_rss_manager)
         entries = [
@@ -49,7 +49,7 @@ class TestRSSFilterManager(unittest.TestCase):
 
     def test_filter_by_mode_all(self):
         """測試全部模式篩選"""
-        from rss_filter_manager import RSSFilterManager
+        from src.rss.rss_filter_manager import RSSFilterManager
 
         entries = [
             {'id': '1', 'title': 'Test 1', 'published': '2025-01-01'},
@@ -66,7 +66,7 @@ class TestRSSFilterManager(unittest.TestCase):
 
     def test_filter_by_mode_unread(self):
         """測試未讀模式篩選"""
-        from rss_filter_manager import RSSFilterManager
+        from src.rss.rss_filter_manager import RSSFilterManager
 
         entries = [
             {'id': '1', 'title': 'Read', 'published': '2025-01-01'},
@@ -85,7 +85,7 @@ class TestRSSFilterManager(unittest.TestCase):
 
     def test_filter_by_mode_favorite(self):
         """測試收藏模式篩選"""
-        from rss_filter_manager import RSSFilterManager
+        from src.rss.rss_filter_manager import RSSFilterManager
 
         entries = [
             {'id': '1', 'title': 'Not Fav', 'published': '2025-01-01'},
@@ -104,7 +104,7 @@ class TestRSSFilterManager(unittest.TestCase):
 
     def test_filter_by_keyword_in_title(self):
         """測試關鍵字標題搜尋"""
-        from rss_filter_manager import RSSFilterManager
+        from src.rss.rss_filter_manager import RSSFilterManager
 
         entries = [
             {'id': '1', 'title': 'Python Tutorial', 'published': '2025-01-01', 'content': 'Learn Python'},
@@ -121,7 +121,7 @@ class TestRSSFilterManager(unittest.TestCase):
 
     def test_filter_by_keyword_in_content(self):
         """測試關鍵字內容搜尋"""
-        from rss_filter_manager import RSSFilterManager
+        from src.rss.rss_filter_manager import RSSFilterManager
 
         entries = [
             {'id': '1', 'title': 'Tutorial', 'published': '2025-01-01', 'content': 'Learn Python'},
@@ -138,7 +138,7 @@ class TestRSSFilterManager(unittest.TestCase):
 
     def test_filter_by_keyword_case_insensitive(self):
         """測試關鍵字搜尋不區分大小寫"""
-        from rss_filter_manager import RSSFilterManager
+        from src.rss.rss_filter_manager import RSSFilterManager
 
         entries = [
             {'id': '1', 'title': 'PYTHON Tutorial', 'published': '2025-01-01', 'content': 'Learn'}
@@ -153,7 +153,7 @@ class TestRSSFilterManager(unittest.TestCase):
 
     def test_filter_combined_mode_and_keyword(self):
         """測試組合篩選：模式 + 關鍵字"""
-        from rss_filter_manager import RSSFilterManager
+        from src.rss.rss_filter_manager import RSSFilterManager
 
         entries = [
             {'id': '1', 'title': 'Python Tutorial', 'published': '2025-01-01', 'content': 'Learn Python'},
@@ -176,7 +176,7 @@ class TestRSSFilterManager(unittest.TestCase):
 
     def test_filter_no_results(self):
         """測試篩選無結果"""
-        from rss_filter_manager import RSSFilterManager
+        from src.rss.rss_filter_manager import RSSFilterManager
 
         entries = [
             {'id': '1', 'title': 'Python', 'published': '2025-01-01', 'content': 'Python'}
@@ -191,7 +191,7 @@ class TestRSSFilterManager(unittest.TestCase):
 
     def test_get_current_entries(self):
         """測試取得當前篩選後的文章"""
-        from rss_filter_manager import RSSFilterManager
+        from src.rss.rss_filter_manager import RSSFilterManager
 
         entries = [
             {'id': '1', 'title': 'Test', 'published': '2025-01-01'}

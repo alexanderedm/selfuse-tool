@@ -25,7 +25,7 @@ class TestRSSEntryListView(unittest.TestCase):
 
     def test_init(self):
         """測試初始化"""
-        from rss_entry_list_view import RSSEntryListView
+        from src.rss.rss_entry_list_view import RSSEntryListView
 
         parent = tk.Frame(self.root)
         view = RSSEntryListView(
@@ -41,7 +41,7 @@ class TestRSSEntryListView(unittest.TestCase):
 
     def test_display_entries_empty(self):
         """測試顯示空文章列表"""
-        from rss_entry_list_view import RSSEntryListView
+        from src.rss.rss_entry_list_view import RSSEntryListView
 
         parent = tk.Frame(self.root)
         view = RSSEntryListView(
@@ -59,7 +59,7 @@ class TestRSSEntryListView(unittest.TestCase):
 
     def test_display_entries_with_data(self):
         """測試顯示文章列表"""
-        from rss_entry_list_view import RSSEntryListView
+        from src.rss.rss_entry_list_view import RSSEntryListView
 
         entries = [
             {'id': '1', 'title': 'Test 1', 'published': '2025-01-01'},
@@ -84,7 +84,7 @@ class TestRSSEntryListView(unittest.TestCase):
 
     def test_on_entry_select(self):
         """測試文章選擇"""
-        from rss_entry_list_view import RSSEntryListView
+        from src.rss.rss_entry_list_view import RSSEntryListView
 
         entries = [
             {'id': '1', 'title': 'Test', 'published': '2025-01-01'}
@@ -117,7 +117,7 @@ class TestRSSEntryListView(unittest.TestCase):
 
     def test_toggle_read_status(self):
         """測試切換已讀狀態"""
-        from rss_entry_list_view import RSSEntryListView
+        from src.rss.rss_entry_list_view import RSSEntryListView
 
         entries = [
             {'id': '1', 'title': 'Test', 'published': '2025-01-01'}
@@ -145,7 +145,7 @@ class TestRSSEntryListView(unittest.TestCase):
 
     def test_toggle_favorite(self):
         """測試切換收藏狀態"""
-        from rss_entry_list_view import RSSEntryListView
+        from src.rss.rss_entry_list_view import RSSEntryListView
 
         entries = [
             {'id': '1', 'title': 'Test', 'published': '2025-01-01'}
@@ -173,7 +173,7 @@ class TestRSSEntryListView(unittest.TestCase):
 
     def test_clear_entries(self):
         """測試清空文章列表"""
-        from rss_entry_list_view import RSSEntryListView
+        from src.rss.rss_entry_list_view import RSSEntryListView
 
         entries = [
             {'id': '1', 'title': 'Test', 'published': '2025-01-01'}
@@ -198,7 +198,7 @@ class TestRSSEntryListView(unittest.TestCase):
 
     def test_apply_filter(self):
         """測試套用篩選"""
-        from rss_entry_list_view import RSSEntryListView
+        from src.rss.rss_entry_list_view import RSSEntryListView
 
         entries = [
             {'id': '1', 'title': 'Test', 'published': '2025-01-01'}

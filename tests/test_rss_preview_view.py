@@ -22,7 +22,7 @@ class TestRSSPreviewView(unittest.TestCase):
 
     def test_init(self):
         """測試初始化"""
-        from rss_preview_view import RSSPreviewView
+        from src.rss.rss_preview_view import RSSPreviewView
 
         parent = tk.Frame(self.root)
         view = RSSPreviewView(parent)
@@ -32,7 +32,7 @@ class TestRSSPreviewView(unittest.TestCase):
 
     def test_show_preview(self):
         """測試顯示預覽"""
-        from rss_preview_view import RSSPreviewView
+        from src.rss.rss_preview_view import RSSPreviewView
 
         parent = tk.Frame(self.root)
         view = RSSPreviewView(parent)
@@ -53,7 +53,7 @@ class TestRSSPreviewView(unittest.TestCase):
 
     def test_show_preview_with_summary(self):
         """測試顯示預覽（使用摘要）"""
-        from rss_preview_view import RSSPreviewView
+        from src.rss.rss_preview_view import RSSPreviewView
 
         parent = tk.Frame(self.root)
         view = RSSPreviewView(parent)
@@ -72,7 +72,7 @@ class TestRSSPreviewView(unittest.TestCase):
 
     def test_clear_preview(self):
         """測試清空預覽"""
-        from rss_preview_view import RSSPreviewView
+        from src.rss.rss_preview_view import RSSPreviewView
 
         parent = tk.Frame(self.root)
         view = RSSPreviewView(parent)
@@ -94,7 +94,7 @@ class TestRSSPreviewView(unittest.TestCase):
 
     def test_set_current_entry(self):
         """測試設定當前文章"""
-        from rss_preview_view import RSSPreviewView
+        from src.rss.rss_preview_view import RSSPreviewView
 
         parent = tk.Frame(self.root)
         view = RSSPreviewView(parent)
@@ -111,7 +111,7 @@ class TestRSSPreviewView(unittest.TestCase):
     @patch('webbrowser.open')
     def test_open_in_browser(self, mock_open):
         """測試在瀏覽器開啟"""
-        from rss_preview_view import RSSPreviewView
+        from src.rss.rss_preview_view import RSSPreviewView
 
         parent = tk.Frame(self.root)
         view = RSSPreviewView(parent)
@@ -129,7 +129,7 @@ class TestRSSPreviewView(unittest.TestCase):
     @patch('tkinter.messagebox.showwarning')
     def test_open_in_browser_no_entry(self, mock_warning):
         """測試無文章時開啟瀏覽器"""
-        from rss_preview_view import RSSPreviewView
+        from src.rss.rss_preview_view import RSSPreviewView
 
         parent = tk.Frame(self.root)
         view = RSSPreviewView(parent)

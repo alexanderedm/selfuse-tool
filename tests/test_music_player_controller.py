@@ -4,7 +4,7 @@ import os
 import tempfile
 import json
 from unittest.mock import Mock, patch, MagicMock
-from music_player_controller import MusicPlayerController
+from src.music.utils.music_player_controller import MusicPlayerController
 
 
 class TestMusicPlayerController:
@@ -13,7 +13,7 @@ class TestMusicPlayerController:
     @pytest.fixture
     def mock_music_manager(self, temp_config_file):
         """建立模擬的音樂管理器"""
-        from config_manager import ConfigManager
+        from src.core.config_manager import ConfigManager
         config_manager = ConfigManager(temp_config_file)
 
         music_manager = Mock()

@@ -1,7 +1,7 @@
 """測試路徑工具模組"""
 import pytest
 import os
-from path_utils import (
+from src.utils.path_utils import (
     normalize_network_path,
     is_network_path,
     path_exists_safe

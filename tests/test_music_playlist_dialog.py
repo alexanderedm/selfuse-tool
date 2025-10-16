@@ -1,7 +1,7 @@
 """MusicPlaylistDialog 測試模組"""
 import unittest
 from unittest.mock import Mock, MagicMock, patch, call
-from music_playlist_dialog import MusicPlaylistDialog
+from src.music.dialogs.music_playlist_dialog import MusicPlaylistDialog
 
 
 class TestMusicPlaylistDialog(unittest.TestCase):

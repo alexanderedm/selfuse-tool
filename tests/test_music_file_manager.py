@@ -4,7 +4,7 @@ import os
 import tempfile
 import shutil
 from unittest.mock import Mock, patch, MagicMock
-from music_file_manager import MusicFileManager
+from src.music.utils.music_file_manager import MusicFileManager
 
 
 class TestMusicFileManager:

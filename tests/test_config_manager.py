@@ -2,7 +2,7 @@
 import pytest
 import os
 import json
-from config_manager import ConfigManager
+from src.core.config_manager import ConfigManager
 
 
 class TestConfigManager:

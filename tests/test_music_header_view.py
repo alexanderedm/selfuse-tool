@@ -2,7 +2,7 @@
 import unittest
 from unittest.mock import Mock, MagicMock, patch
 import tkinter as tk
-from music_header_view import MusicHeaderView
+from src.music.views.music_header_view import MusicHeaderView
 
 
 class TestMusicHeaderView(unittest.TestCase):

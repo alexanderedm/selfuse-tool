@@ -3,7 +3,7 @@ import unittest
 from unittest.mock import patch, mock_open
 import tempfile
 import os
-from lyrics_parser import LyricsParser
+from src.music.utils.lyrics_parser import LyricsParser
 
 
 class TestLyricsParser(unittest.TestCase):

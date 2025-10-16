@@ -9,7 +9,7 @@ import os
 # 將父目錄加入路徑以便導入模組
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from settings_window import SettingsWindow
+from src.windows.settings_window import SettingsWindow
 
 
 class TestSettingsWindowInitialization(unittest.TestCase):
@@ -287,9 +287,9 @@ class TestSettingsWindowBrowseDirectory(unittest.TestCase):
         self.config_manager_mock.save_config = Mock()
         self.config_manager_mock.get = Mock(return_value=True)
 
-    @patch('settings_window.filedialog.askdirectory')
+    @patch('src.windows.settings_window.filedialog.askdirectory')
     @patch('path_utils.normalize_network_path')
-    @patch('settings_window.messagebox.showinfo')
+    @patch('src.windows.settings_window.messagebox.showinfo')
     def test_browse_directory_saves_local_path(self, mock_showinfo, mock_normalize, mock_askdir):
         """測試瀏覽並儲存本地路徑"""
         mock_askdir.return_value = 'C:\\Music\\Folder'
@@ -316,9 +316,9 @@ class TestSettingsWindowBrowseDirectory(unittest.TestCase):
         # 驗證顯示訊息
         mock_showinfo.assert_called_once()
 
-    @patch('settings_window.filedialog.askdirectory')
+    @patch('src.windows.settings_window.filedialog.askdirectory')
     @patch('path_utils.normalize_network_path')
-    @patch('settings_window.messagebox.showinfo')
+    @patch('src.windows.settings_window.messagebox.showinfo')
     def test_browse_directory_converts_network_drive(self, mock_showinfo, mock_normalize, mock_askdir):
         """測試網路磁碟機路徑轉換"""
         mock_askdir.return_value = 'Z:\\Shuvi'
@@ -343,7 +343,7 @@ class TestSettingsWindowBrowseDirectory(unittest.TestCase):
         # 驗證顯示通知（可能是轉換或儲存）
         mock_showinfo.assert_called_once()
 
-    @patch('settings_window.filedialog.askdirectory')
+    @patch('src.windows.settings_window.filedialog.askdirectory')
     def test_browse_directory_cancel(self, mock_askdir):
         """測試取消瀏覽"""
         mock_askdir.return_value = ''
@@ -364,9 +364,9 @@ class TestSettingsWindowBrowseDirectory(unittest.TestCase):
         # 驗證沒有儲存
         self.config_manager_mock.save_config.assert_not_called()
 
-    @patch('settings_window.filedialog.askdirectory')
+    @patch('src.windows.settings_window.filedialog.askdirectory')
     @patch('path_utils.normalize_network_path')
-    @patch('settings_window.messagebox.showinfo')
+    @patch('src.windows.settings_window.messagebox.showinfo')
     def test_browse_directory_calls_callback(self, mock_showinfo, mock_normalize, mock_askdir):
         """測試儲存後呼叫回調函數"""
         mock_askdir.return_value = 'D:/Music'
@@ -409,7 +409,7 @@ class TestSettingsWindowSaveSettings(unittest.TestCase):
         ]
 
     @patch('path_utils.normalize_network_path')
-    @patch('settings_window.messagebox.showinfo')
+    @patch('src.windows.settings_window.messagebox.showinfo')
     def test_save_music_path_only(self, mock_showinfo, mock_normalize):
         """測試只儲存音樂路徑"""
         mock_normalize.return_value = 'D:/Music'
@@ -447,7 +447,7 @@ class TestSettingsWindowSaveSettings(unittest.TestCase):
         window._close_window.assert_called_once()
 
     @patch('path_utils.normalize_network_path')
-    @patch('settings_window.messagebox.showinfo')
+    @patch('src.windows.settings_window.messagebox.showinfo')
     def test_save_all_settings(self, mock_showinfo, mock_normalize):
         """測試儲存所有設定"""
         mock_normalize.return_value = 'E:/Music'
@@ -485,7 +485,7 @@ class TestSettingsWindowSaveSettings(unittest.TestCase):
         window._close_window.assert_called_once()
 
     @patch('path_utils.normalize_network_path')
-    @patch('settings_window.messagebox.showwarning')
+    @patch('src.windows.settings_window.messagebox.showwarning')
     def _disabled_test_save_incomplete_device_selection(self, mock_showwarning, mock_normalize):
         """測試不完整的裝置選擇（暫時禁用：messagebox 互動問題）"""
         mock_normalize.return_value = 'F:/Music'
@@ -522,7 +522,7 @@ class TestSettingsWindowSaveSettings(unittest.TestCase):
         self.assertIn('部分儲存', call_args[0])
 
     @patch('path_utils.normalize_network_path')
-    @patch('settings_window.messagebox.showwarning')
+    @patch('src.windows.settings_window.messagebox.showwarning')
     def _disabled_test_save_same_device_selection(self, mock_showwarning, mock_normalize):
         """測試選擇相同裝置（暫時禁用：messagebox 互動問題）"""
         mock_normalize.return_value = 'G:/Music'
@@ -559,7 +559,7 @@ class TestSettingsWindowSaveSettings(unittest.TestCase):
         self.assertIn('不同', call_args[1])
 
     @patch('path_utils.normalize_network_path')
-    @patch('settings_window.messagebox.showinfo')
+    @patch('src.windows.settings_window.messagebox.showinfo')
     def test_save_no_changes(self, mock_showinfo, mock_normalize):
         """測試沒有任何變更（自動補全設定仍會被儲存）"""
         mock_normalize.return_value = ''
@@ -590,7 +590,7 @@ class TestSettingsWindowSaveSettings(unittest.TestCase):
         window._close_window.assert_called_once()
 
     @patch('path_utils.normalize_network_path')
-    @patch('settings_window.messagebox.showinfo')
+    @patch('src.windows.settings_window.messagebox.showinfo')
     def test_save_calls_callback(self, mock_showinfo, mock_normalize):
         """測試儲存後呼叫回調函數"""
         mock_normalize.return_value = 'H:/Music'
@@ -619,7 +619,7 @@ class TestSettingsWindowSaveSettings(unittest.TestCase):
         callback.assert_called_once()
 
     @patch('path_utils.normalize_network_path')
-    @patch('settings_window.messagebox.showinfo')
+    @patch('src.windows.settings_window.messagebox.showinfo')
     def test_save_network_path_conversion_notification(self, mock_showinfo, mock_normalize):
         """測試網路路徑轉換通知"""
         mock_normalize.return_value = '//Server/Share'

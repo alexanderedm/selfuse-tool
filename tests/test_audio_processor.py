@@ -1,7 +1,7 @@
 """AudioProcessor 單元測試"""
 import pytest
 import numpy as np
-from audio_processor import AudioProcessor
+from src.audio.audio_processor import AudioProcessor
 
 
 class TestAudioProcessorInit:

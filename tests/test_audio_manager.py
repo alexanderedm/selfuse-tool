@@ -1,7 +1,7 @@
 """測試音訊裝置管理模組"""
 import pytest
 from unittest.mock import Mock, patch, MagicMock
-from audio_manager import AudioManager
+from src.core.audio_manager import AudioManager
 
 
 class TestAudioManager:

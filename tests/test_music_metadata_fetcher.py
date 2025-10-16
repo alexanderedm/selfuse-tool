@@ -30,7 +30,7 @@ def mock_config_manager():
 @pytest.fixture
 def fetcher(mock_music_manager, mock_config_manager, tmp_path):
     """建立測試用的 MusicMetadataFetcher"""
-    from music_metadata_fetcher import MusicMetadataFetcher
+    from src.music.utils.music_metadata_fetcher import MusicMetadataFetcher
 
     fetcher = MusicMetadataFetcher(mock_music_manager, mock_config_manager)
     fetcher.cache_dir = tmp_path / "thumbnails"
@@ -60,7 +60,7 @@ class TestMusicMetadataFetcherInit:
 
     def test_init(self, mock_music_manager, mock_config_manager):
         """測試初始化"""
-        from music_metadata_fetcher import MusicMetadataFetcher
+        from src.music.utils.music_metadata_fetcher import MusicMetadataFetcher
 
         fetcher = MusicMetadataFetcher(mock_music_manager, mock_config_manager)
 

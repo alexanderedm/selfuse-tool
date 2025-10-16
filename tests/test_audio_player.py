@@ -4,8 +4,8 @@ from unittest.mock import Mock, MagicMock, patch, call
 import numpy as np
 import threading
 import time
-from audio_player import AudioPlayer
-from audio_processor import AudioProcessor
+from src.audio.audio_player import AudioPlayer
+from src.audio.audio_processor import AudioProcessor
 
 
 class TestAudioPlayerBasicPlayback(unittest.TestCase):

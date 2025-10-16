@@ -2,8 +2,8 @@
 import unittest
 import customtkinter as ctk
 from unittest.mock import Mock, patch, MagicMock
-from music_equalizer_dialog import MusicEqualizerDialog
-from music_equalizer import MusicEqualizer
+from src.music.windows.music_equalizer_dialog import MusicEqualizerDialog
+from src.music.utils.music_equalizer import MusicEqualizer
 
 
 class TestMusicEqualizerDialog(unittest.TestCase):

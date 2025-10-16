@@ -1,7 +1,7 @@
 """EqualizerFilter 單元測試"""
 import pytest
 import numpy as np
-from equalizer_filter import EqualizerFilter
+from src.audio.equalizer_filter import EqualizerFilter
 
 
 class TestEqualizerFilterInit:

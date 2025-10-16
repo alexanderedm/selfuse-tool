@@ -48,7 +48,7 @@ class TestMusicLibraryView(unittest.TestCase):
 
     def test_init_creates_ui_components(self):
         """測試初始化時建立所有 UI 元件"""
-        from music_library_view import MusicLibraryView
+        from src.music.views.music_library_view import MusicLibraryView
 
         view = MusicLibraryView(
             parent=self.parent,
@@ -71,7 +71,7 @@ class TestMusicLibraryView(unittest.TestCase):
 
     def test_init_loads_music_library(self):
         """測試初始化時載入音樂庫"""
-        from music_library_view import MusicLibraryView
+        from src.music.views.music_library_view import MusicLibraryView
 
         view = MusicLibraryView(
             parent=self.parent,
@@ -89,7 +89,7 @@ class TestMusicLibraryView(unittest.TestCase):
 
     def test_load_categories_populates_tree(self):
         """測試載入分類填充樹狀結構"""
-        from music_library_view import MusicLibraryView
+        from src.music.views.music_library_view import MusicLibraryView
 
         view = MusicLibraryView(
             parent=self.parent,
@@ -110,7 +110,7 @@ class TestMusicLibraryView(unittest.TestCase):
 
     def test_category_tree_selection_triggers_callback(self):
         """測試選擇分類時觸發回調"""
-        from music_library_view import MusicLibraryView
+        from src.music.views.music_library_view import MusicLibraryView
 
         view = MusicLibraryView(
             parent=self.parent,
@@ -134,7 +134,7 @@ class TestMusicLibraryView(unittest.TestCase):
 
     def test_display_songs_updates_song_tree(self):
         """測試顯示歌曲更新歌曲列表"""
-        from music_library_view import MusicLibraryView
+        from src.music.views.music_library_view import MusicLibraryView
 
         view = MusicLibraryView(
             parent=self.parent,
@@ -159,7 +159,7 @@ class TestMusicLibraryView(unittest.TestCase):
 
     def test_song_double_click_triggers_callback(self):
         """測試雙擊歌曲觸發回調"""
-        from music_library_view import MusicLibraryView
+        from src.music.views.music_library_view import MusicLibraryView
 
         view = MusicLibraryView(
             parent=self.parent,
@@ -187,7 +187,7 @@ class TestMusicLibraryView(unittest.TestCase):
 
     def test_reload_library_refreshes_display(self):
         """測試重新載入音樂庫刷新顯示"""
-        from music_library_view import MusicLibraryView
+        from src.music.views.music_library_view import MusicLibraryView
 
         view = MusicLibraryView(
             parent=self.parent,
@@ -208,7 +208,7 @@ class TestMusicLibraryView(unittest.TestCase):
 
     def test_get_selected_category_returns_correct_value(self):
         """測試取得選中的分類回傳正確值"""
-        from music_library_view import MusicLibraryView
+        from src.music.views.music_library_view import MusicLibraryView
 
         view = MusicLibraryView(
             parent=self.parent,
@@ -226,7 +226,7 @@ class TestMusicLibraryView(unittest.TestCase):
 
     def test_get_selected_song_index_returns_correct_value(self):
         """測試取得選中的歌曲索引回傳正確值"""
-        from music_library_view import MusicLibraryView
+        from src.music.views.music_library_view import MusicLibraryView
 
         view = MusicLibraryView(
             parent=self.parent,
@@ -253,7 +253,7 @@ class TestMusicLibraryView(unittest.TestCase):
 
     def test_empty_category_shows_placeholder(self):
         """測試空分類顯示佔位提示"""
-        from music_library_view import MusicLibraryView
+        from src.music.views.music_library_view import MusicLibraryView
 
         # 設定空分類
         self.mock_music_manager.get_all_categories.return_value = ['Empty']
@@ -274,7 +274,7 @@ class TestMusicLibraryView(unittest.TestCase):
 
     def test_category_right_click_shows_context_menu(self):
         """測試右鍵點擊分類顯示上下文選單"""
-        from music_library_view import MusicLibraryView
+        from src.music.views.music_library_view import MusicLibraryView
 
         mock_on_rename = Mock()
         mock_on_delete = Mock()
@@ -300,7 +300,7 @@ class TestMusicLibraryView(unittest.TestCase):
 
     def test_get_current_playlist_returns_displayed_songs(self):
         """測試取得當前播放列表回傳顯示的歌曲"""
-        from music_library_view import MusicLibraryView
+        from src.music.views.music_library_view import MusicLibraryView
 
         view = MusicLibraryView(
             parent=self.parent,
@@ -327,7 +327,7 @@ class TestMusicLibraryView(unittest.TestCase):
 
     def test_clear_song_list_removes_all_songs(self):
         """測試清空歌曲列表移除所有歌曲"""
-        from music_library_view import MusicLibraryView
+        from src.music.views.music_library_view import MusicLibraryView
 
         view = MusicLibraryView(
             parent=self.parent,
@@ -352,7 +352,7 @@ class TestMusicLibraryView(unittest.TestCase):
 
     def test_expand_category_opens_folder(self):
         """測試展開分類打開資料夾"""
-        from music_library_view import MusicLibraryView
+        from src.music.views.music_library_view import MusicLibraryView
 
         view = MusicLibraryView(
             parent=self.parent,
@@ -376,7 +376,7 @@ class TestMusicLibraryView(unittest.TestCase):
 
     def test_style_configuration_applied(self):
         """測試樣式配置已套用"""
-        from music_library_view import MusicLibraryView
+        from src.music.views.music_library_view import MusicLibraryView
 
         view = MusicLibraryView(
             parent=self.parent,
@@ -392,7 +392,7 @@ class TestMusicLibraryView(unittest.TestCase):
 
     def test_pack_layout_manager_used(self):
         """測試使用 pack 佈局管理器"""
-        from music_library_view import MusicLibraryView
+        from src.music.views.music_library_view import MusicLibraryView
 
         view = MusicLibraryView(
             parent=self.parent,
@@ -410,7 +410,7 @@ class TestMusicLibraryView(unittest.TestCase):
 
     def test_category_select_loads_songs(self):
         """測試選擇分類載入歌曲"""
-        from music_library_view import MusicLibraryView
+        from src.music.views.music_library_view import MusicLibraryView
 
         view = MusicLibraryView(
             parent=self.parent,
@@ -433,7 +433,7 @@ class TestMusicLibraryView(unittest.TestCase):
 
     def test_song_list_displays_duration(self):
         """測試歌曲列表顯示時長"""
-        from music_library_view import MusicLibraryView
+        from src.music.views.music_library_view import MusicLibraryView
 
         view = MusicLibraryView(
             parent=self.parent,
@@ -454,7 +454,7 @@ class TestMusicLibraryView(unittest.TestCase):
 
     def test_destroy_cleans_up_resources(self):
         """測試銷毀時清理資源"""
-        from music_library_view import MusicLibraryView
+        from src.music.views.music_library_view import MusicLibraryView
 
         view = MusicLibraryView(
             parent=self.parent,

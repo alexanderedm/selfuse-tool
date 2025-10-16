@@ -1,7 +1,7 @@
 """測試 MusicWindow._play_next 函數的完整測試套件"""
 import pytest
 from unittest.mock import Mock, patch, MagicMock
-from music_window import MusicWindow
+from src.music.windows.music_window import MusicWindow
 
 
 @pytest.fixture

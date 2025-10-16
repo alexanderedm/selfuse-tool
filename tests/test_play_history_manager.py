@@ -7,7 +7,7 @@ import json
 import tempfile
 from pathlib import Path
 from datetime import datetime
-from play_history_manager import PlayHistoryManager
+from src.music.managers.play_history_manager import PlayHistoryManager
 
 
 class TestPlayHistoryManager:

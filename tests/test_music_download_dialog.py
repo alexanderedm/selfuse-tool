@@ -2,7 +2,7 @@
 import pytest
 import tkinter as tk
 from unittest.mock import Mock, MagicMock, patch, call
-from music_download_dialog import MusicDownloadDialog
+from src.music.dialogs.music_download_dialog import MusicDownloadDialog
 
 
 @pytest.fixture

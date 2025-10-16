@@ -2,7 +2,7 @@
 import unittest
 from unittest.mock import Mock, MagicMock, patch, call
 import tkinter as tk
-from music_song_actions import MusicSongActions
+from src.music.actions.music_song_actions import MusicSongActions
 
 
 class TestMusicSongActions(unittest.TestCase):

@@ -2,7 +2,7 @@
 import unittest
 from unittest.mock import Mock, MagicMock, patch
 import tkinter as tk
-from music_lyrics_view import MusicLyricsView
+from src.music.views.music_lyrics_view import MusicLyricsView
 
 
 class TestMusicLyricsView(unittest.TestCase):

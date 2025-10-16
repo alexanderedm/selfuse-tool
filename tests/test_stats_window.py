@@ -2,7 +2,7 @@
 import unittest
 from unittest.mock import Mock, MagicMock, patch, call
 import tkinter as tk
-from stats_window import StatsWindow
+from src.windows.stats_window import StatsWindow
 
 
 class TestStatsWindow(unittest.TestCase):
@@ -20,8 +20,8 @@ class TestStatsWindow(unittest.TestCase):
         self.assertIsNone(window.window)
         self.assertIsNone(window.tk_root)
 
-    @patch('stats_window.tk.Tk')
-    @patch('stats_window.tk.Toplevel')
+    @patch('src.windows.stats_window.tk.Tk')
+    @patch('src.windows.stats_window.tk.Toplevel')
     def test_show_creates_window_if_none(self, mock_toplevel, mock_tk):
         """測試當視窗不存在時建立新視窗"""
         # 準備模擬物件
@@ -41,7 +41,7 @@ class TestStatsWindow(unittest.TestCase):
         mock_tk.assert_called_once()
         self.assertIsNotNone(window.window)
 
-    @patch('stats_window.tk.Toplevel')
+    @patch('src.windows.stats_window.tk.Toplevel')
     def test_show_raises_existing_window(self, mock_toplevel):
         """測試當視窗已存在時只提升視窗"""
         mock_window = MagicMock()
@@ -57,7 +57,7 @@ class TestStatsWindow(unittest.TestCase):
         # 不應該建立新視窗
         mock_toplevel.assert_not_called()
 
-    @patch('stats_window.tk.Tk')
+    @patch('src.windows.stats_window.tk.Tk')
     def test_show_with_no_stats(self, mock_tk):
         """測試無統計資料時的顯示"""
         mock_window = MagicMock()
@@ -73,7 +73,7 @@ class TestStatsWindow(unittest.TestCase):
         # 驗證有呼叫 get_usage_stats
         self.config_manager.get_usage_stats.assert_called_once()
 
-    @patch('stats_window.tk.Tk')
+    @patch('src.windows.stats_window.tk.Tk')
     def test_show_with_stats(self, mock_tk):
         """測試有統計資料時的顯示"""
         mock_window = MagicMock()

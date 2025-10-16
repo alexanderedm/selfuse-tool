@@ -3,7 +3,7 @@ import unittest
 import json
 import os
 from unittest.mock import Mock, patch
-from music_equalizer import MusicEqualizer
+from src.music.utils.music_equalizer import MusicEqualizer
 
 
 class TestMusicEqualizer(unittest.TestCase):

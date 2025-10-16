@@ -1,7 +1,7 @@
 """測試主程式模組"""
 import pytest
 from unittest.mock import Mock, patch, MagicMock
-from main import AudioSwitcherApp
+from src.main import AudioSwitcherApp
 
 
 class TestAudioSwitcherApp:
@@ -10,7 +10,7 @@ class TestAudioSwitcherApp:
     @pytest.fixture
     def mock_tk_root(self):
         """建立模擬的 Tk 根視窗"""
-        with patch('main.tk.Tk') as mock_tk:
+        with patch('src.main.tk.Tk') as mock_tk:
             root = Mock()
             mock_tk.return_value = root
             yield root
@@ -18,12 +18,12 @@ class TestAudioSwitcherApp:
     @pytest.fixture
     def mock_components(self):
         """建立所有必要的模擬元件"""
-        with patch('main.AudioManager') as mock_audio, \
-             patch('main.ConfigManager') as mock_config, \
-             patch('main.RSSManager') as mock_rss, \
-             patch('main.ClipboardMonitor') as mock_clipboard, \
-             patch('main.MusicManager') as mock_music, \
-             patch('main.tk.Tk'):
+        with patch('src.main.AudioManager') as mock_audio, \
+             patch('src.main.ConfigManager') as mock_config, \
+             patch('src.main.RSSManager') as mock_rss, \
+             patch('src.main.ClipboardMonitor') as mock_clipboard, \
+             patch('src.main.MusicManager') as mock_music, \
+             patch('src.main.tk.Tk'):
 
             yield {
                 'audio': mock_audio,
@@ -285,7 +285,7 @@ class TestAudioSwitcherApp:
 
     # ==================== 音樂播放器測試 ====================
 
-    @patch('main.MusicWindow')
+    @patch('src.main.MusicWindow')
     def test_open_music_player_first_time(self, mock_music_window, mock_components):
         """測試首次開啟音樂播放器"""
         app = AudioSwitcherApp()
@@ -301,7 +301,7 @@ class TestAudioSwitcherApp:
         mock_music_window.assert_called_once()
         mock_window_instance.show.assert_called_once()
 
-    @patch('main.MusicWindow')
+    @patch('src.main.MusicWindow')
     def test_open_music_player_reopen_closed_window(self, mock_music_window, mock_components):
         """測試重新開啟已關閉的音樂播放器視窗"""
         app = AudioSwitcherApp()
@@ -387,7 +387,7 @@ class TestAudioSwitcherApp:
 
     # ==================== RSS 視窗測試 ====================
 
-    @patch('main.RSSWindow')
+    @patch('src.main.RSSWindow')
     def test_open_rss_viewer_first_time(self, mock_rss_window, mock_components):
         """測試首次開啟 RSS 視窗"""
         app = AudioSwitcherApp()
@@ -403,7 +403,7 @@ class TestAudioSwitcherApp:
         mock_rss_window.assert_called_once()
         mock_window_instance.show.assert_called_once()
 
-    @patch('main.RSSWindow')
+    @patch('src.main.RSSWindow')
     def test_open_rss_viewer_bring_to_front(self, mock_rss_window, mock_components):
         """測試將 RSS 視窗帶到前景"""
         app = AudioSwitcherApp()
@@ -422,7 +422,7 @@ class TestAudioSwitcherApp:
 
     # ==================== 設定視窗測試 ====================
 
-    @patch('main.SettingsWindow')
+    @patch('src.main.SettingsWindow')
     def test_open_settings_first_time(self, mock_settings_window, mock_components):
         """測試首次開啟設定視窗"""
         app = AudioSwitcherApp()
@@ -440,7 +440,7 @@ class TestAudioSwitcherApp:
 
     # ==================== 統計視窗測試 ====================
 
-    @patch('main.StatsWindow')
+    @patch('src.main.StatsWindow')
     def test_open_stats_first_time(self, mock_stats_window, mock_components):
         """測試首次開啟統計視窗"""
         app = AudioSwitcherApp()
@@ -460,8 +460,8 @@ class TestAudioSwitcherApp:
 
     # ==================== Log 檢視器測試 ====================
 
-    @patch('main.os.path.exists')
-    @patch('main.os.startfile')
+    @patch('src.main.os.path.exists')
+    @patch('src.main.os.startfile')
     def test_open_log_viewer_success(self, mock_startfile, mock_exists, mock_components):
         """測試開啟 Log 檢視器（檔案存在）"""
         app = AudioSwitcherApp()
@@ -475,7 +475,7 @@ class TestAudioSwitcherApp:
         # 驗證呼叫 startfile
         mock_startfile.assert_called_once()
 
-    @patch('main.os.path.exists')
+    @patch('src.main.os.path.exists')
     def test_open_log_viewer_file_not_found(self, mock_exists, mock_components):
         """測試開啟 Log 檢視器（檔案不存在）"""
         app = AudioSwitcherApp()

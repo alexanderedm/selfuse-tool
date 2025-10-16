@@ -9,7 +9,7 @@ import os
 # 將父目錄加入路徑以便導入模組
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from music_window import MusicWindow
+from src.music.windows.music_window import MusicWindow
 
 
 class TestMusicWindowTreeview(unittest.TestCase):
@@ -66,8 +66,8 @@ class TestMusicWindowTreeview(unittest.TestCase):
             }
         ]
 
-    @patch('music_window.pygame', new_callable=lambda: MagicMock())
-    @patch('music_window.YouTubeDownloader')
+    @patch('src.music.windows.music_window.pygame', new_callable=lambda: MagicMock())
+    @patch('src.music.windows.music_window.YouTubeDownloader')
     def test_display_songs_clears_tree(self, mock_downloader, mock_pygame):
         """測試 _display_songs 清空現有項目"""
         try:
@@ -103,8 +103,8 @@ class TestMusicWindowTreeview(unittest.TestCase):
             except:
                 pass
 
-    @patch('music_window.pygame', new_callable=lambda: MagicMock())
-    @patch('music_window.YouTubeDownloader')
+    @patch('src.music.windows.music_window.pygame', new_callable=lambda: MagicMock())
+    @patch('src.music.windows.music_window.YouTubeDownloader')
     def test_display_songs_inserts_correct_data(self, mock_downloader, mock_pygame):
         """測試 _display_songs 插入正確的歌曲資料"""
         try:
@@ -149,8 +149,8 @@ class TestMusicWindowTreeview(unittest.TestCase):
             except:
                 pass
 
-    @patch('music_window.pygame', new_callable=lambda: MagicMock())
-    @patch('music_window.YouTubeDownloader')
+    @patch('src.music.windows.music_window.pygame', new_callable=lambda: MagicMock())
+    @patch('src.music.windows.music_window.YouTubeDownloader')
     def test_display_songs_updates_playlist(self, mock_downloader, mock_pygame):
         """測試 _display_songs 更新播放列表"""
         try:
@@ -183,8 +183,8 @@ class TestMusicWindowTreeview(unittest.TestCase):
             except:
                 pass
 
-    @patch('music_window.pygame', new_callable=lambda: MagicMock())
-    @patch('music_window.YouTubeDownloader')
+    @patch('src.music.windows.music_window.pygame', new_callable=lambda: MagicMock())
+    @patch('src.music.windows.music_window.YouTubeDownloader')
     def test_display_songs_empty_list(self, mock_downloader, mock_pygame):
         """測試 _display_songs 處理空列表"""
         try:
@@ -217,8 +217,8 @@ class TestMusicWindowTreeview(unittest.TestCase):
             except:
                 pass
 
-    @patch('music_window.pygame', new_callable=lambda: MagicMock())
-    @patch('music_window.YouTubeDownloader')
+    @patch('src.music.windows.music_window.pygame', new_callable=lambda: MagicMock())
+    @patch('src.music.windows.music_window.YouTubeDownloader')
     def test_format_duration_called_correctly(self, mock_downloader, mock_pygame):
         """測試時長格式化函數被正確呼叫"""
         try:
@@ -276,8 +276,8 @@ class TestMusicWindowEqualizerSync(unittest.TestCase):
         self.music_manager_mock.config_manager = self.config_manager_mock
         self.music_manager_mock.music_root_path = "/test/music"
 
-    @patch('music_window.pygame', new_callable=lambda: MagicMock())
-    @patch('music_window.YouTubeDownloader')
+    @patch('src.music.windows.music_window.pygame', new_callable=lambda: MagicMock())
+    @patch('src.music.windows.music_window.YouTubeDownloader')
     def test_sync_equalizer_to_processor_with_gains(self, mock_downloader, mock_pygame):
         """測試等化器同步 - 有增益值"""
         try:
@@ -311,8 +311,8 @@ class TestMusicWindowEqualizerSync(unittest.TestCase):
             except:
                 pass
 
-    @patch('music_window.pygame', new_callable=lambda: MagicMock())
-    @patch('music_window.YouTubeDownloader')
+    @patch('src.music.windows.music_window.pygame', new_callable=lambda: MagicMock())
+    @patch('src.music.windows.music_window.YouTubeDownloader')
     def test_sync_equalizer_without_audio_player(self, mock_downloader, mock_pygame):
         """測試等化器同步 - 沒有 AudioPlayer"""
         try:
@@ -337,8 +337,8 @@ class TestMusicWindowEqualizerSync(unittest.TestCase):
             except:
                 pass
 
-    @patch('music_window.pygame', new_callable=lambda: MagicMock())
-    @patch('music_window.YouTubeDownloader')
+    @patch('src.music.windows.music_window.pygame', new_callable=lambda: MagicMock())
+    @patch('src.music.windows.music_window.YouTubeDownloader')
     def test_sync_equalizer_with_invalid_gains(self, mock_downloader, mock_pygame):
         """測試等化器同步 - 無效增益值"""
         try:
@@ -387,8 +387,8 @@ class TestMusicWindowPlayMode(unittest.TestCase):
         self.music_manager_mock.music_root_path = "/test/music"
         self.music_manager_mock.format_duration = Mock(side_effect=lambda s: f"{s//60:02d}:{s%60:02d}")
 
-    @patch('music_window.pygame', new_callable=lambda: MagicMock())
-    @patch('music_window.YouTubeDownloader')
+    @patch('src.music.windows.music_window.pygame', new_callable=lambda: MagicMock())
+    @patch('src.music.windows.music_window.YouTubeDownloader')
     def test_cycle_play_mode_all_modes(self, mock_downloader, mock_pygame):
         """測試循環切換所有播放模式"""
         try:
@@ -425,8 +425,8 @@ class TestMusicWindowPlayMode(unittest.TestCase):
             except:
                 pass
 
-    @patch('music_window.pygame', new_callable=lambda: MagicMock())
-    @patch('music_window.YouTubeDownloader')
+    @patch('src.music.windows.music_window.pygame', new_callable=lambda: MagicMock())
+    @patch('src.music.windows.music_window.YouTubeDownloader')
     def test_shuffle_mode_clears_played_indices(self, mock_downloader, mock_pygame):
         """測試切換到隨機模式會清空已播放索引"""
         try:
@@ -456,8 +456,8 @@ class TestMusicWindowPlayMode(unittest.TestCase):
             except:
                 pass
 
-    @patch('music_window.pygame', new_callable=lambda: MagicMock())
-    @patch('music_window.YouTubeDownloader')
+    @patch('src.music.windows.music_window.pygame', new_callable=lambda: MagicMock())
+    @patch('src.music.windows.music_window.YouTubeDownloader')
     def test_repeat_one_mode_replays_same_song(self, mock_downloader, mock_pygame):
         """測試單曲循環模式重播同一首歌"""
         try:
@@ -488,8 +488,8 @@ class TestMusicWindowPlayMode(unittest.TestCase):
             except:
                 pass
 
-    @patch('music_window.pygame', new_callable=lambda: MagicMock())
-    @patch('music_window.YouTubeDownloader')
+    @patch('src.music.windows.music_window.pygame', new_callable=lambda: MagicMock())
+    @patch('src.music.windows.music_window.YouTubeDownloader')
     def test_sequential_mode_plays_in_order(self, mock_downloader, mock_pygame):
         """測試順序播放模式按順序播放"""
         try:
@@ -545,8 +545,8 @@ class TestMusicWindowVolumeControl(unittest.TestCase):
         self.music_manager_mock.config_manager = self.config_manager_mock
         self.music_manager_mock.music_root_path = "/test/music"
 
-    @patch('music_window.pygame', new_callable=lambda: MagicMock())
-    @patch('music_window.YouTubeDownloader')
+    @patch('src.music.windows.music_window.pygame', new_callable=lambda: MagicMock())
+    @patch('src.music.windows.music_window.YouTubeDownloader')
     def test_volume_change_with_audio_player(self, mock_downloader, mock_pygame):
         """測試使用 AudioPlayer 時音量變更"""
         try:
@@ -575,8 +575,8 @@ class TestMusicWindowVolumeControl(unittest.TestCase):
             except:
                 pass
 
-    @patch('music_window.pygame')
-    @patch('music_window.YouTubeDownloader')
+    @patch('src.music.windows.music_window.pygame')
+    @patch('src.music.windows.music_window.YouTubeDownloader')
     def test_volume_change_with_pygame(self, mock_downloader, mock_pygame):
         """測試使用 pygame 時音量變更"""
         try:
@@ -604,8 +604,8 @@ class TestMusicWindowVolumeControl(unittest.TestCase):
             except:
                 pass
 
-    @patch('music_window.pygame', new_callable=lambda: MagicMock())
-    @patch('music_window.YouTubeDownloader')
+    @patch('src.music.windows.music_window.pygame', new_callable=lambda: MagicMock())
+    @patch('src.music.windows.music_window.YouTubeDownloader')
     def test_volume_change_saves_to_config(self, mock_downloader, mock_pygame):
         """測試音量變更會保存到設定檔"""
         try:
@@ -648,8 +648,8 @@ class TestMusicWindowProgressUpdate(unittest.TestCase):
         self.music_manager_mock.music_root_path = "/test/music"
         self.music_manager_mock.format_duration = Mock(side_effect=lambda s: f"{s//60:02d}:{s%60:02d}")
 
-    @patch('music_window.pygame', new_callable=lambda: MagicMock())
-    @patch('music_window.YouTubeDownloader')
+    @patch('src.music.windows.music_window.pygame', new_callable=lambda: MagicMock())
+    @patch('src.music.windows.music_window.YouTubeDownloader')
     def test_calculate_playback_position_with_audio_player(self, mock_downloader, mock_pygame):
         """測試使用 AudioPlayer 計算播放位置"""
         try:
@@ -677,9 +677,9 @@ class TestMusicWindowProgressUpdate(unittest.TestCase):
             except:
                 pass
 
-    @patch('music_window.pygame', new_callable=lambda: MagicMock())
-    @patch('music_window.YouTubeDownloader')
-    @patch('music_window.time')
+    @patch('src.music.windows.music_window.pygame', new_callable=lambda: MagicMock())
+    @patch('src.music.windows.music_window.YouTubeDownloader')
+    @patch('src.music.windows.music_window.time')
     def test_calculate_playback_position_with_pygame(self, mock_time, mock_downloader, mock_pygame):
         """測試使用 pygame 計算播放位置"""
         try:
@@ -708,8 +708,8 @@ class TestMusicWindowProgressUpdate(unittest.TestCase):
             except:
                 pass
 
-    @patch('music_window.pygame', new_callable=lambda: MagicMock())
-    @patch('music_window.YouTubeDownloader')
+    @patch('src.music.windows.music_window.pygame', new_callable=lambda: MagicMock())
+    @patch('src.music.windows.music_window.YouTubeDownloader')
     def test_format_time_text(self, mock_downloader, mock_pygame):
         """測試時間文字格式化"""
         try:
@@ -753,8 +753,8 @@ class TestMusicWindowErrorHandling(unittest.TestCase):
         self.music_manager_mock.config_manager = self.config_manager_mock
         self.music_manager_mock.music_root_path = "/test/music"
 
-    @patch('music_window.pygame', new_callable=lambda: MagicMock())
-    @patch('music_window.YouTubeDownloader')
+    @patch('src.music.windows.music_window.pygame', new_callable=lambda: MagicMock())
+    @patch('src.music.windows.music_window.YouTubeDownloader')
     def test_is_valid_current_index_with_valid_index(self, mock_downloader, mock_pygame):
         """測試有效索引檢查 - 有效情況"""
         try:
@@ -776,8 +776,8 @@ class TestMusicWindowErrorHandling(unittest.TestCase):
             except:
                 pass
 
-    @patch('music_window.pygame', new_callable=lambda: MagicMock())
-    @patch('music_window.YouTubeDownloader')
+    @patch('src.music.windows.music_window.pygame', new_callable=lambda: MagicMock())
+    @patch('src.music.windows.music_window.YouTubeDownloader')
     def test_is_valid_current_index_with_invalid_index(self, mock_downloader, mock_pygame):
         """測試有效索引檢查 - 無效情況"""
         try:
@@ -799,8 +799,8 @@ class TestMusicWindowErrorHandling(unittest.TestCase):
             except:
                 pass
 
-    @patch('music_window.pygame', new_callable=lambda: MagicMock())
-    @patch('music_window.YouTubeDownloader')
+    @patch('src.music.windows.music_window.pygame', new_callable=lambda: MagicMock())
+    @patch('src.music.windows.music_window.YouTubeDownloader')
     def test_start_first_song_if_available_with_empty_playlist(self, mock_downloader, mock_pygame):
         """測試播放第一首歌 - 空播放列表"""
         try:
@@ -823,8 +823,8 @@ class TestMusicWindowErrorHandling(unittest.TestCase):
             except:
                 pass
 
-    @patch('music_window.pygame', new_callable=lambda: MagicMock())
-    @patch('music_window.YouTubeDownloader')
+    @patch('src.music.windows.music_window.pygame', new_callable=lambda: MagicMock())
+    @patch('src.music.windows.music_window.YouTubeDownloader')
     def test_handle_paused_state_when_paused(self, mock_downloader, mock_pygame):
         """測試暫停狀態處理 - 暫停中"""
         try:
@@ -847,8 +847,8 @@ class TestMusicWindowErrorHandling(unittest.TestCase):
             except:
                 pass
 
-    @patch('music_window.pygame', new_callable=lambda: MagicMock())
-    @patch('music_window.YouTubeDownloader')
+    @patch('src.music.windows.music_window.pygame', new_callable=lambda: MagicMock())
+    @patch('src.music.windows.music_window.YouTubeDownloader')
     def test_handle_paused_state_when_not_paused(self, mock_downloader, mock_pygame):
         """測試暫停狀態處理 - 未暫停"""
         try:
@@ -889,8 +889,8 @@ class TestMusicWindowPlaylistManagement(unittest.TestCase):
         self.music_manager_mock.config_manager = self.config_manager_mock
         self.music_manager_mock.music_root_path = "/test/music"
 
-    @patch('music_window.pygame', new_callable=lambda: MagicMock())
-    @patch('music_window.YouTubeDownloader')
+    @patch('src.music.windows.music_window.pygame', new_callable=lambda: MagicMock())
+    @patch('src.music.windows.music_window.YouTubeDownloader')
     def test_get_available_shuffle_indices_with_available_songs(self, mock_downloader, mock_pygame):
         """測試取得可用隨機索引 - 有可用歌曲"""
         try:
@@ -917,8 +917,8 @@ class TestMusicWindowPlaylistManagement(unittest.TestCase):
             except:
                 pass
 
-    @patch('music_window.pygame', new_callable=lambda: MagicMock())
-    @patch('music_window.YouTubeDownloader')
+    @patch('src.music.windows.music_window.pygame', new_callable=lambda: MagicMock())
+    @patch('src.music.windows.music_window.YouTubeDownloader')
     def test_get_available_shuffle_indices_all_played(self, mock_downloader, mock_pygame):
         """測試取得可用隨機索引 - 全部已播放"""
         try:
@@ -944,8 +944,8 @@ class TestMusicWindowPlaylistManagement(unittest.TestCase):
             except:
                 pass
 
-    @patch('music_window.pygame')
-    @patch('music_window.YouTubeDownloader')
+    @patch('src.music.windows.music_window.pygame')
+    @patch('src.music.windows.music_window.YouTubeDownloader')
     def test_play_previous_wraps_around(self, mock_downloader, mock_pygame):
         """測試播放上一首會循環"""
         try:
@@ -992,8 +992,8 @@ class TestMusicWindowUIIntegration(unittest.TestCase):
         self.music_manager_mock.config_manager = self.config_manager_mock
         self.music_manager_mock.music_root_path = "/test/music"
 
-    @patch('music_window.pygame', new_callable=lambda: MagicMock())
-    @patch('music_window.YouTubeDownloader')
+    @patch('src.music.windows.music_window.pygame', new_callable=lambda: MagicMock())
+    @patch('src.music.windows.music_window.YouTubeDownloader')
     def test_theme_initialization(self, mock_downloader, mock_pygame):
         """測試主題初始化"""
         try:
@@ -1015,8 +1015,8 @@ class TestMusicWindowUIIntegration(unittest.TestCase):
             except:
                 pass
 
-    @patch('music_window.pygame', new_callable=lambda: MagicMock())
-    @patch('music_window.YouTubeDownloader')
+    @patch('src.music.windows.music_window.pygame', new_callable=lambda: MagicMock())
+    @patch('src.music.windows.music_window.YouTubeDownloader')
     def test_should_play_next_with_audio_player(self, mock_downloader, mock_pygame):
         """測試使用 AudioPlayer 時是否應播放下一首"""
         try:
@@ -1040,8 +1040,8 @@ class TestMusicWindowUIIntegration(unittest.TestCase):
             except:
                 pass
 
-    @patch('music_window.pygame')
-    @patch('music_window.YouTubeDownloader')
+    @patch('src.music.windows.music_window.pygame')
+    @patch('src.music.windows.music_window.YouTubeDownloader')
     def test_should_play_next_with_pygame_not_busy(self, mock_downloader, mock_pygame):
         """測試使用 pygame 且播放結束時是否應播放下一首"""
         try:

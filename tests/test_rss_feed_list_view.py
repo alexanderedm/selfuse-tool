@@ -24,7 +24,7 @@ class TestRSSFeedListView(unittest.TestCase):
 
     def test_init(self):
         """測試初始化"""
-        from rss_feed_list_view import RSSFeedListView
+        from src.rss.rss_feed_list_view import RSSFeedListView
 
         parent = tk.Frame(self.root)
         view = RSSFeedListView(parent, self.mock_rss_manager, self.mock_on_feed_select)
@@ -35,7 +35,7 @@ class TestRSSFeedListView(unittest.TestCase):
 
     def test_load_feeds_empty(self):
         """測試載入空訂閱列表"""
-        from rss_feed_list_view import RSSFeedListView
+        from src.rss.rss_feed_list_view import RSSFeedListView
 
         self.mock_rss_manager.get_all_feeds.return_value = {}
 
@@ -51,7 +51,7 @@ class TestRSSFeedListView(unittest.TestCase):
 
     def test_load_feeds_with_data(self):
         """測試載入訂閱列表"""
-        from rss_feed_list_view import RSSFeedListView
+        from src.rss.rss_feed_list_view import RSSFeedListView
 
         feeds = {
             'https://example.com/feed1': {'title': 'Feed 1'},
@@ -69,7 +69,7 @@ class TestRSSFeedListView(unittest.TestCase):
 
     def test_on_feed_select_no_selection(self):
         """測試未選擇訂閱時的行為"""
-        from rss_feed_list_view import RSSFeedListView
+        from src.rss.rss_feed_list_view import RSSFeedListView
 
         parent = tk.Frame(self.root)
         view = RSSFeedListView(parent, self.mock_rss_manager, self.mock_on_feed_select)
@@ -85,7 +85,7 @@ class TestRSSFeedListView(unittest.TestCase):
 
     def test_on_feed_select_with_selection(self):
         """測試選擇訂閱時的行為"""
-        from rss_feed_list_view import RSSFeedListView
+        from src.rss.rss_feed_list_view import RSSFeedListView
 
         self.mock_rss_manager.get_all_feeds.return_value = {
             'https://example.com/feed1': {'title': 'Feed 1'}
@@ -111,7 +111,7 @@ class TestRSSFeedListView(unittest.TestCase):
 
     def test_remove_feed(self):
         """測試移除訂閱"""
-        from rss_feed_list_view import RSSFeedListView
+        from src.rss.rss_feed_list_view import RSSFeedListView
 
         # 設定 get_all_feeds 返回空字典以避免載入錯誤
         self.mock_rss_manager.get_all_feeds.return_value = {}
@@ -127,7 +127,7 @@ class TestRSSFeedListView(unittest.TestCase):
 
     def test_remove_feed_cancelled(self):
         """測試取消移除訂閱"""
-        from rss_feed_list_view import RSSFeedListView
+        from src.rss.rss_feed_list_view import RSSFeedListView
 
         parent = tk.Frame(self.root)
         view = RSSFeedListView(parent, self.mock_rss_manager, self.mock_on_feed_select)
@@ -140,7 +140,7 @@ class TestRSSFeedListView(unittest.TestCase):
 
     def test_right_click_menu(self):
         """測試右鍵選單建立"""
-        from rss_feed_list_view import RSSFeedListView
+        from src.rss.rss_feed_list_view import RSSFeedListView
 
         self.mock_rss_manager.get_all_feeds.return_value = {
             'https://example.com/feed1': {'title': 'Feed 1'}
@@ -182,7 +182,7 @@ class TestRSSFeedListView(unittest.TestCase):
 
     def test_reload_feeds(self):
         """測試重新載入訂閱列表"""
-        from rss_feed_list_view import RSSFeedListView
+        from src.rss.rss_feed_list_view import RSSFeedListView
 
         # 第一次載入
         self.mock_rss_manager.get_all_feeds.return_value = {

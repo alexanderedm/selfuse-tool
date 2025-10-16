@@ -19,7 +19,7 @@ class TestMusicFolderActions(unittest.TestCase):
         self.mock_category_tree = Mock()
 
         # 匯入模組
-        from music_folder_actions import MusicFolderActions
+        from src.music.actions.music_folder_actions import MusicFolderActions
 
         # 建立實例
         self.folder_actions = MusicFolderActions(

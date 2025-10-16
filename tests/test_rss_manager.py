@@ -1,6 +1,6 @@
 """測試 RSSManager 模組"""
 import pytest
-from rss_manager import RSSManager
+from src.rss.rss_manager import RSSManager
 
 
 class TestRSSManager:
@@ -9,7 +9,7 @@ class TestRSSManager:
     @pytest.fixture
     def mock_config_manager(self, temp_config_file):
         """建立 mock ConfigManager"""
-        from config_manager import ConfigManager
+        from src.core.config_manager import ConfigManager
         return ConfigManager(temp_config_file)
 
     @pytest.fixture

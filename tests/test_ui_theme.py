@@ -1,6 +1,6 @@
 """UI 主題模組測試"""
 import unittest
-from ui_theme import UITheme
+from src.utils.ui_theme import UITheme
 
 
 class TestUITheme(unittest.TestCase):

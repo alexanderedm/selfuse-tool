@@ -2,7 +2,7 @@
 import pytest
 import tkinter as tk
 from unittest.mock import Mock, MagicMock, patch, PropertyMock
-from music_history_dialog import MusicHistoryDialog
+from src.music.dialogs.music_history_dialog import MusicHistoryDialog
 
 
 @pytest.fixture
