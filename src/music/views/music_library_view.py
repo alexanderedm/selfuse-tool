@@ -37,6 +37,10 @@ class MusicLibraryView:
         self.sort_by = "歌曲名稱"
         self.ascending = True
 
+        # 拖放狀態
+        self.drag_data = None
+        self.drag_start_index = None
+
         # 顏色主題
         self.bg_color = "#1e1e1e"
         self.card_bg = "#2d2d2d"
@@ -183,6 +187,9 @@ class MusicLibraryView:
         song_scroll.config(command=self.song_tree.yview)
         self.song_tree.bind('<Double-1>', self._on_song_double_click)
         self.song_tree.bind('<Button-3>', self._on_song_right_click)
+
+        # 拖放功能綁定
+        self._setup_drag_and_drop()
 
     def _create_sort_controls(self, parent):
         """建立排序控制區
@@ -799,6 +806,134 @@ class MusicLibraryView:
         for item in self.song_tree.get_children():
             self.song_tree.delete(item)
         self.current_playlist = []
+
+    def _setup_drag_and_drop(self):
+        """設定拖放功能"""
+        # 歌曲列表綁定拖動事件
+        self.song_tree.bind('<ButtonPress-1>', self._on_drag_start)
+        self.song_tree.bind('<B1-Motion>', self._on_drag_motion)
+        self.song_tree.bind('<ButtonRelease-1>', self._on_drop)
+
+        # 資料夾樹綁定放下區域事件
+        self.category_tree.bind('<Motion>', self._on_category_hover)
+
+    def _on_drag_start(self, event):
+        """開始拖動歌曲
+
+        Args:
+            event: 事件物件
+        """
+        # 獲取點擊的項目
+        item_id = self.song_tree.identify_row(event.y)
+        if not item_id:
+            self.drag_data = None
+            return
+
+        # 獲取歌曲索引
+        item_index = self.song_tree.index(item_id)
+        if item_index >= len(self.current_playlist):
+            self.drag_data = None
+            return
+
+        # 儲存拖動資料
+        self.drag_start_index = item_index
+        self.drag_data = self.current_playlist[item_index]
+
+        # 選中該項目
+        self.song_tree.selection_set(item_id)
+
+    def _on_drag_motion(self, event):
+        """拖動過程中的處理
+
+        Args:
+            event: 事件物件
+        """
+        if self.drag_data is None:
+            return
+
+        # 改變滑鼠游標為拖動樣式
+        self.song_tree.config(cursor="hand2")
+
+    def _on_drop(self, event):
+        """放下歌曲
+
+        Args:
+            event: 事件物件
+        """
+        # 重置滑鼠游標
+        self.song_tree.config(cursor="")
+
+        if self.drag_data is None:
+            return
+
+        # 檢查是否放在資料夾樹上
+        try:
+            # 獲取滑鼠相對於資料夾樹的位置
+            x = event.x_root - self.category_tree.winfo_rootx()
+            y = event.y_root - self.category_tree.winfo_rooty()
+
+            # 檢查是否在資料夾樹範圍內
+            if (0 <= x <= self.category_tree.winfo_width() and
+                0 <= y <= self.category_tree.winfo_height()):
+
+                # 獲取放下位置的項目
+                item_id = self.category_tree.identify_row(y)
+                if item_id:
+                    item_values = self.category_tree.item(item_id, 'values')
+                    if item_values and item_values[0].startswith('folder:'):
+                        # 獲取目標資料夾名稱
+                        target_category = item_values[0].replace('folder:', '')
+                        current_category = self.drag_data.get('category', '')
+
+                        # 確認是否要移動
+                        if target_category != current_category:
+                            result = messagebox.askyesno(
+                                "確認移動",
+                                f"將歌曲 '{self.drag_data['title'][:40]}' 移動到資料夾 '{target_category}' 嗎？",
+                                parent=self.parent
+                            )
+
+                            if result:
+                                # 執行移動
+                                if self._move_song_to_category(self.drag_data, target_category):
+                                    logger.info(f"拖放移動歌曲成功: {self.drag_data['title']} -> {target_category}")
+                                    messagebox.showinfo(
+                                        "成功",
+                                        f"歌曲已移動到 '{target_category}'",
+                                        parent=self.parent
+                                    )
+                                    # 重新載入音樂庫
+                                    self.reload_library()
+                                else:
+                                    messagebox.showerror("錯誤", "移動歌曲失敗", parent=self.parent)
+
+        except Exception as e:
+            logger.error(f"拖放處理失敗: {e}")
+
+        # 清除拖動資料
+        self.drag_data = None
+        self.drag_start_index = None
+
+    def _on_category_hover(self, event):
+        """資料夾樹懸停時的處理
+
+        Args:
+            event: 事件物件
+        """
+        if self.drag_data is None:
+            return
+
+        # 獲取懸停位置的項目
+        item_id = self.category_tree.identify_row(event.y)
+        if item_id:
+            item_values = self.category_tree.item(item_id, 'values')
+            if item_values and item_values[0].startswith('folder:'):
+                # 改變游標樣式表示可以放下
+                self.category_tree.config(cursor="hand2")
+                return
+
+        # 其他情況恢復正常游標
+        self.category_tree.config(cursor="")
 
     def destroy(self):
         """銷毀視圖"""
