@@ -62,71 +62,71 @@ class MusicHeaderView:
         )
         self.title_label.pack(side="left")
 
-        # 右側按鈕區域
+        # 右側按鈕區域（使用更緊湊的排列）
         button_frame = ctk.CTkFrame(self.header_frame, fg_color="transparent")
         button_frame.pack(side="right")
 
-        # YouTube 下載按鈕（更大的圓角按鈕）
+        # 等化器按鈕（放在最左邊，最常用）
+        self.equalizer_button = ctk.CTkButton(
+            button_frame,
+            text="🎚️ 等化器設定",
+            font=("Microsoft JhengHei UI", 12),
+            width=130,
+            height=38,
+            corner_radius=10,
+            command=self._on_equalizer_button_click
+        )
+        self.equalizer_button.pack(side="left", padx=5)
+
+        # 播放歷史按鈕
+        self.history_button = ctk.CTkButton(
+            button_frame,
+            text="📜 播放歷史",
+            font=("Microsoft JhengHei UI", 12),
+            width=110,
+            height=38,
+            corner_radius=10,
+            command=self._on_history_button_click
+        )
+        self.history_button.pack(side="left", padx=5)
+
+        # 播放列表按鈕
+        self.playlist_button = ctk.CTkButton(
+            button_frame,
+            text="📋 播放列表",
+            font=("Microsoft JhengHei UI", 12),
+            width=110,
+            height=38,
+            corner_radius=10,
+            command=self._on_playlist_button_click
+        )
+        self.playlist_button.pack(side="left", padx=5)
+
+        # 最常播放按鈕
+        self.most_played_button = ctk.CTkButton(
+            button_frame,
+            text="🏆 統計資訊",
+            font=("Microsoft JhengHei UI", 12),
+            width=110,
+            height=38,
+            corner_radius=10,
+            command=self._on_most_played_button_click
+        )
+        self.most_played_button.pack(side="left", padx=5)
+
+        # YouTube 下載按鈕（突出顯示）
         self.download_button = ctk.CTkButton(
             button_frame,
             text="📥 下載",
-            font=("Microsoft JhengHei UI", 13),
-            width=100,
-            height=40,
-            corner_radius=12,
+            font=("Microsoft JhengHei UI", 12),
+            width=90,
+            height=38,
+            corner_radius=10,
             fg_color="#0078d4",
             hover_color="#005a9e",
             command=self._on_download_button_click
         )
-        self.download_button.pack(side="right", padx=(8, 0))
-
-        # 最常播放按鈕（更大的圓角按鈕）
-        self.most_played_button = ctk.CTkButton(
-            button_frame,
-            text="🏆 最常播放",
-            font=("Microsoft JhengHei UI", 13),
-            width=120,
-            height=40,
-            corner_radius=12,
-            command=self._on_most_played_button_click
-        )
-        self.most_played_button.pack(side="right", padx=(8, 0))
-
-        # 播放列表按鈕（更大的圓角按鈕）
-        self.playlist_button = ctk.CTkButton(
-            button_frame,
-            text="📋 播放列表",
-            font=("Microsoft JhengHei UI", 13),
-            width=120,
-            height=40,
-            corner_radius=12,
-            command=self._on_playlist_button_click
-        )
-        self.playlist_button.pack(side="right", padx=(8, 0))
-
-        # 播放歷史按鈕（更大的圓角按鈕）
-        self.history_button = ctk.CTkButton(
-            button_frame,
-            text="📜 播放歷史",
-            font=("Microsoft JhengHei UI", 13),
-            width=120,
-            height=40,
-            corner_radius=12,
-            command=self._on_history_button_click
-        )
-        self.history_button.pack(side="right", padx=(8, 0))
-
-        # 等化器按鈕（更大的圓角按鈕）
-        self.equalizer_button = ctk.CTkButton(
-            button_frame,
-            text="🎚️ 等化器設定",
-            font=("Microsoft JhengHei UI", 13),
-            width=140,
-            height=40,
-            corner_radius=12,
-            command=self._on_equalizer_button_click
-        )
-        self.equalizer_button.pack(side="right", padx=(8, 0))
+        self.download_button.pack(side="left", padx=5)
 
     def _on_download_button_click(self):
         """下載按鈕點擊處理"""
