@@ -1,6 +1,6 @@
 """音樂等化器對話框測試模組"""
 import unittest
-import tkinter as tk
+import customtkinter as ctk
 from unittest.mock import Mock, patch, MagicMock
 from music_equalizer_dialog import MusicEqualizerDialog
 from music_equalizer import MusicEqualizer
@@ -11,7 +11,11 @@ class TestMusicEqualizerDialog(unittest.TestCase):
 
     def setUp(self):
         """測試前設置"""
-        self.root = tk.Tk()
+        # 設定 CustomTkinter
+        ctk.set_appearance_mode("dark")
+        ctk.set_default_color_theme("blue")
+
+        self.root = ctk.CTk()
         self.root.withdraw()
 
         self.config_manager = Mock()
@@ -61,25 +65,24 @@ class TestMusicEqualizerDialog(unittest.TestCase):
         """測試 - 建立啟用/停用開關"""
         self.dialog.show()
 
-        # 驗證開關存在
-        self.assertIsNotNone(self.dialog.enable_var)
-        self.assertIsNotNone(self.dialog.enable_checkbox)
+        # 驗證開關存在（CustomTkinter 使用 CTkSwitch）
+        self.assertIsNotNone(self.dialog.enable_switch)
 
         # 初始狀態應為停用
-        self.assertFalse(self.dialog.enable_var.get())
+        self.assertEqual(self.dialog.enable_switch.get(), 0)
 
     def test_toggle_enable(self):
         """測試 - 切換啟用狀態"""
         self.dialog.show()
 
         # 啟用等化器
-        self.dialog.enable_var.set(True)
+        self.dialog.enable_switch.select()
         self.dialog._on_enable_toggle()
 
         self.assertTrue(self.equalizer.is_enabled())
 
         # 停用等化器
-        self.dialog.enable_var.set(False)
+        self.dialog.enable_switch.deselect()
         self.dialog._on_enable_toggle()
 
         self.assertFalse(self.equalizer.is_enabled())
@@ -88,27 +91,25 @@ class TestMusicEqualizerDialog(unittest.TestCase):
         """測試 - 建立預設模式選單"""
         self.dialog.show()
 
-        # 驗證選單存在
-        self.assertIsNotNone(self.dialog.preset_var)
-        self.assertIsNotNone(self.dialog.preset_combo)
+        # 驗證選單存在（CustomTkinter 使用 CTkOptionMenu）
+        self.assertIsNotNone(self.dialog.preset_menu)
 
         # 驗證預設值（包含顯示名稱）
-        self.assertIn('flat', self.dialog.preset_var.get())
+        self.assertIn('flat', self.dialog.preset_menu.get())
 
     def test_preset_change(self):
         """測試 - 切換預設模式"""
         self.dialog.show()
 
         # 切換到搖滾模式（使用顯示格式: "key - 顯示名稱"）
-        self.dialog.preset_var.set('rock - 搖滾')
-        self.dialog._on_preset_change(None)
+        self.dialog._on_preset_change('rock - 搖滾')
 
         # 驗證等化器設定已更新
         self.assertEqual(self.equalizer.get_current_preset(), 'rock')
 
         # 驗證滑桿已更新
         for i, band in enumerate(self.equalizer.get_bands()):
-            slider_value = self.dialog.sliders[i]['var'].get()
+            slider_value = self.dialog.sliders[i]['slider'].get()
             self.assertAlmostEqual(slider_value, band['gain'], places=1)
 
     def test_create_band_sliders(self):
@@ -121,8 +122,7 @@ class TestMusicEqualizerDialog(unittest.TestCase):
         # 驗證每個滑桿都有必要的元件
         for slider_info in self.dialog.sliders:
             self.assertIn('frequency', slider_info)
-            self.assertIn('var', slider_info)
-            self.assertIn('scale', slider_info)
+            self.assertIn('slider', slider_info)
             self.assertIn('label', slider_info)
 
     def test_slider_change_updates_equalizer(self):
@@ -142,7 +142,7 @@ class TestMusicEqualizerDialog(unittest.TestCase):
         self.assertIsNotNone(slider_info)
 
         # 設定滑桿值
-        slider_info['var'].set(new_gain)
+        slider_info['slider'].set(new_gain)
         self.dialog._on_slider_change(frequency, new_gain)
 
         # 驗證等化器已更新
@@ -154,15 +154,14 @@ class TestMusicEqualizerDialog(unittest.TestCase):
         self.dialog.show()
 
         # 先載入一個預設
-        self.dialog.preset_var.set('rock - 搖滾')
-        self.dialog._on_preset_change(None)
+        self.dialog._on_preset_change('rock - 搖滾')
 
         # 修改滑桿
         self.dialog._on_slider_change(60, 10.0)
 
         # 驗證預設變為自定義
         self.assertEqual(self.equalizer.get_current_preset(), 'custom')
-        self.assertIn('custom', self.dialog.preset_var.get())
+        self.assertIn('custom', self.dialog.preset_menu.get())
 
     def test_reset_button(self):
         """測試 - 重置按鈕"""
@@ -181,28 +180,19 @@ class TestMusicEqualizerDialog(unittest.TestCase):
 
         # 驗證滑桿已重置
         for slider_info in self.dialog.sliders:
-            self.assertEqual(slider_info['var'].get(), 0.0)
+            self.assertEqual(slider_info['slider'].get(), 0.0)
 
         # 驗證預設為 flat
         self.assertEqual(self.equalizer.get_current_preset(), 'flat')
-        self.assertIn('flat', self.dialog.preset_var.get())
+        self.assertIn('flat', self.dialog.preset_menu.get())
 
-    def test_apply_button_saves_settings(self):
-        """測試 - 套用按鈕儲存設定"""
+    def test_no_apply_button_exists(self):
+        """測試 - 確認沒有套用按鈕（即時生效）"""
         self.dialog.show()
 
-        # 修改一些設定
-        self.equalizer.set_enabled(True)
-        self.dialog.enable_var.set(True)
-        self.equalizer.load_preset('jazz')
-
-        # 點擊套用
-        self.dialog._on_apply()
-
-        # 驗證設定已儲存
-        self.config_manager.set.assert_called_once()
-        args = self.config_manager.set.call_args[0]
-        self.assertEqual(args[0], 'music_equalizer')
+        # 確認對話框沒有 _on_apply 方法被使用
+        # 或確認不存在套用按鈕
+        self.assertFalse(hasattr(self.dialog, 'apply_button'))
 
     def test_display_gain_values(self):
         """測試 - 顯示增益數值"""
@@ -231,12 +221,12 @@ class TestMusicEqualizerDialog(unittest.TestCase):
         dialog.show()
 
         # 驗證 UI 反映等化器狀態
-        self.assertTrue(dialog.enable_var.get())
-        self.assertIn('custom', dialog.preset_var.get())  # 因為修改了增益
+        self.assertEqual(dialog.enable_switch.get(), 1)
+        self.assertIn('custom', dialog.preset_menu.get())  # 因為修改了增益
 
         # 驗證滑桿值
         for i, band in enumerate(self.equalizer.get_bands()):
-            slider_value = dialog.sliders[i]['var'].get()
+            slider_value = dialog.sliders[i]['slider'].get()
             self.assertAlmostEqual(slider_value, band['gain'], places=1)
 
         # 清理對話框
@@ -248,8 +238,8 @@ class TestMusicEqualizerDialog(unittest.TestCase):
         """測試 - 預設模式顯示中文名稱"""
         self.dialog.show()
 
-        # 驗證 combobox 的值包含中文名稱
-        values = self.dialog.preset_combo['values']
+        # 驗證 option menu 的值包含中文名稱
+        values = self.dialog.preset_menu.cget('values')
         self.assertGreater(len(values), 0)
 
         # 驗證包含中文
@@ -272,21 +262,21 @@ class TestMusicEqualizerDialog(unittest.TestCase):
 
         # 驗證滑桿範圍為 -12 到 +12
         for slider_info in self.dialog.sliders:
-            scale = slider_info['scale']
-            self.assertEqual(scale.cget('from'), -12.0)
-            self.assertEqual(scale.cget('to'), 12.0)
+            slider = slider_info['slider']
+            self.assertEqual(slider.cget('from_'), -12.0)
+            self.assertEqual(slider.cget('to'), 12.0)
 
-    def test_note_about_audio_processing(self):
-        """測試 - 顯示音訊處理提示說明"""
+    def test_note_about_realtime_effect(self):
+        """測試 - 顯示即時生效提示說明"""
         self.dialog.show()
 
         # 驗證對話框包含說明文字
-        # 實際實作中應該有一個 Label 或 Text 顯示說明
         self.assertTrue(hasattr(self.dialog, 'note_label'))
         note_text = self.dialog.note_label.cget('text')
 
-        # 驗證說明內容（新版本提示即時應用）
-        self.assertIn('即時應用', note_text)
+        # 驗證說明內容（即時生效，無需套用）
+        self.assertIn('即時生效', note_text)
+        self.assertIn('無需按套用', note_text)
 
     def test_slider_change_triggers_realtime_sync(self):
         """測試 - 滑桿改變會觸發即時同步到 AudioProcessor"""
@@ -313,8 +303,7 @@ class TestMusicEqualizerDialog(unittest.TestCase):
         self.dialog.show()
 
         # 切換預設
-        self.dialog.preset_var.set('rock - 搖滾')
-        self.dialog._on_preset_change(None)
+        self.dialog._on_preset_change('rock - 搖滾')
 
         # 驗證回調被呼叫
         sync_callback.assert_called_once()
@@ -328,7 +317,7 @@ class TestMusicEqualizerDialog(unittest.TestCase):
         self.dialog.show()
 
         # 切換啟用狀態
-        self.dialog.enable_var.set(True)
+        self.dialog.enable_switch.select()
         self.dialog._on_enable_toggle()
 
         # 驗證回調被呼叫

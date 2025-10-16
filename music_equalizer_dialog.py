@@ -2,18 +2,17 @@
 
 提供圖形化等化器設定介面。
 """
-import tkinter as tk
-from tkinter import ttk
+import customtkinter as ctk
 
 
 class MusicEqualizerDialog:
     """音樂等化器對話框類別
 
     提供 10 頻段等化器的圖形化設定介面，包含：
-    - 啟用/停用開關
-    - 預設模式選單
-    - 10 個頻段滑桿（即時生效）
-    - 重置按鈕
+    - 啟用/停用開關（使用 CTkSwitch）
+    - 預設模式選單（使用 CTkOptionMenu）
+    - 10 個頻段滑桿（即時生效，使用 CTkSlider）
+    - 重置按鈕（圓角按鈕）
     """
 
     def __init__(self, parent, equalizer, on_equalizer_change=None):
@@ -30,10 +29,9 @@ class MusicEqualizerDialog:
         self.dialog = None
 
         # UI 元件
-        self.enable_var = None
-        self.enable_checkbox = None
+        self.enable_switch = None
         self.preset_var = None
-        self.preset_combo = None
+        self.preset_menu = None
         self.sliders = []  # 存儲滑桿資訊
         self.note_label = None
 
@@ -48,56 +46,50 @@ class MusicEqualizerDialog:
                 self.dialog = None
 
         # 建立對話框
-        self.dialog = tk.Toplevel(self.parent)
+        self.dialog = ctk.CTkToplevel(self.parent)
         self.dialog.title("等化器設定")
-        self.dialog.geometry("800x600")
-        self.dialog.resizable(False, False)
+        self.dialog.geometry("800x650")
 
-        # 深色主題顏色
-        bg_color = "#1e1e1e"
-        card_bg = "#2d2d2d"
-        text_color = "#e0e0e0"
-        accent_color = "#0078d4"
+        # === 主框架 ===
+        main_frame = ctk.CTkFrame(self.dialog, corner_radius=15)
+        main_frame.pack(fill="both", expand=True, padx=20, pady=20)
 
-        self.dialog.configure(bg=bg_color)
+        # === 頂部：標題和啟用開關 ===
+        header_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+        header_frame.pack(fill="x", padx=20, pady=(20, 10))
 
-        # 主框架
-        main_frame = tk.Frame(self.dialog, bg=bg_color)
-        main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
-
-        # === 頂部：啟用開關和預設選單 ===
-        top_frame = tk.Frame(main_frame, bg=bg_color)
-        top_frame.pack(fill=tk.X, pady=(0, 20))
-
-        # 啟用/停用開關
-        self.enable_var = tk.BooleanVar(value=self.equalizer.is_enabled())
-        self.enable_checkbox = tk.Checkbutton(
-            top_frame,
-            text="啟用等化器",
-            variable=self.enable_var,
-            command=self._on_enable_toggle,
-            bg=bg_color,
-            fg=text_color,
-            selectcolor=card_bg,
-            activebackground=bg_color,
-            activeforeground=text_color,
-            font=("Segoe UI", 12, "bold")
+        # 標題
+        title_label = ctk.CTkLabel(
+            header_frame,
+            text="等化器設定",
+            font=("Microsoft JhengHei UI", 24, "bold")
         )
-        self.enable_checkbox.pack(side=tk.LEFT, padx=(0, 20))
+        title_label.pack(side="left")
 
-        # 預設模式選單
-        preset_frame = tk.Frame(top_frame, bg=bg_color)
-        preset_frame.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        # 啟用開關（圓角開關）
+        self.enable_switch = ctk.CTkSwitch(
+            header_frame,
+            text="啟用等化器",
+            font=("Microsoft JhengHei UI", 14),
+            command=self._on_enable_toggle
+        )
+        self.enable_switch.pack(side="right")
+        if self.equalizer.is_enabled():
+            self.enable_switch.select()
 
-        tk.Label(
+        # 分隔線
+        separator1 = ctk.CTkFrame(main_frame, height=2, fg_color="gray30")
+        separator1.pack(fill="x", padx=20, pady=10)
+
+        # === 預設模式選單 ===
+        preset_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+        preset_frame.pack(fill="x", padx=20, pady=10)
+
+        ctk.CTkLabel(
             preset_frame,
-            text="預設模式:",
-            bg=bg_color,
-            fg=text_color,
-            font=("Segoe UI", 10)
-        ).pack(side=tk.LEFT, padx=(0, 10))
-
-        self.preset_var = tk.StringVar(value=self.equalizer.get_current_preset())
+            text="預設模式：",
+            font=("Microsoft JhengHei UI", 13)
+        ).pack(side="left", padx=(0, 10))
 
         # 準備顯示名稱
         preset_names = self.equalizer.get_preset_names()
@@ -106,50 +98,35 @@ class MusicEqualizerDialog:
             for name in preset_names
         ]
 
-        self.preset_combo = ttk.Combobox(
-            preset_frame,
-            textvariable=self.preset_var,
-            values=preset_display,
-            state='readonly',
-            width=20,
-            font=("Segoe UI", 10)
-        )
-        self.preset_combo.pack(side=tk.LEFT)
-        self.preset_combo.bind('<<ComboboxSelected>>', self._on_preset_change)
-
-        # 設定當前值
+        # 獲取當前預設
         current_preset = self.equalizer.get_current_preset()
         current_display = f"{current_preset} - {self.equalizer.get_preset_display_name(current_preset)}"
-        self.preset_combo.set(current_display)
 
-        # === 中間：頻段滑桿 ===
-        sliders_frame = tk.Frame(main_frame, bg=card_bg)
-        sliders_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 20))
-
-        # 標題
-        tk.Label(
-            sliders_frame,
-            text="頻段調整 (-12dB 到 +12dB)",
-            bg=card_bg,
-            fg=text_color,
-            font=("Segoe UI", 11, "bold")
-        ).pack(pady=(10, 5))
-
-        # 滑桿容器（使用 Canvas 和 Scrollbar）
-        canvas = tk.Canvas(sliders_frame, bg=card_bg, highlightthickness=0)
-        scrollbar = tk.Scrollbar(sliders_frame, orient=tk.VERTICAL, command=canvas.yview)
-        scrollable_frame = tk.Frame(canvas, bg=card_bg)
-
-        scrollable_frame.bind(
-            "<Configure>",
-            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        self.preset_menu = ctk.CTkOptionMenu(
+            preset_frame,
+            values=preset_display,
+            width=300,
+            font=("Microsoft JhengHei UI", 12),
+            command=self._on_preset_change
         )
+        self.preset_menu.set(current_display)
+        self.preset_menu.pack(side="left")
 
-        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
-        canvas.configure(yscrollcommand=scrollbar.set)
+        # === 頻段滑桿區域 ===
+        sliders_label = ctk.CTkLabel(
+            main_frame,
+            text="頻段調整 (-12dB 到 +12dB)",
+            font=("Microsoft JhengHei UI", 14, "bold")
+        )
+        sliders_label.pack(pady=(20, 10))
 
-        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=10, pady=10)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        # 滑桿容器（使用 scrollable frame）
+        self.scrollable_frame = ctk.CTkScrollableFrame(
+            main_frame,
+            height=300,
+            corner_radius=10
+        )
+        self.scrollable_frame.pack(fill="both", expand=True, padx=20, pady=10)
 
         # 建立滑桿
         self.sliders = []
@@ -158,104 +135,81 @@ class MusicEqualizerDialog:
         for band in bands:
             freq = band['frequency']
             gain = band['gain']
+            self._create_slider_row(freq, gain)
 
-            # 每個頻段的框架
-            band_frame = tk.Frame(scrollable_frame, bg=card_bg)
-            band_frame.pack(fill=tk.X, pady=5, padx=10)
+        # === 底部區域 ===
+        bottom_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+        bottom_frame.pack(fill="x", padx=20, pady=20)
 
-            # 頻率標籤
-            freq_str = f"{freq}Hz" if freq < 1000 else f"{freq // 1000}kHz"
-            freq_label = tk.Label(
-                band_frame,
-                text=freq_str,
-                bg=card_bg,
-                fg=text_color,
-                font=("Segoe UI", 10),
-                width=8,
-                anchor='w'
-            )
-            freq_label.pack(side=tk.LEFT, padx=(0, 10))
-
-            # 滑桿變數
-            slider_var = tk.DoubleVar(value=gain)
-
-            # 滑桿
-            scale = tk.Scale(
-                band_frame,
-                from_=-12.0,
-                to=12.0,
-                resolution=0.5,
-                orient=tk.HORIZONTAL,
-                variable=slider_var,
-                command=lambda val, f=freq: self._on_slider_change(f, float(val)),
-                bg=card_bg,
-                fg=text_color,
-                troughcolor=bg_color,
-                activebackground=accent_color,
-                highlightthickness=0,
-                length=400,
-                showvalue=0
-            )
-            scale.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 10))
-
-            # 增益值標籤
-            gain_label = tk.Label(
-                band_frame,
-                text=f"{gain:+.1f}dB",
-                bg=card_bg,
-                fg=text_color,
-                font=("Segoe UI", 10),
-                width=8,
-                anchor='e'
-            )
-            gain_label.pack(side=tk.LEFT)
-
-            # 保存滑桿資訊
-            self.sliders.append({
-                'frequency': freq,
-                'var': slider_var,
-                'scale': scale,
-                'label': gain_label
-            })
-
-        # === 底部：說明和按鈕 ===
-        bottom_frame = tk.Frame(main_frame, bg=bg_color)
-        bottom_frame.pack(fill=tk.X)
-
-        # 說明文字
-        note_text = (
-            "✨ 提示: 等化器設定會即時應用到音訊播放，無需按套用即可聽到效果。"
-            "支援 10 頻段參數 EQ，設定會自動保存。"
-        )
-        self.note_label = tk.Label(
+        # 重置按鈕（圓角按鈕）- 居中顯示
+        reset_btn = ctk.CTkButton(
             bottom_frame,
-            text=note_text,
-            bg=bg_color,
-            fg="#4caf50",
-            font=("Segoe UI", 9, "italic"),
-            wraplength=700,
-            justify=tk.LEFT
+            text="重置為預設值",
+            font=("Microsoft JhengHei UI", 13),
+            height=40,
+            width=200,
+            corner_radius=10,
+            command=self._on_reset
         )
-        self.note_label.pack(pady=(0, 15))
+        reset_btn.pack(pady=(0, 10))
 
-        # 按鈕框架
-        button_frame = tk.Frame(bottom_frame, bg=bg_color)
-        button_frame.pack()
-
-        # 重置按鈕（居中顯示）
-        reset_btn = tk.Button(
-            button_frame,
-            text="🔄 重置為預設值",
-            command=self._on_reset,
-            bg=card_bg,
-            fg=text_color,
-            font=("Segoe UI", 10),
-            relief=tk.FLAT,
-            padx=30,
-            pady=10,
-            cursor="hand2"
+        # 提示文字
+        self.note_label = ctk.CTkLabel(
+            bottom_frame,
+            text="等化器調整即時生效，無需按套用。使用視窗右上角 X 關閉。",
+            font=("Microsoft JhengHei UI", 11),
+            text_color="#4caf50"
         )
-        reset_btn.pack(padx=5)
+        self.note_label.pack()
+
+    def _create_slider_row(self, frequency, gain):
+        """建立單個頻段滑桿行
+
+        Args:
+            frequency (int): 頻率
+            gain (float): 增益值
+        """
+        # 每個頻段的框架
+        row_frame = ctk.CTkFrame(self.scrollable_frame, fg_color="transparent")
+        row_frame.pack(fill="x", pady=8, padx=10)
+
+        # 頻率標籤
+        freq_str = f"{frequency}Hz" if frequency < 1000 else f"{frequency // 1000}kHz"
+        freq_label = ctk.CTkLabel(
+            row_frame,
+            text=freq_str,
+            font=("Microsoft JhengHei UI", 12),
+            width=80
+        )
+        freq_label.pack(side="left", padx=(0, 10))
+
+        # 滑桿（CustomTkinter 的現代化滑桿）
+        slider = ctk.CTkSlider(
+            row_frame,
+            from_=-12.0,
+            to=12.0,
+            number_of_steps=48,  # 0.5 的步進
+            width=500,
+            command=lambda val, f=frequency: self._on_slider_change(f, val)
+        )
+        slider.set(gain)
+        slider.pack(side="left", fill="x", expand=True, padx=(0, 10))
+
+        # 增益值標籤
+        gain_label = ctk.CTkLabel(
+            row_frame,
+            text=f"{gain:+.1f}dB",
+            font=("Microsoft JhengHei UI", 12),
+            width=80
+        )
+        gain_label.pack(side="left")
+
+        # 保存滑桿資訊
+        self.sliders.append({
+            'frequency': frequency,
+            'slider': slider,
+            'label': gain_label
+        })
 
     def _trigger_equalizer_change(self):
         """觸發等化器變更回調"""
@@ -268,18 +222,17 @@ class MusicEqualizerDialog:
 
     def _on_enable_toggle(self):
         """啟用/停用開關事件"""
-        self.equalizer.set_enabled(self.enable_var.get())
+        self.equalizer.set_enabled(self.enable_switch.get())
         # 觸發即時同步
         self._trigger_equalizer_change()
 
-    def _on_preset_change(self, event):
+    def _on_preset_change(self, choice):
         """預設模式改變事件"""
         # 從顯示名稱提取實際的 preset key
-        selected = self.preset_var.get()
-        if ' - ' in selected:
-            preset_key = selected.split(' - ')[0]
+        if ' - ' in choice:
+            preset_key = choice.split(' - ')[0]
         else:
-            preset_key = selected
+            preset_key = choice
 
         # 載入預設
         self.equalizer.load_preset(preset_key)
@@ -303,13 +256,13 @@ class MusicEqualizerDialog:
         # 更新增益標籤
         for slider_info in self.sliders:
             if slider_info['frequency'] == frequency:
-                slider_info['label'].config(text=f"{value:+.1f}dB")
+                slider_info['label'].configure(text=f"{value:+.1f}dB")
                 break
 
         # 更新預設顯示
         current_preset = self.equalizer.get_current_preset()
         current_display = f"{current_preset} - {self.equalizer.get_preset_display_name(current_preset)}"
-        self.preset_var.set(current_display)
+        self.preset_menu.set(current_display)
 
         # 觸發即時同步
         self._trigger_equalizer_change()
@@ -320,8 +273,8 @@ class MusicEqualizerDialog:
         for i, band in enumerate(bands):
             if i < len(self.sliders):
                 slider_info = self.sliders[i]
-                slider_info['var'].set(band['gain'])
-                slider_info['label'].config(text=f"{band['gain']:+.1f}dB")
+                slider_info['slider'].set(band['gain'])
+                slider_info['label'].configure(text=f"{band['gain']:+.1f}dB")
 
     def _on_reset(self):
         """重置按鈕事件"""
@@ -334,7 +287,7 @@ class MusicEqualizerDialog:
         # 更新預設顯示
         current_preset = self.equalizer.get_current_preset()
         current_display = f"{current_preset} - {self.equalizer.get_preset_display_name(current_preset)}"
-        self.preset_var.set(current_display)
+        self.preset_menu.set(current_display)
 
         # 觸發即時同步
         self._trigger_equalizer_change()
