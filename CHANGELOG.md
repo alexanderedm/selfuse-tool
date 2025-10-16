@@ -10,6 +10,18 @@
 ## [未發布]
 
 ### 新增 (Added)
+- **CustomTkinter UI 現代化升級** (2025-10-16 - Overnight Development)
+  - 遷移核心視窗到 CustomTkinter，獲得現代化圓角 UI
+  - 遷移完成的模組：
+    - `music_window.py` - 主視窗（ctk.CTk）
+    - `music_header_view.py` - 頂部按鈕區域（圓角按鈕）
+    - `music_search_view.py` - 搜尋框（圓角輸入框 + placeholder）
+  - 所有按鈕使用圓角設計（corner_radius=10）
+  - 所有框架使用透明背景或圓角設計
+  - CustomTkinter 自動管理深色主題
+  - 移除舊的 ttkbootstrap 測試檔案
+  - 待遷移：playback_view、library_view、lyrics_view、dialogs、windows
+
 - **Discord Rich Presence 整合** (2025-10-16)
   - 在 Discord 顯示當前播放的音樂資訊
   - 顯示歌曲名稱、藝術家、專輯資訊

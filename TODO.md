@@ -180,12 +180,31 @@
     - 所有測試通過，flake8 零錯誤
 
 ## 🚧 進行中 (In Progress)
-- [ ] **音樂播放器 UI 改善** (進行中 2025-10-15)
-  - [x] 等化器對話框改用 ttkbootstrap（圓角按鈕、現代滑桿）[已回退] ✅
-  - 註：ttkbootstrap 會影響全域主題，需整個應用遷移才能使用，目前保持原生 tkinter
-  - [ ] 改善專輯封面顯示效果 (圓角、陰影)
-  - [ ] 改善歌詞顯示視覺效果
-  - [ ] 優化深色主題配色
+- [ ] **CustomTkinter UI 全面遷移** (進行中 2025-10-16 - Overnight Development)
+  - [x] Phase 1: 核心視窗遷移 ✅
+    - [x] music_window.py - 主視窗（ctk.CTk）✅
+    - [x] music_header_view.py - 頂部按鈕區域（圓角按鈕）✅
+    - [x] music_search_view.py - 搜尋框（圓角輸入框）✅
+  - [ ] Phase 2: View 模組遷移
+    - [ ] music_playback_view.py - 播放控制區
+    - [ ] music_library_view.py - 資料夾樹和歌曲列表（保留 ttk.Treeview）
+    - [ ] music_lyrics_view.py - 歌詞顯示（ctk.CTkTextbox）
+  - [ ] Phase 3: 對話框遷移
+    - [ ] music_playlist_dialog.py
+    - [ ] music_download_dialog.py
+    - [ ] music_history_dialog.py
+    - [ ] music_equalizer_dialog.py（已完成）✅
+  - [ ] Phase 4: 其他視窗遷移
+    - [ ] settings_window.py
+    - [ ] rss_window.py
+    - [ ] stats_window.py
+    - [ ] changelog_window.py
+  - [ ] Phase 5: RSS View 模組遷移
+    - [ ] rss_feed_list_view.py
+    - [ ] rss_entry_list_view.py
+    - [ ] rss_preview_view.py
+  - **當前進度**: 3/16 模組已遷移（18.75%）
+  - **目標**: 所有視窗和對話框使用 CustomTkinter，獲得統一的圓角現代化 UI
 
 - [ ] **修復 test_rss_window.py 測試失敗** (發現於 2025-10-14)
   - 7 個測試失敗 (包含 test_add_feed_manual_* 系列)
