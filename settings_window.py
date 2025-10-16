@@ -1,4 +1,5 @@
 """設定視窗模組"""
+import tkinter as tk
 import customtkinter as ctk
 from tkinter import messagebox, filedialog
 
@@ -103,10 +104,10 @@ class SettingsWindow:
 
         # 建立變數
         if is_device_a:
-            self.device_a_var = ctk.StringVar()
+            self.device_a_var = tk.StringVar()
             device_var = self.device_a_var
         else:
-            self.device_b_var = ctk.StringVar()
+            self.device_b_var = tk.StringVar()
             device_var = self.device_b_var
 
         # 使用 CTkOptionMenu 取代 Combobox
@@ -190,7 +191,7 @@ class SettingsWindow:
         from constants import DEFAULT_MUSIC_ROOT_PATH
         current_music_path = self.config_manager.config.get('music_root_path', DEFAULT_MUSIC_ROOT_PATH)
 
-        self.music_path_var = ctk.StringVar(value=current_music_path)
+        self.music_path_var = tk.StringVar(value=current_music_path)
         music_path_entry = ctk.CTkEntry(
             path_control_frame,
             textvariable=self.music_path_var,
@@ -257,7 +258,7 @@ class SettingsWindow:
         metadata_label.pack(side="left")
 
         # 啟用選項（使用 CTkSwitch 取代 Checkbutton）
-        self.auto_fetch_var = ctk.BooleanVar(
+        self.auto_fetch_var = tk.BooleanVar(
             value=self.config_manager.get("auto_fetch_metadata", True)
         )
 
