@@ -10,6 +10,12 @@
 ## [未發布]
 
 ### 修復 (Fixed)
+- **播放控制按鈕顯示被裁切** (2025-10-16)
+  - 增加播放控制區域主框架寬度從 280px 到 320px
+  - 修復上一首、播放、下一首按鈕顯示不完整問題
+  - 確保所有播放控制按鈕正確顯示
+  - 修改檔案：`src/music/views/music_playback_view.py`
+
 - **優化視窗體驗與修復 RSS 功能** (2025-10-16)
   - **修復 Bug**:
     - RSS 視窗：修復 `rss_preview_view.py` corner_radius 元組錯誤（TypeError: can't multiply sequence by non-int of type 'float'）
