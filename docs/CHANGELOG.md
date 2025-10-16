@@ -9,6 +9,25 @@
 
 ## [未發布]
 
+### 修復 (Fixed)
+- **優化視窗體驗與修復 RSS 功能** (2025-10-16)
+  - **修復 Bug**:
+    - RSS 視窗：修復 `rss_preview_view.py` corner_radius 元組錯誤（TypeError: can't multiply sequence by non-int of type 'float'）
+    - 音樂播放器：RSS 錯誤修復後，音樂播放器啟動不再閃退
+  - **功能優化**:
+    - 設定視窗即時儲存：移除儲存按鈕，改為裝置選擇和元數據開關變更時自動儲存
+    - 設定視窗：增加驗證邏輯，防止選擇相同裝置或未完整選擇時儲存
+    - 視窗隱藏機制：所有視窗（設定、統計、更新日誌、RSS、音樂）點擊 X 時隱藏而非銷毀
+    - 視窗狀態保持：重新開啟時使用 `deiconify()` 恢復視窗狀態
+    - 音樂播放器：隱藏時繼續播放音樂，使用體驗更流暢
+  - **修改檔案**:
+    - `src/rss/rss_preview_view.py` - 修復 corner_radius 參數錯誤
+    - `src/windows/settings_window.py` - 實作即時儲存功能與隱藏機制
+    - `src/windows/stats_window.py` - 實作視窗隱藏機制
+    - `src/windows/changelog_window.py` - 實作視窗隱藏機制
+    - `src/rss/rss_window.py` - 實作視窗隱藏機制
+    - `src/music/windows/music_window.py` - 實作視窗隱藏機制（保持播放）
+
 ### 變更 (Changed)
 - **專案結構重構：模組化組織** (2025-10-16)
   - 將所有 Python 檔案從根目錄遷移到 `src/` 下的分類資料夾
