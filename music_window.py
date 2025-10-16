@@ -337,9 +337,10 @@ class MusicWindow:
             on_reload_library=self._reload_music_library
         )
 
-        # 設定 pygame mixer 音量
-        saved_volume = self.music_manager.config_manager.get_music_volume()
-        pygame.mixer.music.set_volume(saved_volume / 100.0)
+        # 設定 pygame mixer 音量（只在使用 pygame 時設定）
+        if not self.use_audio_player:
+            saved_volume = self.music_manager.config_manager.get_music_volume()
+            pygame.mixer.music.set_volume(saved_volume / 100.0)
 
         # 載入音樂庫
         self._load_music_library()

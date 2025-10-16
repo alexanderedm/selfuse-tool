@@ -1,6 +1,20 @@
 {
   "recent_plays": [
     {
+      "song_id": "UOg50f9W58I",
+      "title": "九九八十一",
+      "artist": "未知",
+      "category": "華語流行音樂",
+      "played_at": "2025-10-16T04:11:15.402086"
+    },
+    {
+      "song_id": "fxHjlCBHuzA",
+      "title": "Bye Bye Bye",
+      "artist": "未知",
+      "category": "Electronic",
+      "played_at": "2025-10-16T02:44:19.521282"
+    },
+    {
       "song_id": "BXO1Ne4bJmE",
       "title": "美秀集團 Amazing Show－物語 Tales【Official Music Video】",
       "artist": "美秀集團 Amazing Show",
@@ -265,7 +279,7 @@
     "DiTd771WumE": 4,
     "bYWR9Ms1FSM": 1,
     "Z7mCrxjivB0": 1,
-    "fxHjlCBHuzA": 5,
+    "fxHjlCBHuzA": 6,
     "mRma6NkHwWU": 1,
     "BXO1Ne4bJmE": 3,
     "vqsdUXUxdq8": 2,
@@ -276,7 +290,8 @@
     "1F2GKe8hcGs": 2,
     "MTXs3LIAE24": 1,
     "U-bXx_4Nwx8": 1,
-    "9B0yX0UIN9M": 1
+    "9B0yX0UIN9M": 1,
+    "UOg50f9W58I": 1
   },
-  "total_plays": 37
+  "total_plays": 39
 }

@@ -110,9 +110,9 @@ class StatsWindow:
             colors (dict): 顏色配置
 
         Returns:
-            ctk.CTkFrame: 統計容器
+            ctk.CTkScrollableFrame: 統計容器
         """
-        stats_container = ctk.CTkFrame(
+        stats_container = ctk.CTkScrollableFrame(
             main_frame,
             corner_radius=15,
             fg_color=colors['card_bg']

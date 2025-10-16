@@ -357,8 +357,12 @@ class SettingsWindow:
             accent_bg = "#1a3a52"
 
             logger.info("[設定視窗] 建立主框架")
-            # 建立主框架
-            main_frame = ctk.CTkFrame(self.window, fg_color="transparent")
+            # 建立可滾動主框架
+            main_frame = ctk.CTkScrollableFrame(
+                self.window,
+                fg_color="transparent",
+                corner_radius=0
+            )
             main_frame.pack(fill="both", expand=True, padx=30, pady=30)
 
             logger.info("[設定視窗] 取得音訊裝置列表")
