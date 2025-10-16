@@ -5,6 +5,17 @@
 
 import sys
 import os
+
+# 確保可以找到 src 模組（支援從任意位置執行）
+if __name__ == "__main__":
+    # 取得專案根目錄（main.py 的父目錄的父目錄）
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(current_dir)
+
+    # 將專案根目錄加入 Python 路徑
+    if project_root not in sys.path:
+        sys.path.insert(0, project_root)
+
 from PIL import Image, ImageDraw
 import pystray
 from pystray import MenuItem as item
