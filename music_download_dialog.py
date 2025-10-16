@@ -47,6 +47,8 @@ class MusicDownloadDialog:
 
         # 置中顯示
         self.dialog.transient(self.parent)
+        self.dialog.lift()
+        self.dialog.focus_force()
         self.dialog.grab_set()
 
         main_frame = tk.Frame(self.dialog, bg="#1e1e1e")
@@ -263,6 +265,8 @@ class MusicDownloadDialog:
 
         # 置中顯示
         result_dialog.transient(self.dialog)
+        result_dialog.lift()
+        result_dialog.focus_force()
         result_dialog.grab_set()
 
         main_frame = tk.Frame(result_dialog, bg="#1e1e1e")
@@ -420,6 +424,8 @@ class MusicDownloadDialog:
         self.progress_dialog.configure(bg="#1e1e1e")
         self.progress_dialog.resizable(False, False)
         self.progress_dialog.transient(self.parent)
+        self.progress_dialog.lift()
+        self.progress_dialog.focus_force()
         self.progress_dialog.grab_set()
 
         # 進度框架

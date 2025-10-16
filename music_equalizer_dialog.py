@@ -50,6 +50,11 @@ class MusicEqualizerDialog:
         self.dialog.title("等化器設定")
         self.dialog.geometry("800x650")
 
+        # 置頂並聚焦
+        self.dialog.transient(self.parent)
+        self.dialog.lift()
+        self.dialog.focus_force()
+
         # === 主框架 ===
         main_frame = ctk.CTkFrame(self.dialog, corner_radius=15)
         main_frame.pack(fill="both", expand=True, padx=20, pady=20)

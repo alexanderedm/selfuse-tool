@@ -33,6 +33,8 @@ class MusicHistoryDialog:
         history_dialog.configure(bg="#1e1e1e")
         history_dialog.resizable(True, True)
         history_dialog.transient(self.parent)
+        history_dialog.lift()
+        history_dialog.focus_force()
 
         main_frame = tk.Frame(history_dialog, bg="#1e1e1e")
         main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
@@ -169,6 +171,8 @@ class MusicHistoryDialog:
         most_played_dialog.configure(bg="#1e1e1e")
         most_played_dialog.resizable(True, True)
         most_played_dialog.transient(self.parent)
+        most_played_dialog.lift()
+        most_played_dialog.focus_force()
 
         main_frame = tk.Frame(most_played_dialog, bg="#1e1e1e")
         main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)

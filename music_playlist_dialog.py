@@ -41,6 +41,8 @@ class MusicPlaylistDialog:
         playlist_dialog.configure(bg="#1e1e1e")
         playlist_dialog.resizable(True, True)
         playlist_dialog.transient(self.parent_window)
+        playlist_dialog.lift()
+        playlist_dialog.focus_force()
 
         main_frame = tk.Frame(playlist_dialog, bg="#1e1e1e")
         main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
@@ -344,6 +346,8 @@ class MusicPlaylistDialog:
         select_dialog.configure(bg="#1e1e1e")
         select_dialog.resizable(False, False)
         select_dialog.transient(self.parent_window)
+        select_dialog.lift()
+        select_dialog.focus_force()
         select_dialog.grab_set()
 
         main_frame = tk.Frame(select_dialog, bg="#1e1e1e")
@@ -474,6 +478,8 @@ class MusicPlaylistDialog:
         detail_dialog.configure(bg="#1e1e1e")
         detail_dialog.resizable(True, True)
         detail_dialog.transient(self.parent_window)
+        detail_dialog.lift()
+        detail_dialog.focus_force()
 
         main_frame = tk.Frame(detail_dialog, bg="#1e1e1e")
         main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)

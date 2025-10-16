@@ -1,6 +1,7 @@
 """音樂庫視圖模組 - 資料夾樹和歌曲列表"""
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, messagebox, simpledialog
+import customtkinter as ctk
 from logger import logger
 
 
@@ -32,6 +33,10 @@ class MusicLibraryView:
         # 當前播放列表
         self.current_playlist = []
 
+        # 排序狀態
+        self.sort_by = "歌曲名稱"
+        self.ascending = True
+
         # 顏色主題
         self.bg_color = "#1e1e1e"
         self.card_bg = "#2d2d2d"
@@ -41,8 +46,11 @@ class MusicLibraryView:
         self.header_bg = "#0d47a1"
 
         # 建立主框架
-        self.main_frame = tk.Frame(parent, bg=self.bg_color)
+        self.main_frame = ctk.CTkFrame(parent, fg_color="transparent")
         self.main_frame.pack(fill=tk.BOTH, expand=True)
+
+        # 排序按鈕的引用
+        self.order_button = None
 
         # 建立 UI 元件
         self._create_ui()
@@ -52,24 +60,27 @@ class MusicLibraryView:
 
     def _create_ui(self):
         """建立 UI 元件"""
-        # 左側:資料夾樹狀結構
-        left_frame = tk.Frame(self.main_frame, bg=self.card_bg, relief=tk.RIDGE, bd=1)
-        left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=False, padx=(0, 10))
-        left_frame.config(width=350)
-
-        category_header = tk.Label(
-            left_frame,
-            text="📁 資料夾",
-            font=("Microsoft JhengHei UI", 11, "bold"),
-            bg=self.header_bg,
-            fg="white",
-            pady=8
+        # 左側:資料夾樹狀結構 (使用 CustomTkinter 框架 + ttk.Treeview)
+        left_frame = ctk.CTkFrame(
+            self.main_frame,
+            corner_radius=15,
+            fg_color=self.card_bg
         )
-        category_header.pack(fill=tk.X)
+        left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=False, padx=(0, 10))
+        left_frame.configure(width=350)
 
-        # 建立 Treeview
+        # 標題
+        category_header = ctk.CTkLabel(
+            left_frame,
+            text="📂 資料夾",
+            font=("Microsoft JhengHei UI", 12, "bold"),
+            text_color="white"
+        )
+        category_header.pack(fill=tk.X, padx=10, pady=(10, 5))
+
+        # Treeview 框架 (內嵌 ttk.Treeview)
         tree_frame = tk.Frame(left_frame, bg=self.card_bg)
-        tree_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        tree_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=(5, 10))
 
         category_scroll = tk.Scrollbar(tree_frame)
         category_scroll.pack(side=tk.RIGHT, fill=tk.Y)
@@ -104,23 +115,29 @@ class MusicLibraryView:
         self.category_tree.bind('<Button-3>', self._on_category_right_click)
         self.category_tree.bind('<Double-1>', self._on_category_double_click_internal)
 
-        # 右側:歌曲列表
-        right_frame = tk.Frame(self.main_frame, bg=self.card_bg, relief=tk.RIDGE, bd=1)
+        # 右側:歌曲列表 (使用 CustomTkinter 框架 + ttk.Treeview)
+        right_frame = ctk.CTkFrame(
+            self.main_frame,
+            corner_radius=15,
+            fg_color=self.card_bg
+        )
         right_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
-        song_header = tk.Label(
+        # 標題
+        song_header = ctk.CTkLabel(
             right_frame,
             text="🎵 歌曲列表",
-            font=("Microsoft JhengHei UI", 11, "bold"),
-            bg=self.header_bg,
-            fg="white",
-            pady=8
+            font=("Microsoft JhengHei UI", 12, "bold"),
+            text_color="white"
         )
-        song_header.pack(fill=tk.X)
+        song_header.pack(fill=tk.X, padx=10, pady=(10, 5))
+
+        # 排序控制區
+        self._create_sort_controls(right_frame)
 
         # 建立 Treeview 用於歌曲列表
         song_tree_frame = tk.Frame(right_frame, bg=self.card_bg)
-        song_tree_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        song_tree_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=(5, 10))
 
         song_scroll = tk.Scrollbar(song_tree_frame)
         song_scroll.pack(side=tk.RIGHT, fill=tk.Y)
@@ -142,10 +159,10 @@ class MusicLibraryView:
         )
         style.map('Song.Treeview', background=[('selected', self.accent_color)])
 
-        # 建立 Treeview,包含標題和時長兩個欄位
+        # 建立 Treeview,包含標題、藝術家和時長三個欄位
         self.song_tree = ttk.Treeview(
             song_tree_frame,
-            columns=('title', 'duration'),
+            columns=('title', 'artist', 'duration'),
             show='headings',
             yscrollcommand=song_scroll.set,
             style="Song.Treeview",
@@ -154,15 +171,314 @@ class MusicLibraryView:
 
         # 設定欄位標題和寬度
         self.song_tree.heading('title', text='🎵 歌曲名稱', anchor=tk.W)
+        self.song_tree.heading('artist', text='🎤 藝術家', anchor=tk.W)
         self.song_tree.heading('duration', text='⏱ 時長', anchor=tk.E)
 
         # 設定欄位寬度
-        self.song_tree.column('title', width=400, anchor=tk.W)
+        self.song_tree.column('title', width=350, anchor=tk.W)
+        self.song_tree.column('artist', width=200, anchor=tk.W)
         self.song_tree.column('duration', width=80, anchor=tk.E)
 
         self.song_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         song_scroll.config(command=self.song_tree.yview)
         self.song_tree.bind('<Double-1>', self._on_song_double_click)
+        self.song_tree.bind('<Button-3>', self._on_song_right_click)
+
+    def _create_sort_controls(self, parent):
+        """建立排序控制區
+
+        Args:
+            parent: 父框架
+        """
+        sort_frame = ctk.CTkFrame(parent, fg_color="transparent")
+        sort_frame.pack(fill=tk.X, padx=10, pady=(5, 5))
+
+        # 排序標籤
+        ctk.CTkLabel(
+            sort_frame,
+            text="排序：",
+            font=("Microsoft JhengHei UI", 10),
+            text_color=self.text_secondary
+        ).pack(side=tk.LEFT, padx=(0, 5))
+
+        # 排序方式選單
+        self.sort_menu = ctk.CTkOptionMenu(
+            sort_frame,
+            values=["歌曲名稱", "藝術家", "時長"],
+            command=self._on_sort_change,
+            width=120,
+            height=32,
+            corner_radius=8,
+            font=("Microsoft JhengHei UI", 10)
+        )
+        self.sort_menu.set(self.sort_by)
+        self.sort_menu.pack(side=tk.LEFT)
+
+        # 升序/降序切換按鈕
+        self.order_button = ctk.CTkButton(
+            sort_frame,
+            text="↓ 降序",
+            width=80,
+            height=32,
+            corner_radius=8,
+            font=("Microsoft JhengHei UI", 10),
+            command=self._toggle_sort_order
+        )
+        self.order_button.pack(side=tk.LEFT, padx=(5, 0))
+
+    def _on_sort_change(self, sort_by):
+        """排序方式改變"""
+        self.sort_by = sort_by
+        self._sort_songs()
+
+    def _toggle_sort_order(self):
+        """切換升序/降序"""
+        self.ascending = not self.ascending
+        if self.order_button:
+            self.order_button.configure(
+                text="↑ 升序" if self.ascending else "↓ 降序"
+            )
+        self._sort_songs()
+
+    def _sort_songs(self):
+        """對歌曲列表排序"""
+        if not self.current_playlist:
+            return
+
+        # 根據選擇的排序方式排序
+        if self.sort_by == "歌曲名稱":
+            sorted_playlist = sorted(
+                self.current_playlist,
+                key=lambda x: x.get('title', '').lower(),
+                reverse=not self.ascending
+            )
+        elif self.sort_by == "藝術家":
+            sorted_playlist = sorted(
+                self.current_playlist,
+                key=lambda x: x.get('uploader', '').lower(),
+                reverse=not self.ascending
+            )
+        elif self.sort_by == "時長":
+            sorted_playlist = sorted(
+                self.current_playlist,
+                key=lambda x: x.get('duration', 0),
+                reverse=not self.ascending
+            )
+        else:
+            sorted_playlist = self.current_playlist
+
+        # 更新顯示
+        self.display_songs(sorted_playlist)
+
+    def _on_song_right_click(self, event):
+        """歌曲右鍵選單"""
+        # 獲取點擊的歌曲
+        item_id = self.song_tree.identify_row(event.y)
+        if not item_id:
+            return
+
+        # 選中該項目
+        self.song_tree.selection_set(item_id)
+        item_index = self.song_tree.index(item_id)
+
+        if item_index >= len(self.current_playlist):
+            return
+
+        song = self.current_playlist[item_index]
+
+        # 建立右鍵選單
+        menu = tk.Menu(self.parent, tearoff=0, bg=self.card_bg, fg=self.text_color)
+        menu.add_command(
+            label="📁 移動到...",
+            command=lambda: self._move_song_dialog(song)
+        )
+        menu.add_separator()
+        menu.add_command(
+            label="🗑️ 刪除",
+            command=lambda: self._delete_song(song)
+        )
+        menu.post(event.x_root, event.y_root)
+
+    def _move_song_dialog(self, song):
+        """顯示移動歌曲對話框
+
+        Args:
+            song (dict): 歌曲資料
+        """
+        # 獲取所有分類（資料夾）
+        categories = self.music_manager.get_all_categories()
+
+        if not categories:
+            messagebox.showwarning("警告", "沒有可移動到的資料夾")
+            return
+
+        # 建立對話框
+        dialog = ctk.CTkToplevel(self.parent)
+        dialog.title("移動歌曲")
+        dialog.geometry("450x400")
+        dialog.transient(self.parent)
+        dialog.lift()
+        dialog.focus_force()
+
+        # 主框架
+        main_frame = ctk.CTkFrame(dialog, corner_radius=15)
+        main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+
+        # 標題
+        ctk.CTkLabel(
+            main_frame,
+            text=f"移動歌曲: {song['title'][:40]}",
+            font=("Microsoft JhengHei UI", 12, "bold"),
+            wraplength=400
+        ).pack(pady=(0, 10))
+
+        # 當前資料夾
+        current_category = song.get('category', 'Unknown')
+        ctk.CTkLabel(
+            main_frame,
+            text=f"當前資料夾: {current_category}",
+            font=("Microsoft JhengHei UI", 10),
+            text_color=self.text_secondary
+        ).pack(pady=(0, 15))
+
+        # 目標資料夾選擇
+        ctk.CTkLabel(
+            main_frame,
+            text="選擇目標資料夾:",
+            font=("Microsoft JhengHei UI", 10)
+        ).pack(anchor=tk.W, pady=(0, 5))
+
+        # 列表框框架
+        listbox_frame = tk.Frame(main_frame, bg=self.card_bg)
+        listbox_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 15))
+
+        scrollbar = tk.Scrollbar(listbox_frame)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        category_listbox = tk.Listbox(
+            listbox_frame,
+            yscrollcommand=scrollbar.set,
+            bg=self.card_bg,
+            fg=self.text_color,
+            selectbackground=self.accent_color,
+            selectforeground="white",
+            font=("Microsoft JhengHei UI", 10),
+            borderwidth=0,
+            highlightthickness=0
+        )
+        category_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scrollbar.config(command=category_listbox.yview)
+
+        # 填充資料夾列表（排除當前資料夾）
+        for category in categories:
+            if category != current_category:
+                category_listbox.insert(tk.END, category)
+
+        # 按鈕區
+        button_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+        button_frame.pack()
+
+        def confirm_move():
+            selection = category_listbox.curselection()
+            if not selection:
+                messagebox.showwarning("警告", "請選擇目標資料夾", parent=dialog)
+                return
+
+            target_category = category_listbox.get(selection[0])
+
+            # 執行移動
+            if self._move_song_to_category(song, target_category):
+                messagebox.showinfo(
+                    "成功",
+                    f"歌曲已移動到 '{target_category}'",
+                    parent=dialog
+                )
+                dialog.destroy()
+                # 重新載入音樂庫
+                self.reload_library()
+            else:
+                messagebox.showerror("錯誤", "移動歌曲失敗", parent=dialog)
+
+        ctk.CTkButton(
+            button_frame,
+            text="確定",
+            width=100,
+            command=confirm_move
+        ).pack(side=tk.LEFT, padx=5)
+
+        ctk.CTkButton(
+            button_frame,
+            text="取消",
+            width=100,
+            fg_color="gray40",
+            hover_color="gray50",
+            command=dialog.destroy
+        ).pack(side=tk.LEFT, padx=5)
+
+    def _move_song_to_category(self, song, target_category):
+        """移動歌曲到指定分類
+
+        Args:
+            song (dict): 歌曲資料
+            target_category (str): 目標分類名稱
+
+        Returns:
+            bool: 是否成功
+        """
+        try:
+            import os
+            import shutil
+
+            # 獲取原始檔案路徑
+            source_path = song.get('filepath')
+            if not source_path or not os.path.exists(source_path):
+                logger.error(f"歌曲檔案不存在: {source_path}")
+                return False
+
+            # 建立目標路徑
+            music_root = self.music_manager.music_root_path
+            target_dir = os.path.join(music_root, target_category)
+            os.makedirs(target_dir, exist_ok=True)
+
+            filename = os.path.basename(source_path)
+            target_path = os.path.join(target_dir, filename)
+
+            # 移動檔案
+            shutil.move(source_path, target_path)
+
+            logger.info(f"歌曲已移動: {source_path} -> {target_path}")
+            return True
+
+        except Exception as e:
+            logger.error(f"移動歌曲失敗: {e}")
+            return False
+
+    def _delete_song(self, song):
+        """刪除歌曲
+
+        Args:
+            song (dict): 歌曲資料
+        """
+        result = messagebox.askyesno(
+            "確認刪除",
+            f"確定要刪除歌曲嗎？\n\n{song['title']}\n\n此操作無法復原！"
+        )
+
+        if result:
+            try:
+                import os
+                filepath = song.get('filepath')
+                if filepath and os.path.exists(filepath):
+                    os.remove(filepath)
+                    logger.info(f"歌曲已刪除: {filepath}")
+                    messagebox.showinfo("成功", "歌曲已刪除")
+                    # 重新載入音樂庫
+                    self.reload_library()
+                else:
+                    messagebox.showerror("錯誤", "找不到歌曲檔案")
+            except Exception as e:
+                logger.error(f"刪除歌曲失敗: {e}")
+                messagebox.showerror("錯誤", f"刪除失敗: {e}")
 
     def _load_music_library(self):
         """載入音樂庫"""
@@ -320,10 +636,88 @@ class MusicLibraryView:
                 self.on_song_double_click(song, self.current_playlist, index)
 
     def _on_category_right_click(self, event):
-        """右鍵選單"""
-        # 這個方法需要由父視窗實作,因為涉及到對話框和檔案操作
-        # 暫時保留為空
-        pass
+        """資料夾右鍵選單"""
+        # 獲取點擊的項目
+        item_id = self.category_tree.identify_row(event.y)
+        if not item_id:
+            return
+
+        # 選中該項目
+        self.category_tree.selection_set(item_id)
+        item_values = self.category_tree.item(item_id, 'values')
+
+        if not item_values:
+            return
+
+        item_type = item_values[0]
+
+        # 只對資料夾顯示右鍵選單
+        if item_type.startswith('folder:'):
+            category_name = item_type.replace('folder:', '')
+
+            # 建立右鍵選單
+            menu = tk.Menu(self.parent, tearoff=0, bg=self.card_bg, fg=self.text_color)
+            menu.add_command(
+                label="✏️ 重新命名",
+                command=lambda: self._rename_category(category_name)
+            )
+            menu.add_separator()
+            menu.add_command(
+                label="🗑️ 刪除",
+                command=lambda: self._delete_category(category_name)
+            )
+            menu.post(event.x_root, event.y_root)
+
+    def _rename_category(self, old_name):
+        """重新命名分類
+
+        Args:
+            old_name (str): 舊分類名稱
+        """
+        new_name = simpledialog.askstring(
+            "重新命名資料夾",
+            "請輸入新名稱:",
+            initialvalue=old_name
+        )
+
+        if not new_name or new_name.strip() == "" or new_name == old_name:
+            return
+
+        new_name = new_name.strip()
+
+        # 執行重命名
+        if self.on_category_rename:
+            success = self.on_category_rename(old_name, new_name)
+            if success:
+                messagebox.showinfo("成功", f"資料夾已重新命名為 '{new_name}'")
+                self.reload_library()
+            else:
+                messagebox.showerror("錯誤", "重新命名失敗")
+
+    def _delete_category(self, category_name):
+        """刪除分類
+
+        Args:
+            category_name (str): 分類名稱
+        """
+        songs = self.music_manager.get_songs_by_category(category_name)
+        song_count = len(songs)
+
+        result = messagebox.askyesno(
+            "確認刪除",
+            f"確定要刪除資料夾 '{category_name}' 嗎？\n\n"
+            f"此資料夾包含 {song_count} 首歌曲。\n\n"
+            f"此操作無法復原！"
+        )
+
+        if result:
+            if self.on_category_delete:
+                success = self.on_category_delete(category_name)
+                if success:
+                    messagebox.showinfo("成功", "資料夾已刪除")
+                    self.reload_library()
+                else:
+                    messagebox.showerror("錯誤", "刪除資料夾失敗")
 
     def _on_song_double_click(self, event):
         """歌曲雙擊事件"""
@@ -355,7 +749,8 @@ class MusicLibraryView:
         # 插入歌曲到 Treeview
         for song in songs:
             duration_str = self.music_manager.format_duration(song['duration'])
-            self.song_tree.insert('', 'end', values=(song['title'], duration_str))
+            artist = song.get('uploader', 'Unknown')
+            self.song_tree.insert('', 'end', values=(song['title'], artist, duration_str))
 
     def reload_library(self):
         """重新載入音樂庫"""

@@ -362,6 +362,12 @@ class SettingsWindow:
 
         self.window = self._create_window()
 
+        # 如果是 Toplevel 視窗,設定置頂和聚焦
+        if self.tk_root and isinstance(self.window, tk.Toplevel):
+            self.window.transient(self.tk_root)
+            self.window.lift()
+            self.window.focus_force()
+
         # 設定深色主題顏色
         bg_color = "#1e1e1e"
         card_bg = "#2d2d2d"

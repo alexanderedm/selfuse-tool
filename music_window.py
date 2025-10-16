@@ -204,7 +204,8 @@ class MusicWindow:
             self.window = ctk.CTk()
 
         self.window.title("🎵 本地音樂播放器")
-        self.window.geometry("900x600")
+        self.window.geometry("1200x700")
+        self.window.minsize(1200, 700)  # 設定最小視窗大小，確保所有按鈕顯示完整
         self.window.resizable(True, True)
 
         # 初始化歷史對話框
@@ -912,43 +913,36 @@ class MusicWindow:
             else:
                 messagebox.showerror("錯誤", "建立資料夾失敗")
 
-    def _rename_folder(self, item_id, old_name):
-        """重新命名資料夾"""
-        new_name = simpledialog.askstring("重新命名資料夾", "請輸入新的資料夾名稱:", initialvalue=old_name)
-        if not new_name or not new_name.strip() or new_name == old_name:
-            return
+    def _rename_folder(self, old_name, new_name):
+        """重新命名資料夾
 
-        new_name = new_name.strip()
+        Args:
+            old_name (str): 舊資料夾名稱
+            new_name (str): 新資料夾名稱
 
+        Returns:
+            bool: 是否成功
+        """
         # 使用 MusicFileManager 重新命名資料夾
-        if self.file_manager.rename_folder(old_name, new_name):
-            # 重新載入音樂庫
-            self._reload_music_library()
-            messagebox.showinfo("成功", f"資料夾已重新命名為 '{new_name}'")
-        else:
-            if self.file_manager.folder_exists(new_name):
-                messagebox.showerror("錯誤", f"資料夾 '{new_name}' 已存在")
-            else:
-                messagebox.showerror("錯誤", "重新命名資料夾失敗")
+        success = self.file_manager.rename_folder(old_name, new_name)
 
-    def _delete_folder(self, item_id, folder_name):
-        """刪除資料夾"""
-        # 確認刪除
-        result = messagebox.askyesno(
-            "確認刪除",
-            f"確定要刪除資料夾 '{folder_name}' 及其所有內容嗎?\n\n此操作無法復原!"
-        )
+        if not success and not self.file_manager.folder_exists(new_name):
+            # 只有在非重複名稱的情況下才回傳 False
+            pass
 
-        if not result:
-            return
+        return success
 
+    def _delete_folder(self, folder_name):
+        """刪除資料夾
+
+        Args:
+            folder_name (str): 要刪除的資料夾名稱
+
+        Returns:
+            bool: 是否成功
+        """
         # 使用 MusicFileManager 刪除資料夾
-        if self.file_manager.delete_folder(folder_name):
-            # 重新載入音樂庫
-            self._reload_music_library()
-            messagebox.showinfo("成功", f"資料夾 '{folder_name}' 已刪除")
-        else:
-            messagebox.showerror("錯誤", "刪除資料夾失敗")
+        return self.file_manager.delete_folder(folder_name)
 
     def _delete_song(self, item_id, song):
         """刪除歌曲(使用 song_actions 模組)"""

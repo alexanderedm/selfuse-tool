@@ -1,6 +1,20 @@
 {
   "recent_plays": [
     {
+      "song_id": "BXO1Ne4bJmE",
+      "title": "美秀集團 Amazing Show－物語 Tales【Official Music Video】",
+      "artist": "美秀集團 Amazing Show",
+      "category": "華語流行音樂",
+      "played_at": "2025-10-16T02:07:49.200856"
+    },
+    {
+      "song_id": "BryspbM6s3E",
+      "title": "UNDEAD",
+      "artist": "未知",
+      "category": "Electronic",
+      "played_at": "2025-10-16T02:07:40.919828"
+    },
+    {
       "song_id": "9B0yX0UIN9M",
       "title": "I Really Want to Stay at Your House",
       "artist": "未知",
@@ -247,13 +261,13 @@
     }
   ],
   "play_counts": {
-    "BryspbM6s3E": 5,
+    "BryspbM6s3E": 6,
     "DiTd771WumE": 4,
     "bYWR9Ms1FSM": 1,
     "Z7mCrxjivB0": 1,
     "fxHjlCBHuzA": 5,
     "mRma6NkHwWU": 1,
-    "BXO1Ne4bJmE": 2,
+    "BXO1Ne4bJmE": 3,
     "vqsdUXUxdq8": 2,
     "eVLxJqxbv1k": 4,
     "-LwBbLa_Vhc": 1,
@@ -264,5 +278,5 @@
     "U-bXx_4Nwx8": 1,
     "9B0yX0UIN9M": 1
   },
-  "total_plays": 35
+  "total_plays": 37
 }
