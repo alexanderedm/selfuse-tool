@@ -195,43 +195,43 @@ class MusicPlaybackView:
         prev_button = ctk.CTkButton(
             button_container,
             text="⏮",
-            font=("Arial", 20),
-            width=55,
-            height=55,
-            corner_radius=28,
+            font=("Arial", 18),
+            width=50,
+            height=50,
+            corner_radius=25,
             fg_color=self.accent_color,
             hover_color=self.hover_color,
             command=self.on_play_previous
         )
-        prev_button.pack(side="left", padx=5)
+        prev_button.pack(side="left", padx=3)
 
         # 播放/暫停按鈕（大圓形）
         self.play_pause_button = ctk.CTkButton(
             button_container,
             text="▶",
-            font=("Arial", 26),
-            width=75,
-            height=75,
-            corner_radius=38,
+            font=("Arial", 24),
+            width=65,
+            height=65,
+            corner_radius=33,
             fg_color=self.accent_color,
             hover_color=self.hover_color,
             command=self.on_play_pause
         )
-        self.play_pause_button.pack(side="left", padx=8)
+        self.play_pause_button.pack(side="left", padx=6)
 
         # 下一首按鈕（中等圓角）
         next_button = ctk.CTkButton(
             button_container,
             text="⏭",
-            font=("Arial", 20),
-            width=55,
-            height=55,
-            corner_radius=28,
+            font=("Arial", 18),
+            width=50,
+            height=50,
+            corner_radius=25,
             fg_color=self.accent_color,
             hover_color=self.hover_color,
             command=self.on_play_next
         )
-        next_button.pack(side="left", padx=5)
+        next_button.pack(side="left", padx=3)
 
         # === 音量控制區 ===
         volume_frame = ctk.CTkFrame(
