@@ -1,6 +1,7 @@
 """音樂下載對話框模組"""
 import tkinter as tk
 from tkinter import ttk, messagebox, simpledialog
+import customtkinter as ctk
 import threading
 import re
 import os
@@ -38,11 +39,10 @@ class MusicDownloadDialog:
             )
             return
 
-        # 建立下載對話框
-        self.dialog = tk.Toplevel(self.parent)
+        # 建立下載對話框（CustomTkinter）
+        self.dialog = ctk.CTkToplevel(self.parent)
         self.dialog.title("📥 下載 YouTube 音樂")
         self.dialog.geometry("600x400")
-        self.dialog.configure(bg="#1e1e1e")
         self.dialog.resizable(False, False)
 
         # 置中顯示
@@ -51,53 +51,46 @@ class MusicDownloadDialog:
         self.dialog.focus_force()
         self.dialog.grab_set()
 
-        main_frame = tk.Frame(self.dialog, bg="#1e1e1e")
+        # 主框架（圓角）
+        main_frame = ctk.CTkFrame(self.dialog, corner_radius=15)
         main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
 
         # 標題
-        tk.Label(
+        ctk.CTkLabel(
             main_frame,
             text="下載 YouTube 音樂",
-            font=("Microsoft JhengHei UI", 14, "bold"),
-            bg="#1e1e1e",
-            fg="#e0e0e0"
-        ).pack(pady=(0, 15))
+            font=("Microsoft JhengHei UI", 14, "bold")
+        ).pack(pady=(20, 15), padx=20)
 
         # 搜尋/URL 輸入框架
-        input_frame = tk.Frame(main_frame, bg="#1e1e1e")
-        input_frame.pack(fill=tk.X, pady=(0, 15))
+        input_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+        input_frame.pack(fill=tk.X, padx=20, pady=(0, 15))
 
         # URL 輸入
-        tk.Label(
+        ctk.CTkLabel(
             input_frame,
             text="YouTube 連結或搜尋關鍵字:",
-            font=("Microsoft JhengHei UI", 10),
-            bg="#1e1e1e",
-            fg="#e0e0e0"
+            font=("Microsoft JhengHei UI", 11)
         ).pack(anchor=tk.W)
 
-        url_entry = tk.Entry(
+        url_entry = ctk.CTkEntry(
             input_frame,
-            font=("Microsoft JhengHei UI", 10),
-            bg="#2d2d2d",
-            fg="#e0e0e0",
-            insertbackground="#e0e0e0",
-            relief=tk.FLAT,
-            borderwidth=0
+            font=("Microsoft JhengHei UI", 11),
+            height=40,
+            corner_radius=8,
+            placeholder_text="輸入 YouTube URL 或搜尋關鍵字..."
         )
-        url_entry.pack(fill=tk.X, ipady=8, pady=(5, 0))
+        url_entry.pack(fill=tk.X, pady=(5, 0))
 
         # 分類選擇
-        tk.Label(
+        ctk.CTkLabel(
             main_frame,
             text="下載到分類:",
-            font=("Microsoft JhengHei UI", 10),
-            bg="#1e1e1e",
-            fg="#e0e0e0"
-        ).pack(anchor=tk.W)
+            font=("Microsoft JhengHei UI", 11)
+        ).pack(anchor=tk.W, padx=20)
 
-        category_frame = tk.Frame(main_frame, bg="#1e1e1e")
-        category_frame.pack(fill=tk.X, pady=(5, 15))
+        category_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+        category_frame.pack(fill=tk.X, padx=20, pady=(5, 15))
 
         categories = self.music_manager.get_all_categories()
         if not categories:
@@ -105,46 +98,41 @@ class MusicDownloadDialog:
 
         category_var = tk.StringVar(value=categories[0] if categories else "下載")
 
-        category_combo = ttk.Combobox(
+        category_menu = ctk.CTkOptionMenu(
             category_frame,
-            textvariable=category_var,
+            variable=category_var,
             values=categories,
-            font=("Microsoft JhengHei UI", 10),
-            state="readonly"
+            font=("Microsoft JhengHei UI", 11),
+            height=38,
+            corner_radius=8
         )
-        category_combo.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        category_menu.pack(side=tk.LEFT, fill=tk.X, expand=True)
 
         # 或新增分類
-        new_category_button = tk.Button(
+        new_category_button = ctk.CTkButton(
             category_frame,
             text="+ 新增分類",
-            font=("Microsoft JhengHei UI", 9),
-            bg="#353535",
-            fg="#e0e0e0",
-            activebackground="#505050",
-            activeforeground="white",
-            borderwidth=0,
-            padx=10,
-            pady=5,
-            command=lambda: self._add_new_category(category_combo, category_var)
+            font=("Microsoft JhengHei UI", 10),
+            fg_color="#353535",
+            hover_color="#505050",
+            height=38,
+            width=110,
+            corner_radius=8,
+            command=lambda: self._add_new_category(category_menu, category_var)
         )
         new_category_button.pack(side=tk.LEFT, padx=(10, 0))
 
         # 按鈕區
-        button_frame = tk.Frame(main_frame, bg="#1e1e1e")
-        button_frame.pack(pady=(10, 0))
+        button_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+        button_frame.pack(padx=20, pady=(10, 20))
 
-        download_btn = tk.Button(
+        download_btn = ctk.CTkButton(
             button_frame,
             text="🎵 開始",
-            font=("Microsoft JhengHei UI", 10),
-            bg="#0078d4",
-            fg="white",
-            activebackground="#005a9e",
-            activeforeground="white",
-            borderwidth=0,
-            padx=30,
-            pady=8,
+            font=("Microsoft JhengHei UI", 11),
+            height=40,
+            width=140,
+            corner_radius=10,
             command=lambda: self._smart_download_or_search(
                 url_entry.get(),
                 category_var.get()
@@ -152,17 +140,15 @@ class MusicDownloadDialog:
         )
         download_btn.pack(side=tk.LEFT, padx=5)
 
-        cancel_btn = tk.Button(
+        cancel_btn = ctk.CTkButton(
             button_frame,
             text="取消",
-            font=("Microsoft JhengHei UI", 10),
-            bg="#353535",
-            fg="white",
-            activebackground="#505050",
-            activeforeground="white",
-            borderwidth=0,
-            padx=20,
-            pady=8,
+            font=("Microsoft JhengHei UI", 11),
+            fg_color="#353535",
+            hover_color="#505050",
+            height=40,
+            width=100,
+            corner_radius=10,
             command=self.dialog.destroy
         )
         cancel_btn.pack(side=tk.LEFT, padx=5)
@@ -256,11 +242,10 @@ class MusicDownloadDialog:
             results (list): 搜尋結果列表
             category (str): 目標分類
         """
-        # 建立結果對話框
-        result_dialog = tk.Toplevel(self.dialog)
+        # 建立結果對話框（CustomTkinter）
+        result_dialog = ctk.CTkToplevel(self.dialog)
         result_dialog.title("🔍 搜尋結果")
         result_dialog.geometry("700x500")
-        result_dialog.configure(bg="#1e1e1e")
         result_dialog.resizable(False, False)
 
         # 置中顯示
@@ -269,30 +254,28 @@ class MusicDownloadDialog:
         result_dialog.focus_force()
         result_dialog.grab_set()
 
-        main_frame = tk.Frame(result_dialog, bg="#1e1e1e")
+        # 主框架（圓角）
+        main_frame = ctk.CTkFrame(result_dialog, corner_radius=15)
         main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
 
         # 標題
-        tk.Label(
+        ctk.CTkLabel(
             main_frame,
             text=f"找到 {len(results)} 個結果,請選擇要下載的影片:",
-            font=("Microsoft JhengHei UI", 12, "bold"),
-            bg="#1e1e1e",
-            fg="#e0e0e0"
-        ).pack(pady=(0, 10))
+            font=("Microsoft JhengHei UI", 12, "bold")
+        ).pack(pady=(20, 10), padx=20)
 
         # 顯示將下載到的分類
-        tk.Label(
+        ctk.CTkLabel(
             main_frame,
             text=f"下載分類: {category}",
-            font=("Microsoft JhengHei UI", 10),
-            bg="#1e1e1e",
-            fg="#a0a0a0"
+            font=("Microsoft JhengHei UI", 11),
+            text_color="#a0a0a0"
         ).pack(pady=(0, 15))
 
-        # 結果列表框架
-        list_frame = tk.Frame(main_frame, bg="#2d2d2d")
-        list_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 15))
+        # 結果列表框架（圓角）
+        list_frame = ctk.CTkFrame(main_frame, corner_radius=10)
+        list_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=(0, 15))
 
         # 滾動條
         scrollbar = tk.Scrollbar(list_frame)
@@ -324,8 +307,8 @@ class MusicDownloadDialog:
                 result_listbox.insert(tk.END, "")
 
         # 按鈕區
-        button_frame = tk.Frame(main_frame, bg="#1e1e1e")
-        button_frame.pack()
+        button_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+        button_frame.pack(padx=20, pady=(0, 20))
 
         def on_select():
             selection = result_listbox.curselection()
@@ -347,32 +330,26 @@ class MusicDownloadDialog:
                 # 開始下載
                 self.start_download(selected_video.get('webpage_url', ''), category)
 
-        select_btn = tk.Button(
+        select_btn = ctk.CTkButton(
             button_frame,
             text="選擇並下載",
-            font=("Microsoft JhengHei UI", 10),
-            bg="#0078d4",
-            fg="white",
-            activebackground="#005a9e",
-            activeforeground="white",
-            borderwidth=0,
-            padx=20,
-            pady=8,
+            font=("Microsoft JhengHei UI", 11),
+            height=40,
+            width=130,
+            corner_radius=10,
             command=on_select
         )
         select_btn.pack(side=tk.LEFT, padx=5)
 
-        cancel_btn = tk.Button(
+        cancel_btn = ctk.CTkButton(
             button_frame,
             text="取消",
-            font=("Microsoft JhengHei UI", 10),
-            bg="#353535",
-            fg="white",
-            activebackground="#505050",
-            activeforeground="white",
-            borderwidth=0,
-            padx=20,
-            pady=8,
+            font=("Microsoft JhengHei UI", 11),
+            fg_color="#353535",
+            hover_color="#505050",
+            height=40,
+            width=100,
+            corner_radius=10,
             command=result_dialog.destroy
         )
         cancel_btn.pack(side=tk.LEFT, padx=5)
@@ -417,60 +394,55 @@ class MusicDownloadDialog:
         threading.Thread(target=download_thread, daemon=True).start()
 
     def show_progress(self):
-        """顯示下載進度對話框"""
-        self.progress_dialog = tk.Toplevel(self.parent)
+        """顯示下載進度對話框（CustomTkinter）"""
+        self.progress_dialog = ctk.CTkToplevel(self.parent)
         self.progress_dialog.title("📥 下載中")
         self.progress_dialog.geometry("450x200")
-        self.progress_dialog.configure(bg="#1e1e1e")
         self.progress_dialog.resizable(False, False)
         self.progress_dialog.transient(self.parent)
         self.progress_dialog.lift()
         self.progress_dialog.focus_force()
         self.progress_dialog.grab_set()
 
-        # 進度框架
-        progress_frame = tk.Frame(self.progress_dialog, bg="#1e1e1e")
+        # 進度框架（圓角）
+        progress_frame = ctk.CTkFrame(self.progress_dialog, corner_radius=15)
         progress_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
 
         # 標題
-        tk.Label(
+        ctk.CTkLabel(
             progress_frame,
             text="正在下載音樂...",
-            font=("Microsoft JhengHei UI", 12, "bold"),
-            bg="#1e1e1e",
-            fg="#e0e0e0"
-        ).pack(pady=(0, 15))
+            font=("Microsoft JhengHei UI", 12, "bold")
+        ).pack(pady=(20, 15))
 
         # 狀態標籤
-        self.status_label = tk.Label(
+        self.status_label = ctk.CTkLabel(
             progress_frame,
             text="準備下載...",
-            font=("Microsoft JhengHei UI", 10),
-            bg="#1e1e1e",
-            fg="#a0a0a0",
-            wraplength=400,
-            justify=tk.CENTER
+            font=("Microsoft JhengHei UI", 11),
+            text_color="#a0a0a0",
+            wraplength=400
         )
         self.status_label.pack(pady=(0, 15))
 
         # 不確定模式的進度條
-        self.progress_bar = ttk.Progressbar(
+        self.progress_bar = ctk.CTkProgressBar(
             progress_frame,
-            orient=tk.HORIZONTAL,
+            orientation=tk.HORIZONTAL,
             mode='indeterminate',
-            length=400
+            width=400,
+            height=10
         )
-        self.progress_bar.pack(pady=(0, 15))
-        self.progress_bar.start(10)  # 開始動畫
+        self.progress_bar.pack(pady=(0, 15), padx=20)
+        self.progress_bar.start()  # 開始動畫
 
         # 小提示
-        tk.Label(
+        ctk.CTkLabel(
             progress_frame,
             text="這可能需要幾分鐘時間,請耐心等候...",
-            font=("Microsoft JhengHei UI", 8),
-            bg="#1e1e1e",
-            fg="#606060"
-        ).pack()
+            font=("Microsoft JhengHei UI", 9),
+            text_color="#606060"
+        ).pack(pady=(0, 20))
 
     def _update_progress_status(self, status):
         """更新進度狀態文字
@@ -486,11 +458,11 @@ class MusicDownloadDialog:
         if self.progress_bar:
             self.progress_bar.stop()
 
-    def _add_new_category(self, combo, var):
+    def _add_new_category(self, menu, var):
         """新增分類
 
         Args:
-            combo: Combobox 元件
+            menu: CTkOptionMenu 元件
             var: StringVar 變數
         """
         new_category = simpledialog.askstring("新增分類", "請輸入新分類名稱:")
@@ -502,8 +474,9 @@ class MusicDownloadDialog:
 
             # 更新下拉選單
             categories = self.music_manager.get_all_categories()
-            categories.append(new_category)
-            combo['values'] = categories
+            if new_category not in categories:
+                categories.append(new_category)
+            menu.configure(values=categories)
             var.set(new_category)
 
             logger.info(f"新增分類: {new_category}")

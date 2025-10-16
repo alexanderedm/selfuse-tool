@@ -10,6 +10,22 @@
 ## [未發布]
 
 ### 新增 (Added)
+- **對話框視窗 CustomTkinter 遷移** (2025-10-16 - Phase 3)
+  - 遷移 `music_playlist_dialog.py` 到 CustomTkinter（播放列表管理）
+    - 所有按鈕使用圓角設計（corner_radius=10）
+    - 對話框和框架使用圓角（corner_radius=12-15）
+    - 升級所有標籤、按鈕、輸入框到 CustomTkinter 元件
+    - 保留 ttk.Treeview（包在圓角 CTkFrame 中）
+  - 遷移 `music_download_dialog.py` 到 CustomTkinter（YouTube 下載）
+    - 圓角輸入框（corner_radius=8，帶 placeholder）
+    - 圓角下拉選單（CTkOptionMenu）
+    - 現代化進度條（CTkProgressBar，indeterminate 模式）
+    - 所有按鈕統一 40px 高度，圓角 10px
+  - 遷移 `music_history_dialog.py` 到 CustomTkinter（播放歷史）
+    - 圓角框架包裹 Treeview（corner_radius=12）
+    - 統一按鈕樣式（38px 高度，圓角 10px）
+    - 清除歷史按鈕使用警告色（#d43d00）
+  - flake8 零錯誤
 - **音樂庫視圖全面升級** (2025-10-16)
   - 遷移 `music_library_view.py` 到 CustomTkinter，獲得圓角邊框
   - 資料夾樹和歌曲列表使用圓角框架（corner_radius=15）
@@ -23,11 +39,15 @@
   - 測試通過率 > 98%
 - **CustomTkinter UI 現代化升級** (2025-10-16 - Overnight Development)
   - 遷移核心視窗到 CustomTkinter，獲得現代化圓角 UI
-  - 遷移完成的模組：
+  - 遷移完成的模組（8/16）：
     - `music_window.py` - 主視窗（ctk.CTk）
     - `music_header_view.py` - 頂部按鈕區域（圓角按鈕，更大按鈕設計）
     - `music_search_view.py` - 搜尋框（圓角輸入框 + placeholder）
     - `music_playback_view.py` - 播放控制區域（圓角框架 + 現代化控制元件）
+    - `music_library_view.py` - 音樂庫視圖（圓角框架 + 排序功能）
+    - `music_playlist_dialog.py` - 播放列表對話框
+    - `music_download_dialog.py` - YouTube 下載對話框
+    - `music_history_dialog.py` - 播放歷史對話框
   - 播放控制區域升級：
     - 大圓角主框架（corner_radius=15）
     - 播放按鈕：75x75px 大圓形按鈕（最顯眼）
@@ -41,9 +61,16 @@
   - 所有框架使用透明背景或圓角設計
   - CustomTkinter 自動管理深色主題
   - 移除舊的 ttkbootstrap 測試檔案
-  - 15 個單元測試全部通過
   - flake8 零錯誤
-  - 待遷移：library_view、lyrics_view、dialogs、windows
+  - 待遷移（8/16 模組）：
+    - `music_lyrics_view.py` - 歌詞顯示視窗
+    - `music_equalizer_dialog.py` - 等化器對話框（已有 auto-focus）
+    - `settings_window.py` - 設定視窗
+    - `rss_window.py` - RSS 閱讀器主視窗
+    - `stats_window.py` - 統計視窗
+    - `changelog_window.py` - 更新日誌視窗
+    - `rss_feed_list_view.py` - RSS Feed 列表
+    - `rss_entry_list_view.py` - RSS 文章列表
 
 - **Discord Rich Presence 整合** (2025-10-16)
   - 在 Discord 顯示當前播放的音樂資訊

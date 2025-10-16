@@ -1,6 +1,7 @@
 """音樂播放歷史對話框模組"""
 import tkinter as tk
 from tkinter import ttk, messagebox
+import customtkinter as ctk
 from datetime import datetime
 from logger import logger
 
@@ -26,43 +27,40 @@ class MusicHistoryDialog:
         Returns:
             Toplevel: 建立的對話框視窗
         """
-        # 建立對話框
-        history_dialog = tk.Toplevel(self.parent)
+        # 建立對話框（CustomTkinter）
+        history_dialog = ctk.CTkToplevel(self.parent)
         history_dialog.title("📜 播放歷史")
         history_dialog.geometry("700x500")
-        history_dialog.configure(bg="#1e1e1e")
         history_dialog.resizable(True, True)
         history_dialog.transient(self.parent)
         history_dialog.lift()
         history_dialog.focus_force()
 
-        main_frame = tk.Frame(history_dialog, bg="#1e1e1e")
+        # 主框架（圓角）
+        main_frame = ctk.CTkFrame(history_dialog, corner_radius=15)
         main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
 
         # 標題和統計資訊
-        header_frame = tk.Frame(main_frame, bg="#1e1e1e")
-        header_frame.pack(fill=tk.X, pady=(0, 15))
+        header_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+        header_frame.pack(fill=tk.X, padx=20, pady=(20, 15))
 
-        tk.Label(
+        ctk.CTkLabel(
             header_frame,
             text="📜 最近播放",
-            font=("Microsoft JhengHei UI", 14, "bold"),
-            bg="#1e1e1e",
-            fg="#e0e0e0"
+            font=("Microsoft JhengHei UI", 14, "bold")
         ).pack(side=tk.LEFT)
 
         total_plays = self.play_history_manager.get_total_plays()
-        tk.Label(
+        ctk.CTkLabel(
             header_frame,
             text=f"總播放次數: {total_plays}",
-            font=("Microsoft JhengHei UI", 10),
-            bg="#1e1e1e",
-            fg="#a0a0a0"
+            font=("Microsoft JhengHei UI", 11),
+            text_color="#a0a0a0"
         ).pack(side=tk.RIGHT)
 
-        # 建立 Treeview 顯示歷史記錄
-        tree_frame = tk.Frame(main_frame, bg="#2d2d2d")
-        tree_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 15))
+        # 建立 Treeview 顯示歷史記錄（包在圓角框架中）
+        tree_frame = ctk.CTkFrame(main_frame, corner_radius=12)
+        tree_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=(0, 15))
 
         scrollbar = tk.Scrollbar(tree_frame)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
@@ -122,35 +120,31 @@ class MusicHistoryDialog:
             ))
 
         # 按鈕區
-        button_frame = tk.Frame(main_frame, bg="#1e1e1e")
-        button_frame.pack()
+        button_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+        button_frame.pack(padx=20, pady=(0, 20))
 
-        clear_button = tk.Button(
+        clear_button = ctk.CTkButton(
             button_frame,
             text="🗑️ 清除歷史",
-            font=("Microsoft JhengHei UI", 10),
-            bg="#d43d00",
-            fg="white",
-            activebackground="#b03400",
-            activeforeground="white",
-            borderwidth=0,
-            padx=20,
-            pady=8,
+            font=("Microsoft JhengHei UI", 11),
+            fg_color="#d43d00",
+            hover_color="#b03400",
+            height=38,
+            width=130,
+            corner_radius=10,
             command=lambda: self._clear_play_history(history_dialog)
         )
         clear_button.pack(side=tk.LEFT, padx=5)
 
-        close_button = tk.Button(
+        close_button = ctk.CTkButton(
             button_frame,
             text="關閉",
-            font=("Microsoft JhengHei UI", 10),
-            bg="#353535",
-            fg="white",
-            activebackground="#505050",
-            activeforeground="white",
-            borderwidth=0,
-            padx=20,
-            pady=8,
+            font=("Microsoft JhengHei UI", 11),
+            fg_color="#353535",
+            hover_color="#505050",
+            height=38,
+            width=120,
+            corner_radius=10,
             command=history_dialog.destroy
         )
         close_button.pack(side=tk.LEFT, padx=5)
@@ -164,31 +158,29 @@ class MusicHistoryDialog:
         Returns:
             Toplevel: 建立的對話框視窗
         """
-        # 建立對話框
-        most_played_dialog = tk.Toplevel(self.parent)
+        # 建立對話框（CustomTkinter）
+        most_played_dialog = ctk.CTkToplevel(self.parent)
         most_played_dialog.title("🏆 最常播放")
         most_played_dialog.geometry("700x500")
-        most_played_dialog.configure(bg="#1e1e1e")
         most_played_dialog.resizable(True, True)
         most_played_dialog.transient(self.parent)
         most_played_dialog.lift()
         most_played_dialog.focus_force()
 
-        main_frame = tk.Frame(most_played_dialog, bg="#1e1e1e")
+        # 主框架（圓角）
+        main_frame = ctk.CTkFrame(most_played_dialog, corner_radius=15)
         main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
 
         # 標題
-        tk.Label(
+        ctk.CTkLabel(
             main_frame,
             text="🏆 最常播放排行榜",
-            font=("Microsoft JhengHei UI", 14, "bold"),
-            bg="#1e1e1e",
-            fg="#e0e0e0"
-        ).pack(pady=(0, 15))
+            font=("Microsoft JhengHei UI", 14, "bold")
+        ).pack(pady=(20, 15))
 
-        # 建立 Treeview 顯示排行榜
-        tree_frame = tk.Frame(main_frame, bg="#2d2d2d")
-        tree_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 15))
+        # 建立 Treeview 顯示排行榜（包在圓角框架中）
+        tree_frame = ctk.CTkFrame(main_frame, corner_radius=12)
+        tree_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=(0, 15))
 
         scrollbar = tk.Scrollbar(tree_frame)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
@@ -259,20 +251,18 @@ class MusicHistoryDialog:
                 ))
 
         # 按鈕區
-        button_frame = tk.Frame(main_frame, bg="#1e1e1e")
-        button_frame.pack()
+        button_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+        button_frame.pack(padx=20, pady=(0, 20))
 
-        close_button = tk.Button(
+        close_button = ctk.CTkButton(
             button_frame,
             text="關閉",
-            font=("Microsoft JhengHei UI", 10),
-            bg="#353535",
-            fg="white",
-            activebackground="#505050",
-            activeforeground="white",
-            borderwidth=0,
-            padx=20,
-            pady=8,
+            font=("Microsoft JhengHei UI", 11),
+            fg_color="#353535",
+            hover_color="#505050",
+            height=38,
+            width=120,
+            corner_radius=10,
             command=most_played_dialog.destroy
         )
         close_button.pack()

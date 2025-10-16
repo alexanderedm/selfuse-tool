@@ -1,6 +1,7 @@
 """播放列表對話框模組"""
 import tkinter as tk
 from tkinter import ttk, messagebox, simpledialog
+import customtkinter as ctk
 from logger import logger
 
 
@@ -34,50 +35,43 @@ class MusicPlaylistDialog:
 
     def show_playlists(self):
         """顯示播放列表管理對話框"""
-        # 建立對話框
-        playlist_dialog = tk.Toplevel(self.parent_window)
+        # 建立對話框（CustomTkinter）
+        playlist_dialog = ctk.CTkToplevel(self.parent_window)
         playlist_dialog.title("📋 播放列表管理")
         playlist_dialog.geometry("700x500")
-        playlist_dialog.configure(bg="#1e1e1e")
         playlist_dialog.resizable(True, True)
         playlist_dialog.transient(self.parent_window)
         playlist_dialog.lift()
         playlist_dialog.focus_force()
 
-        main_frame = tk.Frame(playlist_dialog, bg="#1e1e1e")
+        # 主框架（圓角）
+        main_frame = ctk.CTkFrame(playlist_dialog, corner_radius=15)
         main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
 
         # 標題和操作按鈕區
-        header_frame = tk.Frame(main_frame, bg="#1e1e1e")
-        header_frame.pack(fill=tk.X, pady=(0, 15))
+        header_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+        header_frame.pack(fill=tk.X, padx=20, pady=(20, 15))
 
-        tk.Label(
+        ctk.CTkLabel(
             header_frame,
             text="📋 我的播放列表",
-            font=("Microsoft JhengHei UI", 14, "bold"),
-            bg="#1e1e1e",
-            fg="#e0e0e0"
+            font=("Microsoft JhengHei UI", 14, "bold")
         ).pack(side=tk.LEFT)
 
-        # 新增播放列表按鈕
-        new_playlist_button = tk.Button(
+        # 新增播放列表按鈕（圓角）
+        new_playlist_button = ctk.CTkButton(
             header_frame,
             text="➕ 新增播放列表",
-            font=("Microsoft JhengHei UI", 10),
-            bg="#0078d4",
-            fg="white",
-            activebackground="#005a9e",
-            activeforeground="white",
-            borderwidth=0,
-            padx=15,
-            pady=5,
+            font=("Microsoft JhengHei UI", 11),
+            height=35,
+            corner_radius=10,
             command=lambda: self.create_playlist(playlist_dialog)
         )
         new_playlist_button.pack(side=tk.RIGHT)
 
-        # 建立 Treeview 顯示播放列表
-        tree_frame = tk.Frame(main_frame, bg="#2d2d2d")
-        tree_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 15))
+        # 建立 Treeview 顯示播放列表（包在圓角框架中）
+        tree_frame = ctk.CTkFrame(main_frame, corner_radius=12)
+        tree_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=(0, 15))
 
         scrollbar = tk.Scrollbar(tree_frame)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
@@ -174,20 +168,18 @@ class MusicPlaylistDialog:
         playlist_tree.bind('<Button-3>', on_playlist_right_click)
 
         # 按鈕區
-        button_frame = tk.Frame(main_frame, bg="#1e1e1e")
-        button_frame.pack()
+        button_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+        button_frame.pack(padx=20, pady=(0, 20))
 
-        close_button = tk.Button(
+        close_button = ctk.CTkButton(
             button_frame,
             text="關閉",
-            font=("Microsoft JhengHei UI", 10),
-            bg="#353535",
-            fg="white",
-            activebackground="#505050",
-            activeforeground="white",
-            borderwidth=0,
-            padx=20,
-            pady=8,
+            font=("Microsoft JhengHei UI", 11),
+            fg_color="#353535",
+            hover_color="#505050",
+            height=38,
+            width=120,
+            corner_radius=10,
             command=playlist_dialog.destroy
         )
         close_button.pack()
@@ -339,44 +331,40 @@ class MusicPlaylistDialog:
                 self.show_playlists()
             return
 
-        # 建立選擇對話框
-        select_dialog = tk.Toplevel(self.parent_window)
+        # 建立選擇對話框（CustomTkinter）
+        select_dialog = ctk.CTkToplevel(self.parent_window)
         select_dialog.title("加入到播放列表")
         select_dialog.geometry("450x350")
-        select_dialog.configure(bg="#1e1e1e")
         select_dialog.resizable(False, False)
         select_dialog.transient(self.parent_window)
         select_dialog.lift()
         select_dialog.focus_force()
         select_dialog.grab_set()
 
-        main_frame = tk.Frame(select_dialog, bg="#1e1e1e")
+        # 主框架（圓角）
+        main_frame = ctk.CTkFrame(select_dialog, corner_radius=15)
         main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
 
         # 歌曲資訊
         song_title = song['title'][:40] + ('...' if len(song['title']) > 40 else '')
-        tk.Label(
+        ctk.CTkLabel(
             main_frame,
             text=f"歌曲: {song_title}",
-            font=("Microsoft JhengHei UI", 10, "bold"),
-            bg="#1e1e1e",
-            fg="#e0e0e0",
+            font=("Microsoft JhengHei UI", 11, "bold"),
             wraplength=400,
             justify=tk.LEFT
-        ).pack(pady=(0, 20))
+        ).pack(pady=(20, 20), padx=20)
 
         # 播放列表選擇
-        tk.Label(
+        ctk.CTkLabel(
             main_frame,
             text="選擇播放列表:",
-            font=("Microsoft JhengHei UI", 10),
-            bg="#1e1e1e",
-            fg="#e0e0e0"
-        ).pack(anchor=tk.W, pady=(0, 5))
+            font=("Microsoft JhengHei UI", 11)
+        ).pack(anchor=tk.W, padx=20, pady=(0, 5))
 
-        # 列表框
-        listbox_frame = tk.Frame(main_frame, bg="#2d2d2d")
-        listbox_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 15))
+        # 列表框（包在圓角框架中）
+        listbox_frame = ctk.CTkFrame(main_frame, corner_radius=10)
+        listbox_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=(0, 15))
 
         scrollbar = tk.Scrollbar(listbox_frame)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
@@ -401,8 +389,8 @@ class MusicPlaylistDialog:
             playlist_listbox.insert(tk.END, display_text)
 
         # 按鈕區
-        button_frame = tk.Frame(main_frame, bg="#1e1e1e")
-        button_frame.pack()
+        button_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+        button_frame.pack(padx=20, pady=(0, 20))
 
         def confirm_add():
             selection = playlist_listbox.curselection()
@@ -428,32 +416,26 @@ class MusicPlaylistDialog:
                     parent=select_dialog
                 )
 
-        add_button = tk.Button(
+        add_button = ctk.CTkButton(
             button_frame,
             text="加入",
-            font=("Microsoft JhengHei UI", 10),
-            bg="#0078d4",
-            fg="white",
-            activebackground="#005a9e",
-            activeforeground="white",
-            borderwidth=0,
-            padx=30,
-            pady=8,
+            font=("Microsoft JhengHei UI", 11),
+            height=38,
+            width=120,
+            corner_radius=10,
             command=confirm_add
         )
         add_button.pack(side=tk.LEFT, padx=5)
 
-        cancel_button = tk.Button(
+        cancel_button = ctk.CTkButton(
             button_frame,
             text="取消",
-            font=("Microsoft JhengHei UI", 10),
-            bg="#353535",
-            fg="white",
-            activebackground="#505050",
-            activeforeground="white",
-            borderwidth=0,
-            padx=20,
-            pady=8,
+            font=("Microsoft JhengHei UI", 11),
+            fg_color="#353535",
+            hover_color="#505050",
+            height=38,
+            width=100,
+            corner_radius=10,
             command=select_dialog.destroy
         )
         cancel_button.pack(side=tk.LEFT, padx=5)
@@ -471,54 +453,50 @@ class MusicPlaylistDialog:
             messagebox.showerror("錯誤", "播放列表不存在")
             return None
 
-        # 建立對話框
-        detail_dialog = tk.Toplevel(self.parent_window)
+        # 建立對話框（CustomTkinter）
+        detail_dialog = ctk.CTkToplevel(self.parent_window)
         detail_dialog.title(f"📋 {playlist_name}")
         detail_dialog.geometry("700x500")
-        detail_dialog.configure(bg="#1e1e1e")
         detail_dialog.resizable(True, True)
         detail_dialog.transient(self.parent_window)
         detail_dialog.lift()
         detail_dialog.focus_force()
 
-        main_frame = tk.Frame(detail_dialog, bg="#1e1e1e")
+        # 主框架（圓角）
+        main_frame = ctk.CTkFrame(detail_dialog, corner_radius=15)
         main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
 
         # 標題和資訊
-        header_frame = tk.Frame(main_frame, bg="#1e1e1e")
-        header_frame.pack(fill=tk.X, pady=(0, 15))
+        header_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+        header_frame.pack(fill=tk.X, padx=20, pady=(20, 15))
 
-        tk.Label(
+        ctk.CTkLabel(
             header_frame,
             text=f"📋 {playlist_name}",
-            font=("Microsoft JhengHei UI", 14, "bold"),
-            bg="#1e1e1e",
-            fg="#e0e0e0"
+            font=("Microsoft JhengHei UI", 14, "bold")
         ).pack(side=tk.LEFT)
 
-        tk.Label(
+        ctk.CTkLabel(
             header_frame,
             text=f"{playlist['song_count']} 首歌",
-            font=("Microsoft JhengHei UI", 10),
-            bg="#1e1e1e",
-            fg="#a0a0a0"
+            font=("Microsoft JhengHei UI", 11),
+            text_color="#a0a0a0"
         ).pack(side=tk.RIGHT)
 
         # 描述
         if playlist['description']:
-            tk.Label(
+            ctk.CTkLabel(
                 main_frame,
                 text=playlist['description'],
-                font=("Microsoft JhengHei UI", 9),
-                bg="#1e1e1e",
-                fg="#a0a0a0",
+                font=("Microsoft JhengHei UI", 10),
+                text_color="#a0a0a0",
                 wraplength=650,
                 justify=tk.LEFT
-            ).pack(anchor=tk.W, pady=(0, 15))
+            ).pack(anchor=tk.W, padx=20, pady=(0, 15))
 
-        # 建立 Treeview 顯示歌曲列表
-        tree_frame = tk.Frame(main_frame, bg="#2d2d2d")
-        tree_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 15))
+        # 建立 Treeview 顯示歌曲列表（包在圓角框架中）
+        tree_frame = ctk.CTkFrame(main_frame, corner_radius=12)
+        tree_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=(0, 15))
 
         scrollbar = tk.Scrollbar(tree_frame)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
@@ -593,35 +571,29 @@ class MusicPlaylistDialog:
         song_tree.bind('<Double-1>', on_song_double_click)
 
         # 按鈕區
-        button_frame = tk.Frame(main_frame, bg="#1e1e1e")
-        button_frame.pack()
+        button_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+        button_frame.pack(padx=20, pady=(0, 20))
 
-        play_all_button = tk.Button(
+        play_all_button = ctk.CTkButton(
             button_frame,
             text="▶️ 播放全部",
-            font=("Microsoft JhengHei UI", 10),
-            bg="#0078d4",
-            fg="white",
-            activebackground="#005a9e",
-            activeforeground="white",
-            borderwidth=0,
-            padx=20,
-            pady=8,
+            font=("Microsoft JhengHei UI", 11),
+            height=38,
+            width=130,
+            corner_radius=10,
             command=lambda: self.play_playlist(playlist_name)
         )
         play_all_button.pack(side=tk.LEFT, padx=5)
 
-        close_button = tk.Button(
+        close_button = ctk.CTkButton(
             button_frame,
             text="關閉",
-            font=("Microsoft JhengHei UI", 10),
-            bg="#353535",
-            fg="white",
-            activebackground="#505050",
-            activeforeground="white",
-            borderwidth=0,
-            padx=20,
-            pady=8,
+            font=("Microsoft JhengHei UI", 11),
+            fg_color="#353535",
+            hover_color="#505050",
+            height=38,
+            width=120,
+            corner_radius=10,
             command=detail_dialog.destroy
         )
         close_button.pack(side=tk.LEFT, padx=5)
