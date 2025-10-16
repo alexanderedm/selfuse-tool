@@ -32,6 +32,7 @@ class RSSWindow:
         if self.window is not None:
             logger.info("RSS視窗已存在,嘗試顯示")
             try:
+                self.window.deiconify()  # 顯示被隱藏的視窗
                 self.window.lift()
                 self.window.focus_force()
             except:
@@ -231,8 +232,8 @@ class RSSWindow:
             messagebox.showinfo("完成", "已清除快取,請選擇訂閱以重新載入")
 
     def _close_window(self):
-        """關閉視窗"""
+        """關閉視窗（隱藏而非銷毀）"""
         if self.window:
-            self.window.destroy()
-            self.window = None
-        # 不要銷毀共用的根視窗
+            self.window.withdraw()
+            logger.info("RSS視窗已隱藏")
+        # 不要銷毀視窗，以便可以再次開啟

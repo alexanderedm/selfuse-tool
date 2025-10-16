@@ -120,7 +120,7 @@ class SettingsWindow:
             self.device_b_var = tk.StringVar()
             device_var = self.device_b_var
 
-        # 使用 CTkOptionMenu 取代 Combobox
+        # 使用 CTkOptionMenu 取代 Combobox，並添加即時儲存回調
         device_combo = ctk.CTkOptionMenu(
             device_label_frame,
             variable=device_var,
@@ -128,7 +128,8 @@ class SettingsWindow:
             width=450,
             height=38,
             corner_radius=8,
-            font=("Microsoft JhengHei UI", 10)
+            font=("Microsoft JhengHei UI", 10),
+            command=lambda _: self._auto_save_devices()
         )
         device_combo.pack(fill="x", pady=(5, 0))
 
@@ -277,7 +278,8 @@ class SettingsWindow:
             text="啟用自動補全音樂資訊",
             variable=self.auto_fetch_var,
             font=("Microsoft JhengHei UI", 11),
-            height=32
+            height=32,
+            command=self._auto_save_metadata
         )
         metadata_switch.pack(anchor="w", pady=(0, 10))
 
@@ -334,7 +336,8 @@ class SettingsWindow:
 
         try:
             if self.window is not None:
-                logger.info("[設定視窗] 視窗已存在,帶到前景")
+                logger.info("[設定視窗] 視窗已存在,顯示並帶到前景")
+                self.window.deiconify()  # 顯示被隱藏的視窗
                 self.window.lift()
                 self.window.focus_force()
                 return
@@ -388,11 +391,10 @@ class SettingsWindow:
             logger.info("[設定視窗] 建立元數據設定")
             self._create_metadata_section(main_frame, card_bg, text_color, text_secondary)
 
-            logger.info("[設定視窗] 建立按鈕區塊")
-            self._create_button_section(main_frame, devices, device_a_combo, device_b_combo, bg_color)
-
-            # 儲存裝置列表的參考
+            # 儲存裝置列表的參考（用於即時儲存）
             self.devices = devices
+            self.device_a_combo = device_a_combo
+            self.device_b_combo = device_b_combo
 
             # 關閉視窗時的處理
             self.window.protocol("WM_DELETE_WINDOW", self._close_window)
@@ -601,9 +603,54 @@ class SettingsWindow:
         else:
             messagebox.showwarning("警告", "沒有可儲存的設定變更")
 
+    def _auto_save_devices(self):
+        """自動儲存裝置設定"""
+        from src.core.logger import logger
+
+        try:
+            # 取得裝置索引
+            device_a_index = self.device_a_combo.current()
+            device_b_index = self.device_b_combo.current()
+
+            # 檢查是否兩個裝置都已選擇
+            if device_a_index == -1 or device_b_index == -1:
+                logger.debug("[設定視窗] 裝置尚未完全選擇，跳過自動儲存")
+                return
+
+            # 檢查是否選擇了相同裝置
+            if device_a_index == device_b_index:
+                logger.warning("[設定視窗] 選擇了相同的裝置，跳過自動儲存")
+                return
+
+            # 儲存裝置設定
+            self.config_manager.set_device_a(self.devices[device_a_index])
+            self.config_manager.set_device_b(self.devices[device_b_index])
+
+            logger.info("[設定視窗] 裝置設定已自動儲存")
+
+            # 呼叫回調函數
+            if self.on_save_callback:
+                self.on_save_callback()
+
+        except Exception as e:
+            logger.error(f"[設定視窗] 自動儲存裝置設定失敗: {e}")
+
+    def _auto_save_metadata(self):
+        """自動儲存元數據設定"""
+        from src.core.logger import logger
+
+        try:
+            auto_fetch_enabled = self.auto_fetch_var.get()
+            self.config_manager.set("auto_fetch_metadata", auto_fetch_enabled)
+            logger.info(f"[設定視窗] 自動補全音樂資訊已自動儲存: {auto_fetch_enabled}")
+
+        except Exception as e:
+            logger.error(f"[設定視窗] 自動儲存元數據設定失敗: {e}")
+
     def _close_window(self):
-        """關閉視窗"""
+        """關閉視窗（隱藏而非銷毀）"""
+        from src.core.logger import logger
         if self.window:
-            self.window.destroy()
-            self.window = None
-        # 不要銷毀共用的根視窗
+            logger.info("[設定視窗] 隱藏視窗")
+            self.window.withdraw()
+        # 不要銷毀視窗，以便可以再次開啟

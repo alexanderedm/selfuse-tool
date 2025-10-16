@@ -183,6 +183,7 @@ class MusicWindow:
         if self.window is not None:
             logger.info("音樂播放器視窗已存在,嘗試顯示")
             try:
+                self.window.deiconify()  # 顯示被隱藏的視窗
                 self.window.lift()
                 self.window.focus_force()
             except:
@@ -1008,13 +1009,12 @@ class MusicWindow:
         logger.info(f"開始播放播放列表: {playlist_name}, {len(songs)} 首歌")
 
     def _close_window(self):
-        """關閉視窗(不停止播放,音樂在背景繼續)"""
+        """關閉視窗（隱藏而非銷毀，不停止播放，音樂在背景繼續）"""
         # 不停止播放,讓音樂在背景繼續
-        logger.info("音樂播放器視窗已關閉,音樂繼續在背景播放")
+        logger.info("音樂播放器視窗已隱藏,音樂繼續在背景播放")
 
         if self.window:
-            self.window.destroy()
-            self.window = None
+            self.window.withdraw()
 
     def _load_lyrics_for_song(self, song):
         """載入歌曲的歌詞檔案

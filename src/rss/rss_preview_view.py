@@ -38,7 +38,7 @@ class RSSPreviewView:
         right_container.pack(side="left", fill="both", expand=True)
 
         # 標題框架
-        preview_header_frame = ctk.CTkFrame(right_container, fg_color=header_bg, corner_radius=(12, 12, 0, 0))
+        preview_header_frame = ctk.CTkFrame(right_container, fg_color=header_bg, corner_radius=12)
         preview_header_frame.pack(fill="x")
 
         preview_header = ctk.CTkLabel(

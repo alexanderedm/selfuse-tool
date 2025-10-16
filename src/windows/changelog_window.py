@@ -33,6 +33,7 @@ class ChangelogWindow:
         """顯示更新日誌視窗"""
         if self.window is not None:
             try:
+                self.window.deiconify()  # 顯示被隱藏的視窗
                 self.window.lift()
                 self.window.focus_force()
                 return
@@ -154,8 +155,7 @@ class ChangelogWindow:
         self.text_widget.configure(state="disabled")
 
     def _close_window(self):
-        """關閉視窗"""
+        """關閉視窗（隱藏而非銷毀）"""
         if self.window:
-            self.window.destroy()
-            self.window = None
-            logger.info("更新日誌視窗已關閉")
+            self.window.withdraw()
+            logger.info("更新日誌視窗已隱藏")

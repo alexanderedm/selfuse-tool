@@ -31,6 +31,7 @@ class StatsWindow:
             bool: 如果視窗已存在則返回 True
         """
         if self.window is not None:
+            self.window.deiconify()  # 顯示被隱藏的視窗
             self.window.lift()
             self.window.focus_force()
             return True
@@ -322,8 +323,7 @@ class StatsWindow:
                 return f"{days} 天 {remaining_hours} 小時"
 
     def _close_window(self):
-        """關閉視窗"""
+        """關閉視窗（隱藏而非銷毀）"""
         if self.window:
-            self.window.destroy()
-            self.window = None
-        # 不要銷毀共用的根視窗
+            self.window.withdraw()
+        # 不要銷毀視窗，以便可以再次開啟
