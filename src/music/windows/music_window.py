@@ -355,14 +355,8 @@ class MusicWindow:
         logger.info("音樂播放器視窗初始化完成")
 
     def _load_music_library(self):
-        """載入音樂庫"""
-        result = self.music_manager.scan_music_library()
-
-        if not result['success']:
-            messagebox.showerror("錯誤", result['message'])
-            return
-
-        # 使用 MusicLibraryView 重新載入音樂庫
+        """載入音樂庫（異步掃描）"""
+        # 使用 MusicLibraryView 的異步載入功能
         if self.library_view:
             self.library_view.reload_library()
 
@@ -870,14 +864,11 @@ class MusicWindow:
             logger.error(f"YouTube 下載失敗: {message}")
 
     def _reload_music_library(self):
-        """重新載入音樂庫"""
-        # 重新掃描
-        self.music_manager.scan_music_library()
-
-        # 重新載入樹狀結構
+        """重新載入音樂庫（異步掃描）"""
+        # 使用異步載入（避免重複掃描）
         self._load_music_library()
 
-        logger.info("音樂庫已重新載入")
+        logger.info("音樂庫重新載入中（異步）")
 
     def _on_song_action_play(self, song, playlist, index):
         """歌曲操作模組的播放回調

@@ -401,8 +401,8 @@ class MusicLibraryView:
                     parent=dialog
                 )
                 dialog.destroy()
-                # 重新載入音樂庫
-                self.reload_library()
+                # 重新載入分類樹和歌曲列表（不重新掃描）
+                self._refresh_library_view()
             else:
                 messagebox.showerror("錯誤", "移動歌曲失敗", parent=dialog)
 
@@ -466,6 +466,9 @@ class MusicLibraryView:
                 logger.info(f"移動 JSON 檔案: {source_json_path} -> {target_json_path}")
                 shutil.move(source_json_path, target_json_path)
 
+            # 使用增量更新更新數據結構（不重新掃描整個庫）
+            self.music_manager.update_song_category(song, target_category)
+
             logger.info(f"歌曲移動成功: {song['title']} -> {target_category}")
             return True
 
@@ -501,9 +504,12 @@ class MusicLibraryView:
                         logger.info(f"刪除 JSON 檔案: {json_path}")
                         os.remove(json_path)
 
+                    # 使用增量更新更新數據結構（不重新掃描整個庫）
+                    self.music_manager.remove_song(song)
+
                     messagebox.showinfo("成功", "歌曲已刪除")
-                    # 重新載入音樂庫
-                    self.reload_library()
+                    # 刷新 UI（不重新掃描）
+                    self._refresh_library_view()
                 else:
                     messagebox.showerror("錯誤", "找不到音訊檔案")
             except Exception as e:
@@ -511,16 +517,40 @@ class MusicLibraryView:
                 messagebox.showerror("錯誤", f"刪除失敗: {e}")
 
     def _load_music_library(self):
-        """載入音樂庫"""
-        result = self.music_manager.scan_music_library()
+        """載入音樂庫（異步掃描）"""
+        # 顯示載入中訊息
+        for item in self.category_tree.get_children():
+            self.category_tree.delete(item)
+        loading_node = self.category_tree.insert('', 'end', text='⏳ 載入音樂庫中...')
 
-        if not result['success']:
-            logger.error(f"載入音樂庫失敗: {result['message']}")
-            return
+        def on_scan_complete(result):
+            """掃描完成的回調函數"""
+            try:
+                # 在主執行緒中更新 UI
+                self.parent.after(0, lambda: self._update_library_ui(result, loading_node))
+            except Exception as e:
+                logger.error(f"更新 UI 失敗: {e}", exc_info=True)
+
+        # 異步掃描音樂庫
+        self.music_manager.scan_music_library_async(callback=on_scan_complete)
+
+    def _update_library_ui(self, result, loading_node=None):
+        """更新音樂庫 UI（在主執行緒中調用）"""
+        # 移除載入中訊息
+        if loading_node:
+            try:
+                self.category_tree.delete(loading_node)
+            except:
+                pass
 
         # 清空樹狀結構
         for item in self.category_tree.get_children():
             self.category_tree.delete(item)
+
+        if not result['success']:
+            logger.error(f"載入音樂庫失敗: {result['message']}")
+            error_node = self.category_tree.insert('', 'end', text=f'❌ {result["message"]}')
+            return
 
         # 新增 "所有歌曲" 根節點
         all_songs_node = self.category_tree.insert('', 'end', text='📋 所有歌曲', values=('all',), open=True)
@@ -719,8 +749,11 @@ class MusicLibraryView:
         if self.on_category_rename:
             success = self.on_category_rename(old_name, new_name)
             if success:
+                # 使用增量更新更新數據結構
+                self.music_manager.rename_category(old_name, new_name)
                 messagebox.showinfo("成功", f"資料夾已重新命名為 '{new_name}'")
-                self.reload_library()
+                # 刷新 UI（不重新掃描）
+                self._refresh_library_view()
             else:
                 messagebox.showerror("錯誤", "重新命名失敗")
 
@@ -745,7 +778,8 @@ class MusicLibraryView:
                 success = self.on_category_delete(category_name)
                 if success:
                     messagebox.showinfo("成功", "資料夾已刪除")
-                    self.reload_library()
+                    # 刷新 UI（不重新掃描）
+                    self._refresh_library_view()
                 else:
                     messagebox.showerror("錯誤", "刪除資料夾失敗")
 
@@ -786,6 +820,17 @@ class MusicLibraryView:
         """重新載入音樂庫"""
         self._load_music_library()
         logger.info("音樂庫已重新載入")
+
+    def _refresh_library_view(self):
+        """刷新音樂庫 UI（不重新掃描，使用已有數據）"""
+        # 使用模擬的成功結果來觸發 UI 更新
+        result = {
+            'success': True,
+            'categories': self.music_manager.categories,
+            'message': '數據已更新'
+        }
+        self._update_library_ui(result)
+        logger.info("音樂庫 UI 已刷新")
 
     def get_selected_category(self):
         """取得選中的分類
@@ -959,8 +1004,8 @@ class MusicLibraryView:
                 f"歌曲已移動到 '{target_category}'",
                 parent=self.parent
             )
-            # 重新載入音樂庫
-            self.reload_library()
+            # 刷新 UI（不重新掃描）
+            self._refresh_library_view()
         else:
             messagebox.showerror("錯誤", "移動歌曲失敗", parent=self.parent)
 

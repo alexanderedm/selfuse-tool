@@ -3,6 +3,7 @@ import os
 import json
 import glob
 from pathlib import Path
+from threading import Thread, Lock
 from src.core.constants import DEFAULT_MUSIC_ROOT_PATH
 from src.core.logger import logger
 from src.utils.path_utils import normalize_network_path, path_exists_safe, is_network_path
@@ -24,6 +25,9 @@ class MusicManager:
         self.music_root_path = normalize_network_path(raw_path)
         self.categories = {}  # 分類字典 {category_name: [song_list]}
         self.all_songs = []  # 所有歌曲列表
+        self.song_id_index = {}  # 歌曲 ID 索引 {song_id: song_dict}
+        self._lock = Lock()  # 用於執行緒安全
+        self._scan_in_progress = False  # 掃描進行中標記
 
     def set_music_root_path(self, path):
         """設定音樂根目錄
@@ -69,8 +73,10 @@ class MusicManager:
                         'message': f'音樂目錄不存在: {self.music_root_path}'
                     }
 
-            self.categories = {}
-            self.all_songs = []
+            with self._lock:
+                self.categories = {}
+                self.all_songs = []
+                self.song_id_index = {}
 
             # 掃描所有子資料夾作為分類
             for category_dir in os.listdir(self.music_root_path):
@@ -84,9 +90,15 @@ class MusicManager:
                 songs = self._scan_category(category_path, category_dir)
 
                 if songs:
-                    self.categories[category_dir] = songs
-                    self.all_songs.extend(songs)
+                    with self._lock:
+                        self.categories[category_dir] = songs
+                        self.all_songs.extend(songs)
+                        # 建立歌曲 ID 索引
+                        for song in songs:
+                            if song.get('id'):
+                                self.song_id_index[song['id']] = song
 
+            logger.info(f'成功掃描 {len(self.categories)} 個分類, {len(self.all_songs)} 首歌曲')
             return {
                 'success': True,
                 'categories': self.categories,
@@ -99,6 +111,45 @@ class MusicManager:
                 'categories': {},
                 'message': f'掃描音樂庫時發生錯誤: {str(e)}'
             }
+
+    def scan_music_library_async(self, callback=None, on_progress=None):
+        """異步掃描音樂庫，不會阻塞 UI
+
+        Args:
+            callback: 完成時的回調函數 callback(result)
+            on_progress: 進度回調函數 on_progress(current, total, message)
+        """
+        if self._scan_in_progress:
+            logger.warning("掃描已在進行中，跳過重複掃描")
+            if callback:
+                callback({'success': False, 'message': '掃描已在進行中'})
+            return
+
+        def _scan_worker():
+            """背景執行緒工作函數"""
+            self._scan_in_progress = True
+            try:
+                logger.info("開始異步掃描音樂庫...")
+                result = self.scan_music_library()
+
+                if callback:
+                    callback(result)
+
+                logger.info("異步掃描完成")
+            except Exception as e:
+                logger.error(f"異步掃描失敗: {e}", exc_info=True)
+                if callback:
+                    callback({
+                        'success': False,
+                        'categories': {},
+                        'message': f'異步掃描失敗: {str(e)}'
+                    })
+            finally:
+                self._scan_in_progress = False
+
+        thread = Thread(target=_scan_worker, daemon=True, name="MusicLibraryScanner")
+        thread.start()
+        logger.info("異步掃描執行緒已啟動")
 
     def _scan_category(self, category_path, category_name):
         """掃描指定分類資料夾
@@ -210,7 +261,7 @@ class MusicManager:
         return results
 
     def get_song_by_id(self, song_id):
-        """根據 ID 取得歌曲資訊
+        """根據 ID 取得歌曲資訊（使用索引，O(1) 查詢）
 
         Args:
             song_id (str): 歌曲 ID
@@ -218,10 +269,140 @@ class MusicManager:
         Returns:
             dict: 歌曲資訊,找不到則回傳 None
         """
-        for song in self.all_songs:
-            if song['id'] == song_id:
-                return song
-        return None
+        with self._lock:
+            return self.song_id_index.get(song_id)
+
+    def update_song_category(self, song, new_category):
+        """增量更新：移動歌曲到新分類（不重新掃描整個庫）
+
+        Args:
+            song (dict): 歌曲資訊
+            new_category (str): 新分類名稱
+
+        Returns:
+            bool: 是否成功
+        """
+        try:
+            with self._lock:
+                old_category = song.get('category')
+                song_id = song.get('id')
+
+                if not old_category or not song_id:
+                    return False
+
+                # 從舊分類移除
+                if old_category in self.categories:
+                    self.categories[old_category] = [
+                        s for s in self.categories[old_category] if s['id'] != song_id
+                    ]
+                    # 如果分類變空了，刪除該分類
+                    if not self.categories[old_category]:
+                        del self.categories[old_category]
+
+                # 更新歌曲資訊
+                song['category'] = new_category
+
+                # 添加到新分類
+                if new_category not in self.categories:
+                    self.categories[new_category] = []
+                self.categories[new_category].append(song)
+
+                # 更新 all_songs 列表中的歌曲引用
+                for i, s in enumerate(self.all_songs):
+                    if s['id'] == song_id:
+                        self.all_songs[i] = song
+                        break
+
+                # 更新索引
+                self.song_id_index[song_id] = song
+
+                logger.info(f"歌曲 '{song['title']}' 已從 '{old_category}' 移動到 '{new_category}'")
+                return True
+
+        except Exception as e:
+            logger.error(f"更新歌曲分類失敗: {e}", exc_info=True)
+            return False
+
+    def remove_song(self, song):
+        """增量更新：移除歌曲（不重新掃描整個庫）
+
+        Args:
+            song (dict): 歌曲資訊
+
+        Returns:
+            bool: 是否成功
+        """
+        try:
+            with self._lock:
+                song_id = song.get('id')
+                category = song.get('category')
+
+                if not song_id:
+                    return False
+
+                # 從分類移除
+                if category and category in self.categories:
+                    self.categories[category] = [
+                        s for s in self.categories[category] if s['id'] != song_id
+                    ]
+                    # 如果分類變空了，刪除該分類
+                    if not self.categories[category]:
+                        del self.categories[category]
+
+                # 從 all_songs 移除
+                self.all_songs = [s for s in self.all_songs if s['id'] != song_id]
+
+                # 從索引移除
+                if song_id in self.song_id_index:
+                    del self.song_id_index[song_id]
+
+                logger.info(f"歌曲 '{song['title']}' 已從音樂庫移除")
+                return True
+
+        except Exception as e:
+            logger.error(f"移除歌曲失敗: {e}", exc_info=True)
+            return False
+
+    def rename_category(self, old_name, new_name):
+        """增量更新：重命名分類（不重新掃描整個庫）
+
+        Args:
+            old_name (str): 舊分類名稱
+            new_name (str): 新分類名稱
+
+        Returns:
+            bool: 是否成功
+        """
+        try:
+            with self._lock:
+                if old_name not in self.categories:
+                    return False
+
+                # 獲取該分類的所有歌曲
+                songs = self.categories[old_name]
+
+                # 更新每首歌的分類資訊
+                for song in songs:
+                    song['category'] = new_name
+                    # 更新 all_songs 中的引用
+                    for i, s in enumerate(self.all_songs):
+                        if s['id'] == song['id']:
+                            self.all_songs[i] = song
+                            break
+                    # 更新索引
+                    if song.get('id'):
+                        self.song_id_index[song['id']] = song
+
+                # 重命名分類
+                self.categories[new_name] = songs
+                del self.categories[old_name]
+
+                logger.info(f"分類 '{old_name}' 已重命名為 '{new_name}'")
+                return True
+
+        except Exception as e:
+            logger.error(f"重命名分類失敗: {e}", exc_info=True)
+            return False
 
     def format_duration(self, seconds):
         """格式化時間長度
