@@ -37,8 +37,8 @@ class TestMusicFolderActions(unittest.TestCase):
         self.assertEqual(self.folder_actions.category_tree, self.mock_category_tree)
         self.assertEqual(self.folder_actions.on_reload_library, self.mock_on_reload)
 
-    @patch('music_folder_actions.simpledialog.askstring')
-    @patch('music_folder_actions.messagebox.showinfo')
+    @patch('src.music.actions.music_folder_actions.simpledialog.askstring')
+    @patch('src.music.actions.music_folder_actions.messagebox.showinfo')
     def test_02_create_folder_success(self, mock_showinfo, mock_askstring):
         """測試新增資料夾 - 成功"""
         # 設定回傳值
@@ -54,7 +54,7 @@ class TestMusicFolderActions(unittest.TestCase):
         self.mock_on_reload.assert_called_once()
         mock_showinfo.assert_called_once()
 
-    @patch('music_folder_actions.simpledialog.askstring')
+    @patch('src.music.actions.music_folder_actions.simpledialog.askstring')
     def test_03_create_folder_cancel(self, mock_askstring):
         """測試新增資料夾 - 取消"""
         # 設定回傳值 (None = 取消)
@@ -67,7 +67,7 @@ class TestMusicFolderActions(unittest.TestCase):
         self.mock_file_manager.create_folder.assert_not_called()
         self.mock_on_reload.assert_not_called()
 
-    @patch('music_folder_actions.simpledialog.askstring')
+    @patch('src.music.actions.music_folder_actions.simpledialog.askstring')
     def test_04_create_folder_empty_name(self, mock_askstring):
         """測試新增資料夾 - 空名稱"""
         # 設定回傳值
@@ -80,8 +80,8 @@ class TestMusicFolderActions(unittest.TestCase):
         self.mock_file_manager.create_folder.assert_not_called()
         self.mock_on_reload.assert_not_called()
 
-    @patch('music_folder_actions.simpledialog.askstring')
-    @patch('music_folder_actions.messagebox.showerror')
+    @patch('src.music.actions.music_folder_actions.simpledialog.askstring')
+    @patch('src.music.actions.music_folder_actions.messagebox.showerror')
     def test_05_create_folder_already_exists(self, mock_showerror, mock_askstring):
         """測試新增資料夾 - 已存在"""
         # 設定回傳值
@@ -97,8 +97,8 @@ class TestMusicFolderActions(unittest.TestCase):
         self.mock_on_reload.assert_not_called()
         mock_showerror.assert_called_once()
 
-    @patch('music_folder_actions.simpledialog.askstring')
-    @patch('music_folder_actions.messagebox.showinfo')
+    @patch('src.music.actions.music_folder_actions.simpledialog.askstring')
+    @patch('src.music.actions.music_folder_actions.messagebox.showinfo')
     def test_06_rename_folder_success(self, mock_showinfo, mock_askstring):
         """測試重新命名資料夾 - 成功"""
         # 設定回傳值
@@ -114,7 +114,7 @@ class TestMusicFolderActions(unittest.TestCase):
         self.mock_on_reload.assert_called_once()
         mock_showinfo.assert_called_once()
 
-    @patch('music_folder_actions.simpledialog.askstring')
+    @patch('src.music.actions.music_folder_actions.simpledialog.askstring')
     def test_07_rename_folder_cancel(self, mock_askstring):
         """測試重新命名資料夾 - 取消"""
         # 設定回傳值
@@ -127,7 +127,7 @@ class TestMusicFolderActions(unittest.TestCase):
         self.mock_file_manager.rename_folder.assert_not_called()
         self.mock_on_reload.assert_not_called()
 
-    @patch('music_folder_actions.simpledialog.askstring')
+    @patch('src.music.actions.music_folder_actions.simpledialog.askstring')
     def test_08_rename_folder_same_name(self, mock_askstring):
         """測試重新命名資料夾 - 相同名稱"""
         # 設定回傳值
@@ -140,8 +140,8 @@ class TestMusicFolderActions(unittest.TestCase):
         self.mock_file_manager.rename_folder.assert_not_called()
         self.mock_on_reload.assert_not_called()
 
-    @patch('music_folder_actions.simpledialog.askstring')
-    @patch('music_folder_actions.messagebox.showerror')
+    @patch('src.music.actions.music_folder_actions.simpledialog.askstring')
+    @patch('src.music.actions.music_folder_actions.messagebox.showerror')
     def test_09_rename_folder_already_exists(self, mock_showerror, mock_askstring):
         """測試重新命名資料夾 - 新名稱已存在"""
         # 設定回傳值
@@ -157,8 +157,8 @@ class TestMusicFolderActions(unittest.TestCase):
         self.mock_on_reload.assert_not_called()
         mock_showerror.assert_called_once()
 
-    @patch('music_folder_actions.messagebox.askyesno')
-    @patch('music_folder_actions.messagebox.showinfo')
+    @patch('src.music.actions.music_folder_actions.messagebox.askyesno')
+    @patch('src.music.actions.music_folder_actions.messagebox.showinfo')
     def test_10_delete_folder_success(self, mock_showinfo, mock_askyesno):
         """測試刪除資料夾 - 成功"""
         # 設定回傳值
@@ -174,7 +174,7 @@ class TestMusicFolderActions(unittest.TestCase):
         self.mock_on_reload.assert_called_once()
         mock_showinfo.assert_called_once()
 
-    @patch('music_folder_actions.messagebox.askyesno')
+    @patch('src.music.actions.music_folder_actions.messagebox.askyesno')
     def test_11_delete_folder_cancel(self, mock_askyesno):
         """測試刪除資料夾 - 取消"""
         # 設定回傳值
@@ -187,8 +187,8 @@ class TestMusicFolderActions(unittest.TestCase):
         self.mock_file_manager.delete_folder.assert_not_called()
         self.mock_on_reload.assert_not_called()
 
-    @patch('music_folder_actions.messagebox.askyesno')
-    @patch('music_folder_actions.messagebox.showerror')
+    @patch('src.music.actions.music_folder_actions.messagebox.askyesno')
+    @patch('src.music.actions.music_folder_actions.messagebox.showerror')
     def test_12_delete_folder_failed(self, mock_showerror, mock_askyesno):
         """測試刪除資料夾 - 失敗"""
         # 設定回傳值
@@ -203,7 +203,7 @@ class TestMusicFolderActions(unittest.TestCase):
         self.mock_on_reload.assert_not_called()
         mock_showerror.assert_called_once()
 
-    @patch('music_folder_actions.tk.Menu')
+    @patch('src.music.actions.music_folder_actions.tk.Menu')
     def test_13_show_folder_context_menu_on_empty(self, mock_menu_class):
         """測試右鍵選單 - 空白處"""
         # 設定 mock
@@ -224,7 +224,7 @@ class TestMusicFolderActions(unittest.TestCase):
         mock_menu.add_command.assert_called_once()
         mock_menu.post.assert_called_once_with(200, 300)
 
-    @patch('music_folder_actions.tk.Menu')
+    @patch('src.music.actions.music_folder_actions.tk.Menu')
     def test_14_show_folder_context_menu_on_all_songs(self, mock_menu_class):
         """測試右鍵選單 - 所有歌曲節點"""
         # 設定 mock
@@ -253,7 +253,7 @@ class TestMusicFolderActions(unittest.TestCase):
         mock_menu.add_command.assert_called_once()
         mock_menu.post.assert_called_once()
 
-    @patch('music_folder_actions.tk.Menu')
+    @patch('src.music.actions.music_folder_actions.tk.Menu')
     def test_15_show_folder_context_menu_on_folder(self, mock_menu_class):
         """測試右鍵選單 - 資料夾節點"""
         # 設定 mock

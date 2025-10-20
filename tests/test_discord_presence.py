@@ -37,7 +37,7 @@ class TestDiscordPresenceInit:
 class TestDiscordPresenceConnect:
     """測試 Discord 連接功能"""
 
-    @patch('discord_presence.Presence')
+    @patch('src.utils.discord_presence.Presence')
     def test_connect_success(self, mock_presence_class):
         """測試成功連接 Discord"""
         mock_rpc = MagicMock()
@@ -52,7 +52,7 @@ class TestDiscordPresenceConnect:
         mock_presence_class.assert_called_once_with("123456789")
         mock_rpc.connect.assert_called_once()
 
-    @patch('discord_presence.Presence')
+    @patch('src.utils.discord_presence.Presence')
     def test_connect_failure(self, mock_presence_class):
         """測試連接 Discord 失敗"""
         mock_rpc = MagicMock()
@@ -73,7 +73,7 @@ class TestDiscordPresenceConnect:
         assert result is False
         assert presence.connected is False
 
-    @patch('discord_presence.Presence')
+    @patch('src.utils.discord_presence.Presence')
     def test_connect_already_connected(self, mock_presence_class):
         """測試已經連接時再次連接"""
         mock_rpc = MagicMock()
@@ -92,7 +92,7 @@ class TestDiscordPresenceConnect:
 class TestDiscordPresenceUpdate:
     """測試更新 Discord 狀態"""
 
-    @patch('discord_presence.Presence')
+    @patch('src.utils.discord_presence.Presence')
     def test_update_playing(self, mock_presence_class):
         """測試更新正在播放的歌曲"""
         mock_rpc = MagicMock()
@@ -112,7 +112,7 @@ class TestDiscordPresenceUpdate:
         assert "Test Song" in call_args['details']
         assert "Test Artist" in call_args['state']
 
-    @patch('discord_presence.Presence')
+    @patch('src.utils.discord_presence.Presence')
     def test_update_playing_with_progress(self, mock_presence_class):
         """測試更新播放進度"""
         mock_rpc = MagicMock()
@@ -130,7 +130,7 @@ class TestDiscordPresenceUpdate:
 
         mock_rpc.update.assert_called_once()
 
-    @patch('discord_presence.Presence')
+    @patch('src.utils.discord_presence.Presence')
     def test_update_playing_not_connected(self, mock_presence_class):
         """測試未連接時更新狀態"""
         presence = DiscordPresence(client_id="123456789")
@@ -140,7 +140,7 @@ class TestDiscordPresenceUpdate:
         # 應該自動嘗試連接
         mock_presence_class.assert_called_once()
 
-    @patch('discord_presence.Presence')
+    @patch('src.utils.discord_presence.Presence')
     def test_update_playing_minimal_info(self, mock_presence_class):
         """測試只提供歌曲名稱時更新"""
         mock_rpc = MagicMock()
@@ -157,7 +157,7 @@ class TestDiscordPresenceUpdate:
 class TestDiscordPresenceClear:
     """測試清除 Discord 狀態"""
 
-    @patch('discord_presence.Presence')
+    @patch('src.utils.discord_presence.Presence')
     def test_clear_presence(self, mock_presence_class):
         """測試清除狀態"""
         mock_rpc = MagicMock()
@@ -179,7 +179,7 @@ class TestDiscordPresenceClear:
 class TestDiscordPresenceDisconnect:
     """測試斷開 Discord 連接"""
 
-    @patch('discord_presence.Presence')
+    @patch('src.utils.discord_presence.Presence')
     def test_disconnect(self, mock_presence_class):
         """測試斷開連接"""
         mock_rpc = MagicMock()
@@ -199,7 +199,7 @@ class TestDiscordPresenceDisconnect:
         # 不應該拋出異常
         presence.disconnect()
 
-    @patch('discord_presence.Presence')
+    @patch('src.utils.discord_presence.Presence')
     def test_disconnect_with_exception(self, mock_presence_class):
         """測試斷開時發生異常"""
         mock_rpc = MagicMock()
@@ -217,7 +217,7 @@ class TestDiscordPresenceDisconnect:
 class TestDiscordPresenceContextManager:
     """測試 Context Manager 功能"""
 
-    @patch('discord_presence.Presence')
+    @patch('src.utils.discord_presence.Presence')
     def test_context_manager(self, mock_presence_class):
         """測試作為 context manager 使用"""
         mock_rpc = MagicMock()

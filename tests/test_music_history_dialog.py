@@ -83,12 +83,12 @@ class TestMusicHistoryDialog:
         assert dialog.music_manager == mock_music_manager
         assert dialog.parent is not None
 
-    @patch('music_history_dialog.ttk.Treeview')
-    @patch('music_history_dialog.tk.Button')
-    @patch('music_history_dialog.tk.Label')
-    @patch('music_history_dialog.tk.Frame')
-    @patch('music_history_dialog.tk.Scrollbar')
-    @patch('music_history_dialog.tk.Toplevel')
+    @patch('src.music.dialogs.music_history_dialog.ttk.Treeview')
+    @patch('src.music.dialogs.music_history_dialog.tk.Button')
+    @patch('src.music.dialogs.music_history_dialog.tk.Label')
+    @patch('src.music.dialogs.music_history_dialog.tk.Frame')
+    @patch('src.music.dialogs.music_history_dialog.tk.Scrollbar')
+    @patch('src.music.dialogs.music_history_dialog.tk.Toplevel')
     def test_show_play_history_creates_dialog(self, mock_toplevel, mock_scrollbar, mock_frame, mock_label, mock_button, mock_treeview, dialog):
         """測試顯示播放歷史對話框建立"""
         mock_dialog = Mock()
@@ -100,12 +100,12 @@ class TestMusicHistoryDialog:
         mock_toplevel.assert_called_once_with(dialog.parent)
         assert history_dialog is not None
 
-    @patch('music_history_dialog.ttk.Treeview')
-    @patch('music_history_dialog.tk.Button')
-    @patch('music_history_dialog.tk.Label')
-    @patch('music_history_dialog.tk.Frame')
-    @patch('music_history_dialog.tk.Scrollbar')
-    @patch('music_history_dialog.tk.Toplevel')
+    @patch('src.music.dialogs.music_history_dialog.ttk.Treeview')
+    @patch('src.music.dialogs.music_history_dialog.tk.Button')
+    @patch('src.music.dialogs.music_history_dialog.tk.Label')
+    @patch('src.music.dialogs.music_history_dialog.tk.Frame')
+    @patch('src.music.dialogs.music_history_dialog.tk.Scrollbar')
+    @patch('src.music.dialogs.music_history_dialog.tk.Toplevel')
     def test_show_play_history_title(self, mock_toplevel, mock_scrollbar, mock_frame, mock_label, mock_button, mock_treeview, dialog):
         """測試播放歷史對話框標題"""
         mock_dialog = Mock()
@@ -116,12 +116,12 @@ class TestMusicHistoryDialog:
         # 驗證標題被設定
         mock_dialog.title.assert_called_once_with("📜 播放歷史")
 
-    @patch('music_history_dialog.ttk.Treeview')
-    @patch('music_history_dialog.tk.Button')
-    @patch('music_history_dialog.tk.Label')
-    @patch('music_history_dialog.tk.Frame')
-    @patch('music_history_dialog.tk.Scrollbar')
-    @patch('music_history_dialog.tk.Toplevel')
+    @patch('src.music.dialogs.music_history_dialog.ttk.Treeview')
+    @patch('src.music.dialogs.music_history_dialog.tk.Button')
+    @patch('src.music.dialogs.music_history_dialog.tk.Label')
+    @patch('src.music.dialogs.music_history_dialog.tk.Frame')
+    @patch('src.music.dialogs.music_history_dialog.tk.Scrollbar')
+    @patch('src.music.dialogs.music_history_dialog.tk.Toplevel')
     def test_show_play_history_displays_total_plays(self, mock_toplevel, mock_scrollbar, mock_frame, mock_label, mock_button, mock_treeview, dialog, mock_play_history_manager):
         """測試顯示總播放次數"""
         mock_dialog = Mock()
@@ -133,12 +133,12 @@ class TestMusicHistoryDialog:
         # 驗證 get_total_plays 被調用
         mock_play_history_manager.get_total_plays.assert_called_once()
 
-    @patch('music_history_dialog.ttk.Treeview')
-    @patch('music_history_dialog.tk.Button')
-    @patch('music_history_dialog.tk.Label')
-    @patch('music_history_dialog.tk.Frame')
-    @patch('music_history_dialog.tk.Scrollbar')
-    @patch('music_history_dialog.tk.Toplevel')
+    @patch('src.music.dialogs.music_history_dialog.ttk.Treeview')
+    @patch('src.music.dialogs.music_history_dialog.tk.Button')
+    @patch('src.music.dialogs.music_history_dialog.tk.Label')
+    @patch('src.music.dialogs.music_history_dialog.tk.Frame')
+    @patch('src.music.dialogs.music_history_dialog.tk.Scrollbar')
+    @patch('src.music.dialogs.music_history_dialog.tk.Toplevel')
     def test_show_play_history_loads_recent_plays(self, mock_toplevel, mock_scrollbar, mock_frame, mock_label, mock_button, mock_treeview, dialog, mock_play_history_manager):
         """測試載入最近播放記錄"""
         mock_dialog = Mock()
@@ -149,12 +149,12 @@ class TestMusicHistoryDialog:
         # 驗證 get_recent_plays 被調用
         mock_play_history_manager.get_recent_plays.assert_called_once_with(limit=50)
 
-    @patch('music_history_dialog.ttk.Treeview')
-    @patch('music_history_dialog.tk.Button')
-    @patch('music_history_dialog.tk.Label')
-    @patch('music_history_dialog.tk.Frame')
-    @patch('music_history_dialog.tk.Scrollbar')
-    @patch('music_history_dialog.tk.Toplevel')
+    @patch('src.music.dialogs.music_history_dialog.ttk.Treeview')
+    @patch('src.music.dialogs.music_history_dialog.tk.Button')
+    @patch('src.music.dialogs.music_history_dialog.tk.Label')
+    @patch('src.music.dialogs.music_history_dialog.tk.Frame')
+    @patch('src.music.dialogs.music_history_dialog.tk.Scrollbar')
+    @patch('src.music.dialogs.music_history_dialog.tk.Toplevel')
     def test_show_most_played_creates_dialog(self, mock_toplevel, mock_scrollbar, mock_frame, mock_label, mock_button, mock_treeview, dialog):
         """測試顯示最常播放對話框建立"""
         mock_dialog = Mock()
@@ -166,12 +166,12 @@ class TestMusicHistoryDialog:
         mock_toplevel.assert_called_once_with(dialog.parent)
         assert most_played_dialog is not None
 
-    @patch('music_history_dialog.ttk.Treeview')
-    @patch('music_history_dialog.tk.Button')
-    @patch('music_history_dialog.tk.Label')
-    @patch('music_history_dialog.tk.Frame')
-    @patch('music_history_dialog.tk.Scrollbar')
-    @patch('music_history_dialog.tk.Toplevel')
+    @patch('src.music.dialogs.music_history_dialog.ttk.Treeview')
+    @patch('src.music.dialogs.music_history_dialog.tk.Button')
+    @patch('src.music.dialogs.music_history_dialog.tk.Label')
+    @patch('src.music.dialogs.music_history_dialog.tk.Frame')
+    @patch('src.music.dialogs.music_history_dialog.tk.Scrollbar')
+    @patch('src.music.dialogs.music_history_dialog.tk.Toplevel')
     def test_show_most_played_title(self, mock_toplevel, mock_scrollbar, mock_frame, mock_label, mock_button, mock_treeview, dialog):
         """測試最常播放對話框標題"""
         mock_dialog = Mock()
@@ -182,12 +182,12 @@ class TestMusicHistoryDialog:
         # 驗證標題被設定
         mock_dialog.title.assert_called_once_with("🏆 最常播放")
 
-    @patch('music_history_dialog.ttk.Treeview')
-    @patch('music_history_dialog.tk.Button')
-    @patch('music_history_dialog.tk.Label')
-    @patch('music_history_dialog.tk.Frame')
-    @patch('music_history_dialog.tk.Scrollbar')
-    @patch('music_history_dialog.tk.Toplevel')
+    @patch('src.music.dialogs.music_history_dialog.ttk.Treeview')
+    @patch('src.music.dialogs.music_history_dialog.tk.Button')
+    @patch('src.music.dialogs.music_history_dialog.tk.Label')
+    @patch('src.music.dialogs.music_history_dialog.tk.Frame')
+    @patch('src.music.dialogs.music_history_dialog.tk.Scrollbar')
+    @patch('src.music.dialogs.music_history_dialog.tk.Toplevel')
     def test_show_most_played_loads_data(self, mock_toplevel, mock_scrollbar, mock_frame, mock_label, mock_button, mock_treeview, dialog, mock_play_history_manager):
         """測試載入最常播放資料"""
         mock_dialog = Mock()
@@ -198,12 +198,12 @@ class TestMusicHistoryDialog:
         # 驗證 get_most_played 被調用
         mock_play_history_manager.get_most_played.assert_called_once_with(limit=50)
 
-    @patch('music_history_dialog.ttk.Treeview')
-    @patch('music_history_dialog.tk.Button')
-    @patch('music_history_dialog.tk.Label')
-    @patch('music_history_dialog.tk.Frame')
-    @patch('music_history_dialog.tk.Scrollbar')
-    @patch('music_history_dialog.tk.Toplevel')
+    @patch('src.music.dialogs.music_history_dialog.ttk.Treeview')
+    @patch('src.music.dialogs.music_history_dialog.tk.Button')
+    @patch('src.music.dialogs.music_history_dialog.tk.Label')
+    @patch('src.music.dialogs.music_history_dialog.tk.Frame')
+    @patch('src.music.dialogs.music_history_dialog.tk.Scrollbar')
+    @patch('src.music.dialogs.music_history_dialog.tk.Toplevel')
     def test_show_most_played_queries_song_details(self, mock_toplevel, mock_scrollbar, mock_frame, mock_label, mock_button, mock_treeview, dialog, mock_music_manager):
         """測試查詢歌曲詳細資訊"""
         mock_dialog = Mock()
@@ -214,8 +214,8 @@ class TestMusicHistoryDialog:
         # 驗證 get_song_by_id 被調用
         assert mock_music_manager.get_song_by_id.call_count >= 2
 
-    @patch('music_history_dialog.messagebox.askyesno')
-    @patch('music_history_dialog.messagebox.showinfo')
+    @patch('src.music.dialogs.music_history_dialog.messagebox.askyesno')
+    @patch('src.music.dialogs.music_history_dialog.messagebox.showinfo')
     def test_clear_play_history_with_confirmation(self, mock_showinfo, mock_askyesno, dialog, mock_play_history_manager):
         """測試清除播放歷史(確認)"""
         mock_askyesno.return_value = True
@@ -230,7 +230,7 @@ class TestMusicHistoryDialog:
         # 驗證成功訊息被顯示
         mock_showinfo.assert_called_once()
 
-    @patch('music_history_dialog.messagebox.askyesno')
+    @patch('src.music.dialogs.music_history_dialog.messagebox.askyesno')
     def test_clear_play_history_with_cancel(self, mock_askyesno, dialog, mock_play_history_manager):
         """測試清除播放歷史(取消)"""
         mock_askyesno.return_value = False

@@ -314,21 +314,7 @@ class SettingsWindow:
             corner_radius=10,
             font=("Microsoft JhengHei UI", 11)
         )
-        save_button.grid(row=0, column=0, padx=5)
-
-        # 取消按鈕
-        cancel_button = ctk.CTkButton(
-            button_frame,
-            text="✕ 取消",
-            command=self._close_window,
-            width=150,
-            height=40,
-            corner_radius=10,
-            font=("Microsoft JhengHei UI", 11),
-            fg_color="#6c757d",
-            hover_color="#5a6268"
-        )
-        cancel_button.grid(row=0, column=1, padx=5)
+        save_button.pack()
 
     def show(self):
         """顯示設定視窗"""

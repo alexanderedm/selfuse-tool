@@ -7,7 +7,7 @@ from src.core.audio_manager import AudioManager
 class TestAudioManager:
     """測試 AudioManager 類別"""
 
-    @patch('audio_manager.CoCreateInstance')
+    @patch('src.core.audio_manager.CoCreateInstance')
     def test_init_success(self, mock_co_create):
         """測試初始化成功"""
         mock_enumerator = Mock()
@@ -18,7 +18,7 @@ class TestAudioManager:
         assert manager.device_enumerator is not None
         mock_co_create.assert_called_once()
 
-    @patch('audio_manager.CoCreateInstance')
+    @patch('src.core.audio_manager.CoCreateInstance')
     def test_init_failure(self, mock_co_create):
         """測試初始化失敗"""
         mock_co_create.side_effect = Exception("COM init failed")
@@ -28,7 +28,7 @@ class TestAudioManager:
         # 即使初始化失敗,也應該正常建立物件
         assert manager.device_enumerator is None
 
-    @patch('audio_manager.AudioUtilities')
+    @patch('src.core.audio_manager.AudioUtilities')
     def test_get_all_output_devices_success(self, mock_audio_utils):
         """測試取得所有輸出裝置成功"""
         # 建立模擬裝置
@@ -42,7 +42,7 @@ class TestAudioManager:
 
         mock_audio_utils.GetAllDevices.return_value = [mock_device1, mock_device2]
 
-        with patch('audio_manager.CoCreateInstance'):
+        with patch('src.core.audio_manager.CoCreateInstance'):
             manager = AudioManager()
             devices = manager.get_all_output_devices()
 
@@ -50,18 +50,18 @@ class TestAudioManager:
         assert devices[0] == {'id': 'device1_id', 'name': 'Device 1'}
         assert devices[1] == {'id': 'device2_id', 'name': 'Device 2'}
 
-    @patch('audio_manager.AudioUtilities')
+    @patch('src.core.audio_manager.AudioUtilities')
     def test_get_all_output_devices_empty(self, mock_audio_utils):
         """測試取得所有輸出裝置 - 無裝置"""
         mock_audio_utils.GetAllDevices.return_value = []
 
-        with patch('audio_manager.CoCreateInstance'):
+        with patch('src.core.audio_manager.CoCreateInstance'):
             manager = AudioManager()
             devices = manager.get_all_output_devices()
 
         assert devices == []
 
-    @patch('audio_manager.AudioUtilities')
+    @patch('src.core.audio_manager.AudioUtilities')
     def test_get_all_output_devices_with_invalid_device(self, mock_audio_utils):
         """測試取得所有輸出裝置 - 包含無效裝置"""
         # 建立一個有效裝置和一個無效裝置
@@ -75,7 +75,7 @@ class TestAudioManager:
 
         mock_audio_utils.GetAllDevices.return_value = [mock_device1, mock_device2]
 
-        with patch('audio_manager.CoCreateInstance'):
+        with patch('src.core.audio_manager.CoCreateInstance'):
             manager = AudioManager()
             devices = manager.get_all_output_devices()
 
@@ -83,20 +83,20 @@ class TestAudioManager:
         assert len(devices) == 1
         assert devices[0] == {'id': 'device1_id', 'name': 'Device 1'}
 
-    @patch('audio_manager.AudioUtilities')
+    @patch('src.core.audio_manager.AudioUtilities')
     def test_get_all_output_devices_exception(self, mock_audio_utils):
         """測試取得所有輸出裝置時發生例外"""
         mock_audio_utils.GetAllDevices.side_effect = Exception("Access denied")
 
-        with patch('audio_manager.CoCreateInstance'):
+        with patch('src.core.audio_manager.CoCreateInstance'):
             manager = AudioManager()
             devices = manager.get_all_output_devices()
 
         # 應該返回空列表
         assert devices == []
 
-    @patch('audio_manager.AudioUtilities')
-    @patch('audio_manager.CoCreateInstance')
+    @patch('src.core.audio_manager.AudioUtilities')
+    @patch('src.core.audio_manager.CoCreateInstance')
     def test_get_default_device_success(self, mock_co_create, mock_audio_utils):
         """測試取得預設裝置成功"""
         # 模擬裝置列舉器
@@ -120,8 +120,8 @@ class TestAudioManager:
         assert device['id'] == "default_device_id"
         assert device['name'] == "Default Device"
 
-    @patch('audio_manager.AudioUtilities')
-    @patch('audio_manager.CoCreateInstance')
+    @patch('src.core.audio_manager.AudioUtilities')
+    @patch('src.core.audio_manager.CoCreateInstance')
     def test_get_default_device_no_enumerator(self, mock_co_create, mock_audio_utils):
         """測試取得預設裝置 - 無裝置列舉器"""
         # 第一次呼叫失敗,第二次成功
@@ -150,8 +150,8 @@ class TestAudioManager:
 
             assert device is not None
 
-    @patch('audio_manager.AudioUtilities')
-    @patch('audio_manager.CoCreateInstance')
+    @patch('src.core.audio_manager.AudioUtilities')
+    @patch('src.core.audio_manager.CoCreateInstance')
     def test_get_default_device_exception(self, mock_co_create, mock_audio_utils):
         """測試取得預設裝置時發生例外"""
         mock_enumerator = Mock()
@@ -164,7 +164,7 @@ class TestAudioManager:
         # 應該返回 None
         assert device is None
 
-    @patch('audio_manager.CoCreateInstance')
+    @patch('src.core.audio_manager.CoCreateInstance')
     def test_set_default_device_called(self, mock_co_create):
         """測試設定預設裝置會正確呼叫"""
         # 注意:這個函數很難完整測試因為它涉及內部 COM 類別定義
@@ -178,7 +178,7 @@ class TestAudioManager:
         # 結果應該是布林值 (True 或 False)
         assert isinstance(result, bool)
 
-    @patch('audio_manager.CoCreateInstance')
+    @patch('src.core.audio_manager.CoCreateInstance')
     def test_set_default_device_failure(self, mock_co_create):
         """測試設定預設裝置失敗"""
         mock_enumerator = Mock()

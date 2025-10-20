@@ -20,8 +20,8 @@ class TestAudioPlayerBasicPlayback(unittest.TestCase):
         if self.player:
             self.player.stop()
 
-    @patch('audio_player.librosa.load')
-    @patch('audio_player.sd.OutputStream')
+    @patch('src.audio.audio_player.librosa.load')
+    @patch('src.audio.audio_player.sd.OutputStream')
     def test_load_and_play_mp3(self, mock_stream, mock_load):
         """測試載入並播放 MP3 檔案"""
         # Mock 音訊數據 (librosa 返回 shape (channels, frames))
@@ -40,8 +40,8 @@ class TestAudioPlayerBasicPlayback(unittest.TestCase):
         self.assertTrue(self.player.is_playing())
         self.assertEqual(self.player.get_duration(), 2.0)
 
-    @patch('audio_player.sf.read')
-    @patch('audio_player.sd.OutputStream')
+    @patch('src.audio.audio_player.sf.read')
+    @patch('src.audio.audio_player.sd.OutputStream')
     def test_load_and_play_wav(self, mock_stream, mock_read):
         """測試載入並播放 WAV 檔案"""
         # Mock 音訊數據
@@ -57,7 +57,7 @@ class TestAudioPlayerBasicPlayback(unittest.TestCase):
         mock_read.assert_called_once()
         self.assertTrue(self.player.is_playing())
 
-    @patch('audio_player.librosa.load')
+    @patch('src.audio.audio_player.librosa.load')
     def test_play_nonexistent_file(self, mock_load):
         """測試播放不存在的檔案"""
         # Mock 檔案不存在錯誤
@@ -70,8 +70,8 @@ class TestAudioPlayerBasicPlayback(unittest.TestCase):
         self.assertFalse(result)
         self.assertFalse(self.player.is_playing())
 
-    @patch('audio_player.librosa.load')
-    @patch('audio_player.sd.OutputStream')
+    @patch('src.audio.audio_player.librosa.load')
+    @patch('src.audio.audio_player.sd.OutputStream')
     def test_play_multiple_files_sequentially(self, mock_stream, mock_load):
         """測試連續播放多個檔案"""
         # Mock 音訊數據 (librosa 格式)
@@ -91,8 +91,8 @@ class TestAudioPlayerBasicPlayback(unittest.TestCase):
         # 驗證 stop 被呼叫
         self.assertEqual(mock_stream_instance.stop.call_count, 1)
 
-    @patch('audio_player.librosa.load')
-    @patch('audio_player.sd.OutputStream')
+    @patch('src.audio.audio_player.librosa.load')
+    @patch('src.audio.audio_player.sd.OutputStream')
     def test_playback_end_callback(self, mock_stream, mock_load):
         """測試播放結束回調"""
         # Mock 音訊數據 (很短, librosa 格式)
@@ -131,8 +131,8 @@ class TestAudioPlayerControls(unittest.TestCase):
         if self.player:
             self.player.stop()
 
-    @patch('audio_player.librosa.load')
-    @patch('audio_player.sd.OutputStream')
+    @patch('src.audio.audio_player.librosa.load')
+    @patch('src.audio.audio_player.sd.OutputStream')
     def test_pause_and_resume(self, mock_stream, mock_load):
         """測試暫停和恢復播放"""
         # Mock 音訊數據 (librosa 格式)
@@ -156,8 +156,8 @@ class TestAudioPlayerControls(unittest.TestCase):
         self.assertTrue(self.player.is_playing())
         self.assertFalse(self.player.is_paused())
 
-    @patch('audio_player.librosa.load')
-    @patch('audio_player.sd.OutputStream')
+    @patch('src.audio.audio_player.librosa.load')
+    @patch('src.audio.audio_player.sd.OutputStream')
     def test_stop_playback(self, mock_stream, mock_load):
         """測試停止播放"""
         # Mock 音訊數據 (librosa 格式)
@@ -176,8 +176,8 @@ class TestAudioPlayerControls(unittest.TestCase):
         mock_stream_instance.stop.assert_called()
         mock_stream_instance.close.assert_called()
 
-    @patch('audio_player.librosa.load')
-    @patch('audio_player.sd.OutputStream')
+    @patch('src.audio.audio_player.librosa.load')
+    @patch('src.audio.audio_player.sd.OutputStream')
     def test_seek_forward(self, mock_stream, mock_load):
         """測試向前跳轉"""
         # Mock 音訊數據 (5 秒, librosa 格式)
@@ -193,8 +193,8 @@ class TestAudioPlayerControls(unittest.TestCase):
         self.player.seek(2.0)
         self.assertAlmostEqual(self.player.get_position(), 2.0, delta=0.1)
 
-    @patch('audio_player.librosa.load')
-    @patch('audio_player.sd.OutputStream')
+    @patch('src.audio.audio_player.librosa.load')
+    @patch('src.audio.audio_player.sd.OutputStream')
     def test_seek_backward(self, mock_stream, mock_load):
         """測試向後跳轉"""
         # Mock 音訊數據 (5 秒, librosa 格式)
@@ -211,8 +211,8 @@ class TestAudioPlayerControls(unittest.TestCase):
         self.player.seek(1.0)
         self.assertAlmostEqual(self.player.get_position(), 1.0, delta=0.1)
 
-    @patch('audio_player.librosa.load')
-    @patch('audio_player.sd.OutputStream')
+    @patch('src.audio.audio_player.librosa.load')
+    @patch('src.audio.audio_player.sd.OutputStream')
     def test_seek_beyond_duration(self, mock_stream, mock_load):
         """測試跳轉到超出時長的位置"""
         # Mock 音訊數據 (2 秒, librosa 格式)
@@ -260,8 +260,8 @@ class TestAudioPlayerVolumeAndProcessor(unittest.TestCase):
         self.player.set_volume(-0.5)  # 應限制在 0.0
         self.assertEqual(self.player.get_volume(), 0.0)
 
-    @patch('audio_player.librosa.load')
-    @patch('audio_player.sd.OutputStream')
+    @patch('src.audio.audio_player.librosa.load')
+    @patch('src.audio.audio_player.sd.OutputStream')
     def test_audio_processor_integration(self, mock_stream, mock_load):
         """測試音訊處理器整合"""
         # Mock 音訊數據 (librosa 格式)
@@ -282,8 +282,8 @@ class TestAudioPlayerVolumeAndProcessor(unittest.TestCase):
 
         player.stop()
 
-    @patch('audio_player.librosa.load')
-    @patch('audio_player.sd.OutputStream')
+    @patch('src.audio.audio_player.librosa.load')
+    @patch('src.audio.audio_player.sd.OutputStream')
     def test_processor_enabled_disabled(self, mock_stream, mock_load):
         """測試啟用/停用處理器"""
         # Mock 音訊數據 (librosa 格式)
@@ -310,8 +310,8 @@ class TestAudioPlayerVolumeAndProcessor(unittest.TestCase):
 
         player.stop()
 
-    @patch('audio_player.librosa.load')
-    @patch('audio_player.sd.OutputStream')
+    @patch('src.audio.audio_player.librosa.load')
+    @patch('src.audio.audio_player.sd.OutputStream')
     def test_realtime_processor_update(self, mock_stream, mock_load):
         """測試即時更新處理器參數"""
         # Mock 音訊數據 (librosa 格式)
@@ -334,8 +334,8 @@ class TestAudioPlayerVolumeAndProcessor(unittest.TestCase):
 
         player.stop()
 
-    @patch('audio_player.librosa.load')
-    @patch('audio_player.sd.OutputStream')
+    @patch('src.audio.audio_player.librosa.load')
+    @patch('src.audio.audio_player.sd.OutputStream')
     def test_stereo_mono_audio(self, mock_stream, mock_load):
         """測試立體聲和單聲道音訊"""
         # Mock 單聲道音訊 (librosa 返回 1D array)

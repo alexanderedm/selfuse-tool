@@ -84,7 +84,7 @@ class ChangelogWindow:
         self.text_widget = ctk.CTkTextbox(
             text_frame,
             wrap="word",
-            font=("Consolas", 10),
+            font=("Consolas", 13),
             corner_radius=10,
             fg_color=self.text_bg_color,
             text_color=self.text_color
@@ -94,21 +94,6 @@ class ChangelogWindow:
         # 載入並顯示 CHANGELOG
         self._load_changelog()
 
-        # 關閉按鈕
-        button_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
-        button_frame.pack(pady=(15, 0))
-
-        close_button = ctk.CTkButton(
-            button_frame,
-            text="關閉",
-            command=self._close_window,
-            font=("Microsoft JhengHei UI", 11, "bold"),
-            corner_radius=10,
-            width=150,
-            height=40
-        )
-        close_button.pack()
-
         # 綁定關閉事件
         self.window.protocol("WM_DELETE_WINDOW", self._close_window)
 
@@ -116,10 +101,9 @@ class ChangelogWindow:
 
     def _load_changelog(self):
         """載入並顯示 CHANGELOG.md"""
-        changelog_path = os.path.join(
-            os.path.dirname(__file__),
-            "CHANGELOG.md"
-        )
+        # 從專案根目錄的 docs 資料夾中讀取 CHANGELOG.md
+        project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        changelog_path = os.path.join(project_root, "docs", "CHANGELOG.md")
 
         if not os.path.exists(changelog_path):
             self._show_error("找不到 CHANGELOG.md 文件")

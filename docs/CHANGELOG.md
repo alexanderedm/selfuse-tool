@@ -23,6 +23,31 @@
   - 修改檔案：`src/music/views/music_library_view.py`
 
 ### 修復 (Fixed)
+- **測試檔案中錯誤的 @patch decorator 路徑** (2025-10-20)
+  - 修正 8 個測試檔案中共 181 個錯誤的 @patch 路徑
+  - 將相對路徑（如 `@patch('audio_player.librosa.load')`）改為完整路徑（如 `@patch('src.audio.audio_player.librosa.load')`）
+  - 修復的測試檔案：
+    - `tests/test_audio_player.py` - 修復 audio_player 模組的 patch 路徑
+    - `tests/test_discord_presence.py` - 修復 discord_presence 模組的 patch 路徑
+    - `tests/test_music_download_dialog.py` - 修復 music_download_dialog 模組的 patch 路徑
+    - `tests/test_music_folder_actions.py` - 修復 music_folder_actions 模組的 patch 路徑
+    - `tests/test_music_history_dialog.py` - 修復 music_history_dialog 模組的 patch 路徑
+    - `tests/test_music_metadata_fetcher.py` - 修復 music_metadata_fetcher 模組的 patch 路徑
+    - `tests/test_music_metadata_multi_source.py` - 修復 music_metadata_multi_source 模組的 patch 路徑
+    - `tests/test_audio_manager.py` - 確認 audio_manager 模組的 patch 路徑已正確
+  - 所有測試檔案現在都使用正確的完整模組路徑
+  - 這是專案結構重構後的後續修正工作
+
+- **更新日誌視窗顯示和 UI 改善** (2025-10-20)
+  - 修正 CHANGELOG.md 檔案路徑錯誤，從 `src/windows/CHANGELOG.md` 改為正確的 `docs/CHANGELOG.md`
+  - 增加更新日誌內容的字體大小，從 10pt 增加到 13pt，提升可讀性
+  - 移除更新日誌視窗底部的關閉按鈕，使用者可直接使用 Windows 標題列的關閉按鈕
+  - 移除設定視窗的取消按鈕，保留儲存按鈕，簡化操作介面
+  - 所有 UI 視窗統一移除內部關閉按鈕，提供更簡潔的使用體驗
+  - 修改檔案：
+    - `src/windows/changelog_window.py`
+    - `src/windows/settings_window.py`
+
 - **歌曲移動和刪除功能無法使用** (2025-10-16)
   - 修正使用錯誤的欄位名稱 `filepath`，應為 `audio_path`
   - 移動功能現在會同時移動音訊檔案和 JSON 檔案

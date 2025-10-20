@@ -13,14 +13,14 @@ from src.music.utils.music_metadata_multi_source import MusicMetadataMultiSource
 class TestMusicMetadataMultiSourceInit:
     """測試初始化"""
 
-    @patch('music_metadata_multi_source.YTMUSIC_AVAILABLE', True)
+    @patch('src.music.utils.music_metadata_multi_source.YTMUSIC_AVAILABLE', True)
     def test_init_default(self):
         """測試預設初始化"""
         fetcher = MusicMetadataMultiSource()
         assert 'itunes' in fetcher.sources
         assert fetcher.timeout == 10
 
-    @patch('music_metadata_multi_source.YTMUSIC_AVAILABLE', True)
+    @patch('src.music.utils.music_metadata_multi_source.YTMUSIC_AVAILABLE', True)
     def test_init_custom_sources(self):
         """測試自訂來源"""
         fetcher = MusicMetadataMultiSource(sources=['itunes'])
@@ -35,8 +35,8 @@ class TestMusicMetadataMultiSourceInit:
 class TestFetchFromYTMusic:
     """測試從 YouTube Music 抓取"""
 
-    @patch('music_metadata_multi_source.YTMUSIC_AVAILABLE', True)
-    @patch('music_metadata_multi_source.YTMusic')
+    @patch('src.music.utils.music_metadata_multi_source.YTMUSIC_AVAILABLE', True)
+    @patch('src.music.utils.music_metadata_multi_source.YTMusic')
     def test_fetch_success(self, mock_ytmusic_class):
         """測試成功抓取"""
         # Mock YTMusic 回應
@@ -64,7 +64,7 @@ class TestFetchFromYTMusic:
         assert result['album'] == 'Test Album'
         assert 'thumb3.jpg' in result['thumbnail']  # 應選擇最大的縮圖
 
-    @patch('music_metadata_multi_source.YTMusic')
+    @patch('src.music.utils.music_metadata_multi_source.YTMusic')
     def test_fetch_no_results(self, mock_ytmusic_class):
         """測試沒有搜尋結果"""
         mock_ytmusic = MagicMock()
@@ -76,7 +76,7 @@ class TestFetchFromYTMusic:
 
         assert result is None
 
-    @patch('music_metadata_multi_source.YTMusic')
+    @patch('src.music.utils.music_metadata_multi_source.YTMusic')
     def test_fetch_exception(self, mock_ytmusic_class):
         """測試抓取時發生異常"""
         mock_ytmusic_class.side_effect = Exception("Network error")
@@ -90,7 +90,7 @@ class TestFetchFromYTMusic:
 class TestFetchFromITunes:
     """測試從 iTunes 抓取"""
 
-    @patch('music_metadata_multi_source.requests.get')
+    @patch('src.music.utils.music_metadata_multi_source.requests.get')
     def test_fetch_success(self, mock_get):
         """測試成功抓取"""
         # Mock iTunes API 回應
@@ -117,7 +117,7 @@ class TestFetchFromITunes:
         assert result['album'] == 'Test Album'
         assert 'artwork600x600bb.jpg' in result['thumbnail']  # 應轉換成高解析度
 
-    @patch('music_metadata_multi_source.requests.get')
+    @patch('src.music.utils.music_metadata_multi_source.requests.get')
     def test_fetch_no_results(self, mock_get):
         """測試沒有搜尋結果"""
         mock_response = MagicMock()
@@ -134,9 +134,9 @@ class TestFetchFromITunes:
 class TestFetchMetadata:
     """測試主要的 fetch_metadata 方法"""
 
-    @patch('music_metadata_multi_source.YTMUSIC_AVAILABLE', True)
-    @patch('music_metadata_multi_source.requests.get')
-    @patch('music_metadata_multi_source.YTMusic')
+    @patch('src.music.utils.music_metadata_multi_source.YTMUSIC_AVAILABLE', True)
+    @patch('src.music.utils.music_metadata_multi_source.requests.get')
+    @patch('src.music.utils.music_metadata_multi_source.YTMusic')
     def test_fetch_ytmusic_first(self, mock_ytmusic_class, mock_get):
         """測試優先從 YTMusic 抓取"""
         # Mock YTMusic 成功
@@ -159,8 +159,8 @@ class TestFetchMetadata:
         # iTunes 不應該被呼叫
         mock_get.assert_not_called()
 
-    @patch('music_metadata_multi_source.requests.get')
-    @patch('music_metadata_multi_source.YTMusic')
+    @patch('src.music.utils.music_metadata_multi_source.requests.get')
+    @patch('src.music.utils.music_metadata_multi_source.YTMusic')
     def test_fallback_to_itunes(self, mock_ytmusic_class, mock_get):
         """測試 YTMusic 失敗時回退到 iTunes"""
         # Mock YTMusic 失敗
@@ -189,8 +189,8 @@ class TestFetchMetadata:
         assert result is not None
         assert result['artist'] == 'iTunes Artist'
 
-    @patch('music_metadata_multi_source.requests.get')
-    @patch('music_metadata_multi_source.YTMusic')
+    @patch('src.music.utils.music_metadata_multi_source.requests.get')
+    @patch('src.music.utils.music_metadata_multi_source.YTMusic')
     def test_all_sources_fail(self, mock_ytmusic_class, mock_get):
         """測試所有來源都失敗"""
         # Mock YTMusic 失敗

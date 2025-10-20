@@ -629,7 +629,7 @@ class TestMusicMetadataFetcherIntegration:
 class TestMusicMetadataFetcherAsync:
     """非同步測試"""
 
-    @patch('music_metadata_fetcher.MusicMetadataFetcher.fetch_metadata')
+    @patch('src.music.utils.music_metadata_fetcher.MusicMetadataFetcher.fetch_metadata')
     def test_fetch_metadata_async_success(self, mock_fetch, fetcher, sample_song):
         """測試非同步抓取成功"""
         import threading
@@ -652,7 +652,7 @@ class TestMusicMetadataFetcherAsync:
         assert callback_result["success"] is True
         assert callback_result["metadata"] == {"artist": "Test"}
 
-    @patch('music_metadata_fetcher.MusicMetadataFetcher.fetch_metadata')
+    @patch('src.music.utils.music_metadata_fetcher.MusicMetadataFetcher.fetch_metadata')
     def test_fetch_metadata_async_no_missing(self, mock_fetch, fetcher, sample_song):
         """測試非同步抓取,無缺失欄位"""
         import threading
@@ -676,7 +676,7 @@ class TestMusicMetadataFetcherAsync:
         assert callback_result["success"] is True
         assert callback_result["metadata"] is None
 
-    @patch('music_metadata_fetcher.MusicMetadataFetcher.check_missing_metadata')
+    @patch('src.music.utils.music_metadata_fetcher.MusicMetadataFetcher.check_missing_metadata')
     def test_fetch_metadata_async_error(self, mock_check, fetcher, sample_song):
         """測試非同步抓取錯誤"""
         import threading

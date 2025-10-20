@@ -889,46 +889,10 @@ class MusicLibraryView:
         if self.drag_data is None:
             return
 
-        # 檢查是否放在資料夾樹上
         try:
-            # 獲取滑鼠相對於資料夾樹的位置
-            x = event.x_root - self.category_tree.winfo_rootx()
-            y = event.y_root - self.category_tree.winfo_rooty()
-
-            # 檢查是否在資料夾樹範圍內
-            if (0 <= x <= self.category_tree.winfo_width() and
-                0 <= y <= self.category_tree.winfo_height()):
-
-                # 獲取放下位置的項目
-                item_id = self.category_tree.identify_row(y)
-                if item_id:
-                    item_values = self.category_tree.item(item_id, 'values')
-                    if item_values and item_values[0].startswith('folder:'):
-                        # 獲取目標資料夾名稱
-                        target_category = item_values[0].replace('folder:', '')
-                        current_category = self.drag_data.get('category', '')
-
-                        # 確認是否要移動
-                        if target_category != current_category:
-                            result = messagebox.askyesno(
-                                "確認移動",
-                                f"將歌曲 '{self.drag_data['title'][:40]}' 移動到資料夾 '{target_category}' 嗎？",
-                                parent=self.parent
-                            )
-
-                            if result:
-                                # 執行移動
-                                if self._move_song_to_category(self.drag_data, target_category):
-                                    logger.info(f"拖放移動歌曲成功: {self.drag_data['title']} -> {target_category}")
-                                    messagebox.showinfo(
-                                        "成功",
-                                        f"歌曲已移動到 '{target_category}'",
-                                        parent=self.parent
-                                    )
-                                    # 重新載入音樂庫
-                                    self.reload_library()
-                                else:
-                                    messagebox.showerror("錯誤", "移動歌曲失敗", parent=self.parent)
+            target_category = self._get_drop_target_category(event)
+            if target_category:
+                self._confirm_and_move_song(target_category)
 
         except Exception as e:
             logger.error(f"拖放處理失敗: {e}")
@@ -936,6 +900,69 @@ class MusicLibraryView:
         # 清除拖動資料
         self.drag_data = None
         self.drag_start_index = None
+
+    def _get_drop_target_category(self, event):
+        """獲取放下位置的目標資料夾
+
+        Args:
+            event: 事件物件
+
+        Returns:
+            str: 目標資料夾名稱，若無效則返回 None
+        """
+        # 獲取滑鼠相對於資料夾樹的位置
+        x = event.x_root - self.category_tree.winfo_rootx()
+        y = event.y_root - self.category_tree.winfo_rooty()
+
+        # 檢查是否在資料夾樹範圍內
+        if not (0 <= x <= self.category_tree.winfo_width() and
+                0 <= y <= self.category_tree.winfo_height()):
+            return None
+
+        # 獲取放下位置的項目
+        item_id = self.category_tree.identify_row(y)
+        if not item_id:
+            return None
+
+        item_values = self.category_tree.item(item_id, 'values')
+        if not (item_values and item_values[0].startswith('folder:')):
+            return None
+
+        return item_values[0].replace('folder:', '')
+
+    def _confirm_and_move_song(self, target_category):
+        """確認並移動歌曲到目標資料夾
+
+        Args:
+            target_category (str): 目標資料夾名稱
+        """
+        current_category = self.drag_data.get('category', '')
+
+        # 確認是否要移動
+        if target_category == current_category:
+            return
+
+        result = messagebox.askyesno(
+            "確認移動",
+            f"將歌曲 '{self.drag_data['title'][:40]}' 移動到資料夾 '{target_category}' 嗎？",
+            parent=self.parent
+        )
+
+        if not result:
+            return
+
+        # 執行移動
+        if self._move_song_to_category(self.drag_data, target_category):
+            logger.info(f"拖放移動歌曲成功: {self.drag_data['title']} -> {target_category}")
+            messagebox.showinfo(
+                "成功",
+                f"歌曲已移動到 '{target_category}'",
+                parent=self.parent
+            )
+            # 重新載入音樂庫
+            self.reload_library()
+        else:
+            messagebox.showerror("錯誤", "移動歌曲失敗", parent=self.parent)
 
     def _on_category_hover(self, event):
         """資料夾樹懸停時的處理

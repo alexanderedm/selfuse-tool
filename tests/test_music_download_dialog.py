@@ -79,7 +79,7 @@ class TestMusicDownloadDialog:
         assert dialog.dialog is None
         assert dialog.progress_dialog is None
 
-    @patch('music_download_dialog.messagebox.showerror')
+    @patch('src.music.dialogs.music_download_dialog.messagebox.showerror')
     def test_show_download_dialog_ytdlp_not_installed(self, mock_showerror, dialog, mock_youtube_downloader):
         """測試 yt-dlp 未安裝時顯示錯誤"""
         mock_youtube_downloader.check_ytdlp_installed.return_value = False
@@ -91,13 +91,13 @@ class TestMusicDownloadDialog:
         assert "yt-dlp" in mock_showerror.call_args[0][1]
         assert dialog.dialog is None
 
-    @patch('music_download_dialog.tk.StringVar')
-    @patch('music_download_dialog.ttk.Combobox')
-    @patch('music_download_dialog.tk.Entry')
-    @patch('music_download_dialog.tk.Button')
-    @patch('music_download_dialog.tk.Label')
-    @patch('music_download_dialog.tk.Frame')
-    @patch('music_download_dialog.tk.Toplevel')
+    @patch('src.music.dialogs.music_download_dialog.tk.StringVar')
+    @patch('src.music.dialogs.music_download_dialog.ttk.Combobox')
+    @patch('src.music.dialogs.music_download_dialog.tk.Entry')
+    @patch('src.music.dialogs.music_download_dialog.tk.Button')
+    @patch('src.music.dialogs.music_download_dialog.tk.Label')
+    @patch('src.music.dialogs.music_download_dialog.tk.Frame')
+    @patch('src.music.dialogs.music_download_dialog.tk.Toplevel')
     def test_show_download_dialog_creates_dialog(self, mock_toplevel, mock_frame, mock_label,
                                                   mock_button, mock_entry, mock_combo, mock_stringvar, dialog):
         """測試顯示下載對話框建立"""
@@ -112,13 +112,13 @@ class TestMusicDownloadDialog:
         mock_dialog.title.assert_called_once_with("📥 下載 YouTube 音樂")
         mock_dialog.geometry.assert_called_once_with("600x400")
 
-    @patch('music_download_dialog.tk.StringVar')
-    @patch('music_download_dialog.ttk.Combobox')
-    @patch('music_download_dialog.tk.Entry')
-    @patch('music_download_dialog.tk.Button')
-    @patch('music_download_dialog.tk.Label')
-    @patch('music_download_dialog.tk.Frame')
-    @patch('music_download_dialog.tk.Toplevel')
+    @patch('src.music.dialogs.music_download_dialog.tk.StringVar')
+    @patch('src.music.dialogs.music_download_dialog.ttk.Combobox')
+    @patch('src.music.dialogs.music_download_dialog.tk.Entry')
+    @patch('src.music.dialogs.music_download_dialog.tk.Button')
+    @patch('src.music.dialogs.music_download_dialog.tk.Label')
+    @patch('src.music.dialogs.music_download_dialog.tk.Frame')
+    @patch('src.music.dialogs.music_download_dialog.tk.Toplevel')
     def test_show_download_dialog_loads_categories(self, mock_toplevel, mock_frame, mock_label,
                                                     mock_button, mock_entry, mock_combo, mock_stringvar,
                                                     dialog, mock_music_manager):
@@ -154,7 +154,7 @@ class TestMusicDownloadDialog:
         assert dialog._is_youtube_url("") is False
         assert dialog._is_youtube_url(None) is False
 
-    @patch('music_download_dialog.messagebox.showwarning')
+    @patch('src.music.dialogs.music_download_dialog.messagebox.showwarning')
     def test_smart_download_or_search_empty_input(self, mock_showwarning, dialog):
         """測試空輸入"""
         dialog.dialog = Mock()
@@ -163,7 +163,7 @@ class TestMusicDownloadDialog:
         # 驗證警告訊息被顯示
         mock_showwarning.assert_called_once()
 
-    @patch('music_download_dialog.MusicDownloadDialog._start_direct_download')
+    @patch('src.music.dialogs.music_download_dialog.MusicDownloadDialog._start_direct_download')
     def test_smart_download_or_search_url(self, mock_direct_download, dialog):
         """測試 URL 輸入觸發直接下載"""
         url = "https://youtube.com/watch?v=test"
@@ -172,7 +172,7 @@ class TestMusicDownloadDialog:
         # 驗證直接下載被調用
         mock_direct_download.assert_called_once_with(url, "下載")
 
-    @patch('music_download_dialog.MusicDownloadDialog._start_search_download')
+    @patch('src.music.dialogs.music_download_dialog.MusicDownloadDialog._start_search_download')
     def test_smart_download_or_search_keyword(self, mock_search_download, dialog):
         """測試關鍵字輸入觸發搜尋"""
         keyword = "test song search"
@@ -181,7 +181,7 @@ class TestMusicDownloadDialog:
         # 驗證搜尋下載被調用
         mock_search_download.assert_called_once_with(keyword, "下載")
 
-    @patch('music_download_dialog.MusicDownloadDialog.start_download')
+    @patch('src.music.dialogs.music_download_dialog.MusicDownloadDialog.start_download')
     def test_start_direct_download(self, mock_start_download, dialog):
         """測試直接下載"""
         url = "https://youtube.com/watch?v=test"
@@ -190,8 +190,8 @@ class TestMusicDownloadDialog:
         # 驗證 start_download 被調用
         mock_start_download.assert_called_once_with(url, "下載")
 
-    @patch('music_download_dialog.threading.Thread')
-    @patch('music_download_dialog.messagebox.showinfo')
+    @patch('src.music.dialogs.music_download_dialog.threading.Thread')
+    @patch('src.music.dialogs.music_download_dialog.messagebox.showinfo')
     def test_start_search_download(self, mock_showinfo, mock_thread, dialog, mock_youtube_downloader):
         """測試搜尋下載"""
         dialog.dialog = Mock()
@@ -204,12 +204,12 @@ class TestMusicDownloadDialog:
         # 驗證執行緒被啟動
         mock_thread.assert_called_once()
 
-    @patch('music_download_dialog.tk.Listbox')
-    @patch('music_download_dialog.tk.Button')
-    @patch('music_download_dialog.tk.Label')
-    @patch('music_download_dialog.tk.Frame')
-    @patch('music_download_dialog.tk.Scrollbar')
-    @patch('music_download_dialog.tk.Toplevel')
+    @patch('src.music.dialogs.music_download_dialog.tk.Listbox')
+    @patch('src.music.dialogs.music_download_dialog.tk.Button')
+    @patch('src.music.dialogs.music_download_dialog.tk.Label')
+    @patch('src.music.dialogs.music_download_dialog.tk.Frame')
+    @patch('src.music.dialogs.music_download_dialog.tk.Scrollbar')
+    @patch('src.music.dialogs.music_download_dialog.tk.Toplevel')
     def test_show_search_results_creates_dialog(self, mock_toplevel, mock_scrollbar, mock_frame,
                                                  mock_label, mock_button, mock_listbox, dialog):
         """測試顯示搜尋結果對話框"""
@@ -228,7 +228,7 @@ class TestMusicDownloadDialog:
         mock_toplevel.assert_called_once_with(dialog.dialog)
         mock_result_dialog.title.assert_called_once_with("🔍 搜尋結果")
 
-    @patch('music_download_dialog.messagebox.showwarning')
+    @patch('src.music.dialogs.music_download_dialog.messagebox.showwarning')
     def test_start_download_empty_url(self, mock_showwarning, dialog):
         """測試空 URL 下載"""
         dialog.start_download("", "下載")
@@ -236,8 +236,8 @@ class TestMusicDownloadDialog:
         # 驗證警告訊息被顯示
         mock_showwarning.assert_called_once()
 
-    @patch('music_download_dialog.threading.Thread')
-    @patch('music_download_dialog.MusicDownloadDialog.show_progress')
+    @patch('src.music.dialogs.music_download_dialog.threading.Thread')
+    @patch('src.music.dialogs.music_download_dialog.MusicDownloadDialog.show_progress')
     def test_start_download_creates_thread(self, mock_show_progress, mock_thread, dialog):
         """測試下載建立執行緒"""
         dialog.dialog = Mock()
@@ -250,10 +250,10 @@ class TestMusicDownloadDialog:
         # 驗證執行緒被建立
         mock_thread.assert_called_once()
 
-    @patch('music_download_dialog.ttk.Progressbar')
-    @patch('music_download_dialog.tk.Label')
-    @patch('music_download_dialog.tk.Frame')
-    @patch('music_download_dialog.tk.Toplevel')
+    @patch('src.music.dialogs.music_download_dialog.ttk.Progressbar')
+    @patch('src.music.dialogs.music_download_dialog.tk.Label')
+    @patch('src.music.dialogs.music_download_dialog.tk.Frame')
+    @patch('src.music.dialogs.music_download_dialog.tk.Toplevel')
     def test_show_progress_creates_dialog(self, mock_toplevel, mock_frame, mock_label, mock_progressbar, dialog):
         """測試顯示進度對話框"""
         mock_progress_dialog = Mock()
@@ -288,8 +288,8 @@ class TestMusicDownloadDialog:
         # 驗證進度條停止
         dialog.progress_bar.stop.assert_called_once()
 
-    @patch('music_download_dialog.os.makedirs')
-    @patch('music_download_dialog.simpledialog.askstring')
+    @patch('src.music.dialogs.music_download_dialog.os.makedirs')
+    @patch('src.music.dialogs.music_download_dialog.simpledialog.askstring')
     def test_add_new_category(self, mock_askstring, mock_makedirs, dialog, mock_music_manager):
         """測試新增分類"""
         mock_askstring.return_value = "新分類"
@@ -304,8 +304,8 @@ class TestMusicDownloadDialog:
         # 驗證下拉選單被更新
         mock_var.set.assert_called_once_with("新分類")
 
-    @patch('music_download_dialog.os.makedirs')
-    @patch('music_download_dialog.simpledialog.askstring')
+    @patch('src.music.dialogs.music_download_dialog.os.makedirs')
+    @patch('src.music.dialogs.music_download_dialog.simpledialog.askstring')
     def test_add_new_category_empty_name(self, mock_askstring, mock_makedirs, dialog):
         """測試新增空白分類名稱"""
         mock_askstring.return_value = ""
@@ -317,8 +317,8 @@ class TestMusicDownloadDialog:
         # 驗證目錄不被建立
         mock_makedirs.assert_not_called()
 
-    @patch('music_download_dialog.os.makedirs')
-    @patch('music_download_dialog.simpledialog.askstring')
+    @patch('src.music.dialogs.music_download_dialog.os.makedirs')
+    @patch('src.music.dialogs.music_download_dialog.simpledialog.askstring')
     def test_add_new_category_cancel(self, mock_askstring, mock_makedirs, dialog):
         """測試取消新增分類"""
         mock_askstring.return_value = None
