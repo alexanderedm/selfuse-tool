@@ -43,6 +43,13 @@
   - 修改檔案：`src/music/views/music_library_view.py`
 
 ### 修復 (Fixed)
+- **修正重新啟動功能在 Windows 上的錯誤** (2025-10-20)
+  - 修正 `[WinError 87] 參數錯誤` 的問題
+  - 移除 `CREATE_NEW_CONSOLE` 標誌，避免與 `DETACHED_PROCESS` 衝突
+  - 改用只使用 `DETACHED_PROCESS` 和 `close_fds=True` 的組合
+  - 確保在 Windows 環境下能正確啟動新實例
+  - 修改檔案：`src/main.py` (`restart_app()` 方法)
+
 - **測試檔案中錯誤的 @patch decorator 路徑** (2025-10-20)
   - 修正 8 個測試檔案中共 181 個錯誤的 @patch 路徑
   - 將相對路徑（如 `@patch('audio_player.librosa.load')`）改為完整路徑（如 `@patch('src.audio.audio_player.librosa.load')`）

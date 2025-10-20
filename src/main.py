@@ -308,12 +308,18 @@ class AudioSwitcherApp:
             # 啟動新實例
             if getattr(sys, 'frozen', False):
                 # exe 模式
-                subprocess.Popen([current_exe],
-                               creationflags=subprocess.CREATE_NEW_CONSOLE | subprocess.DETACHED_PROCESS)
+                subprocess.Popen(
+                    [current_exe],
+                    creationflags=subprocess.DETACHED_PROCESS,
+                    close_fds=True
+                )
             else:
                 # Python 腳本模式
-                subprocess.Popen([current_exe, script_path],
-                               creationflags=subprocess.CREATE_NEW_CONSOLE | subprocess.DETACHED_PROCESS)
+                subprocess.Popen(
+                    [current_exe, script_path],
+                    creationflags=subprocess.DETACHED_PROCESS,
+                    close_fds=True
+                )
 
             logger.info("新實例已啟動，準備關閉當前實例")
 
