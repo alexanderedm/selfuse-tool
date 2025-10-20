@@ -272,6 +272,33 @@ class MusicManager:
         with self._lock:
             return self.song_id_index.get(song_id)
 
+    def _remove_song_from_category(self, category, song_id):
+        """從指定分類移除歌曲（輔助方法）"""
+        if category not in self.categories:
+            return
+
+        self.categories[category] = [
+            s for s in self.categories[category] if s['id'] != song_id
+        ]
+
+        # 如果分類變空了，刪除該分類
+        if not self.categories[category]:
+            del self.categories[category]
+
+    def _add_song_to_category(self, category, song):
+        """將歌曲添加到指定分類（輔助方法）"""
+        if category not in self.categories:
+            self.categories[category] = []
+        self.categories[category].append(song)
+
+    def _update_song_in_all_songs(self, song_id, updated_song):
+        """更新 all_songs 列表中的歌曲（輔助方法）"""
+        for i, s in enumerate(self.all_songs):
+            if s['id'] == song_id:
+                self.all_songs[i] = updated_song
+                return True
+        return False
+
     def update_song_category(self, song, new_category):
         """增量更新：移動歌曲到新分類（不重新掃描整個庫）
 
@@ -291,27 +318,16 @@ class MusicManager:
                     return False
 
                 # 從舊分類移除
-                if old_category in self.categories:
-                    self.categories[old_category] = [
-                        s for s in self.categories[old_category] if s['id'] != song_id
-                    ]
-                    # 如果分類變空了，刪除該分類
-                    if not self.categories[old_category]:
-                        del self.categories[old_category]
+                self._remove_song_from_category(old_category, song_id)
 
                 # 更新歌曲資訊
                 song['category'] = new_category
 
                 # 添加到新分類
-                if new_category not in self.categories:
-                    self.categories[new_category] = []
-                self.categories[new_category].append(song)
+                self._add_song_to_category(new_category, song)
 
                 # 更新 all_songs 列表中的歌曲引用
-                for i, s in enumerate(self.all_songs):
-                    if s['id'] == song_id:
-                        self.all_songs[i] = song
-                        break
+                self._update_song_in_all_songs(song_id, song)
 
                 # 更新索引
                 self.song_id_index[song_id] = song
@@ -341,13 +357,8 @@ class MusicManager:
                     return False
 
                 # 從分類移除
-                if category and category in self.categories:
-                    self.categories[category] = [
-                        s for s in self.categories[category] if s['id'] != song_id
-                    ]
-                    # 如果分類變空了，刪除該分類
-                    if not self.categories[category]:
-                        del self.categories[category]
+                if category:
+                    self._remove_song_from_category(category, song_id)
 
                 # 從 all_songs 移除
                 self.all_songs = [s for s in self.all_songs if s['id'] != song_id]

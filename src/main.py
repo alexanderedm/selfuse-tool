@@ -285,6 +285,52 @@ class AudioSwitcherApp:
             f"開機自啟動已{'啟用' if not current else '停用'}", "設定"
         )
 
+    def restart_app(self):
+        """重新啟動應用程式"""
+        import subprocess
+
+        logger.info("準備重新啟動應用程式...")
+
+        try:
+            # 取得當前執行檔路徑
+            if getattr(sys, 'frozen', False):
+                # 如果是打包後的 exe
+                current_exe = sys.executable
+            else:
+                # 如果是 Python 腳本
+                current_exe = sys.executable
+                script_path = os.path.abspath(__file__)
+
+            # 儲存當前狀態
+            self.config_manager.update_current_usage()
+            self.config_manager.save_config()  # 立即儲存配置
+
+            # 啟動新實例
+            if getattr(sys, 'frozen', False):
+                # exe 模式
+                subprocess.Popen([current_exe],
+                               creationflags=subprocess.CREATE_NEW_CONSOLE | subprocess.DETACHED_PROCESS)
+            else:
+                # Python 腳本模式
+                subprocess.Popen([current_exe, script_path],
+                               creationflags=subprocess.CREATE_NEW_CONSOLE | subprocess.DETACHED_PROCESS)
+
+            logger.info("新實例已啟動，準備關閉當前實例")
+
+            # 顯示通知
+            self.show_notification("應用程式正在重新啟動...", "系統")
+
+            # 延遲一點讓通知顯示，然後退出
+            import time
+            time.sleep(0.5)
+
+            # 關閉當前實例
+            self.quit_app()
+
+        except Exception as e:
+            logger.error(f"重新啟動失敗: {e}", exc_info=True)
+            self.show_notification(f"重新啟動失敗: {e}", "錯誤")
+
     def quit_app(self):
         """結束應用程式"""
         # 停止剪貼簿監控
@@ -471,6 +517,7 @@ class AudioSwitcherApp:
                 checked=lambda item: self.config_manager.get_auto_start(),
             ),
             pystray.Menu.SEPARATOR,
+            item("🔄 重新啟動", self.restart_app),
             item("結束", self.quit_app),
         )
 
