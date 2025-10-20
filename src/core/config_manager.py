@@ -1,6 +1,7 @@
 """設定檔管理模組"""
 import json
 import os
+import threading
 from src.core.constants import DEFAULT_MUSIC_VOLUME, DEFAULT_MUSIC_ROOT_PATH
 
 
@@ -10,6 +11,11 @@ class ConfigManager:
     def __init__(self, config_path='config.json'):
         self.config_path = config_path
         self.config = self._load_config()
+
+        # 批量寫入機制
+        self.save_timer = None
+        self.save_delay = 1.0  # 1 秒後寫入
+        self.save_lock = threading.Lock()
 
     def _load_config(self):
         """載入設定檔
@@ -46,14 +52,38 @@ class ConfigManager:
         }
 
     def save_config(self):
-        """儲存設定檔
+        """儲存設定檔（立即寫入，用於程式關閉時）
+
+        Returns:
+            bool: 是否成功
+        """
+        return self._perform_save()
+
+    def _schedule_save(self):
+        """排程延遲儲存（批量寫入優化）"""
+        with self.save_lock:
+            # 取消現有計時器
+            if self.save_timer and self.save_timer.is_alive():
+                self.save_timer.cancel()
+
+            # 建立新的延遲計時器
+            self.save_timer = threading.Timer(
+                self.save_delay,
+                self._perform_save
+            )
+            self.save_timer.daemon = True
+            self.save_timer.start()
+
+    def _perform_save(self):
+        """執行實際的儲存操作
 
         Returns:
             bool: 是否成功
         """
         try:
-            with open(self.config_path, 'w', encoding='utf-8') as f:
-                json.dump(self.config, f, ensure_ascii=False, indent=2)
+            with self.save_lock:
+                with open(self.config_path, 'w', encoding='utf-8') as f:
+                    json.dump(self.config, f, ensure_ascii=False, indent=2)
             return True
         except Exception as e:
             print(f"儲存設定檔失敗: {e}")
@@ -74,7 +104,7 @@ class ConfigManager:
             device_info (dict): {'id': str, 'name': str}
         """
         self.config['device_a'] = device_info
-        self.save_config()
+        self._schedule_save()
 
     def set_device_b(self, device_info):
         """設定裝置 B
@@ -83,7 +113,7 @@ class ConfigManager:
             device_info (dict): {'id': str, 'name': str}
         """
         self.config['device_b'] = device_info
-        self.save_config()
+        self._schedule_save()
 
     def get_current_device(self):
         """取得當前裝置"""
@@ -96,7 +126,7 @@ class ConfigManager:
             device_info (dict): {'id': str, 'name': str}
         """
         self.config['current_device'] = device_info
-        self.save_config()
+        self._schedule_save()
 
     def get_auto_start(self):
         """取得開機自啟動設定"""
@@ -109,7 +139,7 @@ class ConfigManager:
             enabled (bool): 是否啟用
         """
         self.config['auto_start'] = enabled
-        self.save_config()
+        self._schedule_save()
 
         # 實際設定 Windows 註冊表
         self._set_windows_auto_start(enabled)
@@ -190,7 +220,7 @@ class ConfigManager:
         # 更新最後切換時間
         self.config['last_switch_time'] = current_time
 
-        self.save_config()
+        self._schedule_save()
 
     def get_usage_stats(self):
         """取得使用統計
@@ -240,7 +270,7 @@ class ConfigManager:
             feeds (dict): RSS 訂閱字典
         """
         self.config['rss_feeds'] = feeds
-        self.save_config()
+        self._schedule_save()
 
     # ==================== RSS 文章狀態管理 ====================
 
@@ -261,7 +291,7 @@ class ConfigManager:
             articles (list): 文章 ID 列表
         """
         self.config['read_articles'] = articles
-        self.save_config()
+        self._schedule_save()
 
     def get_favorite_articles(self):
         """取得收藏文章
@@ -280,7 +310,7 @@ class ConfigManager:
             favorites (dict): 收藏文章字典
         """
         self.config['favorite_articles'] = favorites
-        self.save_config()
+        self._schedule_save()
 
     def get_feed_categories(self):
         """取得 RSS 分類
@@ -299,7 +329,7 @@ class ConfigManager:
             categories (dict): 分類字典
         """
         self.config['feed_categories'] = categories
-        self.save_config()
+        self._schedule_save()
 
     def add_feed_to_category(self, feed_url, category):
         """將 RSS 加入分類
@@ -357,7 +387,7 @@ class ConfigManager:
             volume (int): 音量 (0-100)
         """
         self.config['music_volume'] = max(0, min(100, int(volume)))
-        self.save_config()
+        self._schedule_save()
 
     # ==================== 通用配置存取方法 ====================
 
@@ -381,4 +411,4 @@ class ConfigManager:
             value: 配置值
         """
         self.config[key] = value
-        self.save_config()
+        self._schedule_save()

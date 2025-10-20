@@ -205,9 +205,19 @@ class MusicWindow:
             self.window = ctk.CTk()
 
         self.window.title("🎵 本地音樂播放器")
-        self.window.geometry("1200x700")
+
+        # 載入視窗位置和大小（如果有儲存）
+        saved_geometry = self.music_manager.config_manager.get(
+            'music_window_geometry',
+            default='1200x700+100+100'
+        )
+        self.window.geometry(saved_geometry)
+
         self.window.minsize(1200, 700)  # 設定最小視窗大小，確保所有按鈕顯示完整
         self.window.resizable(True, True)
+
+        # 綁定視窗變更事件，儲存位置和大小
+        self.window.bind('<Configure>', self._on_window_configure)
 
         # 初始化歷史對話框
         self.history_dialog = MusicHistoryDialog(
@@ -1001,11 +1011,31 @@ class MusicWindow:
 
     def _close_window(self):
         """關閉視窗（隱藏而非銷毀，不停止播放，音樂在背景繼續）"""
+        # 儲存視窗位置和大小
+        if self.window:
+            try:
+                geometry = self.window.geometry()
+                self.music_manager.config_manager.set('music_window_geometry', geometry)
+                logger.debug(f"儲存視窗幾何資訊: {geometry}")
+            except Exception as e:
+                logger.error(f"儲存視窗幾何資訊失敗: {e}")
+
         # 不停止播放,讓音樂在背景繼續
         logger.info("音樂播放器視窗已隱藏,音樂繼續在背景播放")
 
         if self.window:
             self.window.withdraw()
+
+    def _on_window_configure(self, event):
+        """視窗配置變更事件（位置或大小改變）"""
+        # 只處理視窗本身的配置變更事件，忽略子元件
+        if event.widget == self.window:
+            try:
+                # 延遲儲存（使用配置管理器的批量寫入機制）
+                geometry = self.window.geometry()
+                self.music_manager.config_manager.set('music_window_geometry', geometry)
+            except Exception as e:
+                logger.debug(f"儲存視窗幾何資訊時出錯: {e}")
 
     def _load_lyrics_for_song(self, song):
         """載入歌曲的歌詞檔案

@@ -32,6 +32,10 @@ class MusicSearchView:
         # UI 元件
         self.search_entry = None
 
+        # 搜尋防抖機制
+        self.search_timer = None
+        self.search_delay = 300  # 300ms 延遲，避免過度搜尋
+
         # 建立主框架（圓角框架）
         self.main_frame = ctk.CTkFrame(parent, corner_radius=10)
         self.main_frame.pack(fill="x", pady=(0, 10))
@@ -76,13 +80,31 @@ class MusicSearchView:
         clear_search_button.pack(side="left")
 
     def _on_search_change(self, event):
-        """搜尋框內容改變事件"""
+        """搜尋框內容改變事件（使用防抖機制）"""
+        # 取消上一次搜尋計時器
+        if self.search_timer:
+            self.parent.after_cancel(self.search_timer)
+            self.search_timer = None
+
         keyword = self.search_entry.get().strip()
 
         if not keyword:
-            # 搜尋框為空,觸發清除回調
+            # 搜尋框為空，立即觸發清除回調
             if self.on_search_cleared:
                 self.on_search_cleared()
+            return
+
+        # 設定延遲搜尋（防抖）
+        self.search_timer = self.parent.after(
+            self.search_delay,
+            self._execute_search
+        )
+
+    def _execute_search(self):
+        """執行實際的搜尋操作（在防抖延遲後調用）"""
+        keyword = self.search_entry.get().strip()
+
+        if not keyword:
             return
 
         # 搜尋歌曲

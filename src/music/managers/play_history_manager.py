@@ -4,6 +4,7 @@
 """
 
 import json
+import threading
 from datetime import datetime
 from pathlib import Path
 from typing import List, Dict, Optional
@@ -24,6 +25,13 @@ class PlayHistoryManager:
         """
         self.history_file = Path(history_file)
         self.history_data = self._load_history()
+
+        # 異步寫入機制
+        self.save_timer = None
+        self.save_delay = 2.0  # 2 秒後寫入
+        self.save_lock = threading.Lock()
+        self.pending_save = False
+
         logger.info(f"播放記錄管理器已初始化,記錄檔案: {history_file}")
 
     def _load_history(self) -> Dict:
@@ -49,16 +57,35 @@ class PlayHistoryManager:
             }
 
     def _save_history(self) -> bool:
-        """儲存播放記錄"""
+        """儲存播放記錄（同步，立即寫入）"""
         try:
-            self.history_file.parent.mkdir(parents=True, exist_ok=True)
-            with open(self.history_file, 'w', encoding='utf-8') as f:
-                json.dump(self.history_data, f, ensure_ascii=False, indent=2)
+            with self.save_lock:
+                self.history_file.parent.mkdir(parents=True, exist_ok=True)
+                with open(self.history_file, 'w', encoding='utf-8') as f:
+                    json.dump(self.history_data, f, ensure_ascii=False, indent=2)
+                self.pending_save = False
             logger.debug("播放記錄已儲存")
             return True
         except IOError as e:
             logger.error(f"儲存播放記錄失敗: {e}", exc_info=True)
             return False
+
+    def _schedule_save_async(self):
+        """排程異步儲存（避免頻繁磁碟 I/O）"""
+        with self.save_lock:
+            self.pending_save = True
+
+            # 取消現有計時器
+            if self.save_timer and self.save_timer.is_alive():
+                self.save_timer.cancel()
+
+            # 建立新的延遲計時器
+            self.save_timer = threading.Timer(
+                self.save_delay,
+                self._save_history
+            )
+            self.save_timer.daemon = True
+            self.save_timer.start()
 
     def record_play(self, song_id: str, song_info: Dict) -> bool:
         """
@@ -96,7 +123,9 @@ class PlayHistoryManager:
 
             logger.info(f"記錄播放: {song_info.get('title')} (總播放次數: {self.history_data['total_plays']})")
 
-            return self._save_history()
+            # 異步儲存（不阻塞播放）
+            self._schedule_save_async()
+            return True
         except Exception as e:
             logger.error(f"記錄播放失敗: {e}", exc_info=True)
             return False

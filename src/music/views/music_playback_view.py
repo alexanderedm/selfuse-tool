@@ -2,6 +2,7 @@
 import customtkinter as ctk
 import threading
 import requests
+from collections import OrderedDict
 from PIL import Image, ImageTk, ImageDraw
 from io import BytesIO
 from src.core.logger import logger
@@ -44,8 +45,9 @@ class MusicPlaybackView:
         self.volume_slider = None
         self.volume_scale = None  # 向後相容別名
 
-        # 專輯封面快取
-        self.thumbnail_cache = {}
+        # 專輯封面快取（LRU，最多 50 張）
+        self.thumbnail_cache = OrderedDict()
+        self.max_cache_size = 50  # 最多快取 50 張圖片（約 25-50MB）
         self.default_cover_image = None
 
         # 顏色主題
@@ -419,8 +421,10 @@ class MusicPlaybackView:
         if not thumbnail_url:
             return None
 
-        # 檢查快取
+        # 檢查快取（LRU：移到最後表示最近使用）
         if thumbnail_url in self.thumbnail_cache:
+            # 移到最後（最近使用）
+            self.thumbnail_cache.move_to_end(thumbnail_url)
             return self.thumbnail_cache[thumbnail_url]
 
         try:
@@ -448,10 +452,16 @@ class MusicPlaybackView:
             # 轉換為 PhotoImage
             photo = ctk.CTkImage(light_image=image, dark_image=image, size=(new_width, new_height))
 
-            # 快取圖片
+            # LRU 快取管理：超過大小時刪除最舊的
+            if len(self.thumbnail_cache) >= self.max_cache_size:
+                # 刪除最舊的項目（第一個）
+                oldest_url, oldest_photo = self.thumbnail_cache.popitem(last=False)
+                logger.debug(f"LRU 快取已滿，移除最舊的縮圖: {oldest_url[:30]}...")
+
+            # 快取圖片（加入最後，表示最新）
             self.thumbnail_cache[thumbnail_url] = photo
 
-            logger.info(f"成功載入專輯封面: {thumbnail_url[:50]}... ({new_width}x{new_height})")
+            logger.info(f"成功載入專輯封面: {thumbnail_url[:50]}... ({new_width}x{new_height}) [快取: {len(self.thumbnail_cache)}/{self.max_cache_size}]")
             return photo
 
         except Exception as e:
