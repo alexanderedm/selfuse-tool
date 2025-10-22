@@ -4,6 +4,8 @@ import json
 import glob
 from pathlib import Path
 from threading import Thread, Lock
+from typing import Dict, List
+from collections import defaultdict
 from src.core.constants import DEFAULT_MUSIC_ROOT_PATH
 from src.core.logger import logger
 from src.utils.path_utils import normalize_network_path, path_exists_safe, is_network_path
@@ -430,3 +432,244 @@ class MusicManager:
         minutes = int(seconds // 60)
         secs = int(seconds % 60)
         return f"{minutes:02d}:{secs:02d}"
+
+    def find_duplicates(self) -> Dict[str, List[Dict]]:
+        """檢測重複歌曲
+
+        Returns:
+            重複歌曲群組 {
+                'by_title': [[song1, song2], ...],
+                'by_duration': [[song1, song2], ...]
+            }
+        """
+        from collections import defaultdict
+
+        # 按標題檢測
+        title_groups = defaultdict(list)
+        for song in self.all_songs:
+            title = song.get('title', '').lower().strip()
+            if title:
+                title_groups[title].append(song)
+
+        duplicates_by_title = [
+            songs for songs in title_groups.values() if len(songs) > 1
+        ]
+
+        # 按標題和時長檢測（更精確）
+        title_duration_groups = defaultdict(list)
+        for song in self.all_songs:
+            title = song.get('title', '').lower().strip()
+            duration = song.get('duration', 0)
+            key = f"{title}_{duration}"
+            title_duration_groups[key].append(song)
+
+        duplicates_by_title_duration = [
+            songs for songs in title_duration_groups.values() if len(songs) > 1
+        ]
+
+        logger.info(f"檢測到 {len(duplicates_by_title)} 組標題重複，"
+                   f"{len(duplicates_by_title_duration)} 組完全重複")
+
+        return {
+            'by_title': duplicates_by_title,
+            'by_title_duration': duplicates_by_title_duration
+        }
+
+    def find_missing_thumbnails(self) -> List[Dict]:
+        """檢測缺失封面的歌曲
+
+        Returns:
+            缺失封面的歌曲列表
+        """
+        missing = []
+
+        for song in self.all_songs:
+            thumbnail = song.get('thumbnail', '')
+            if not thumbnail or not os.path.exists(thumbnail):
+                missing.append(song)
+
+        logger.info(f"檢測到 {len(missing)} 首歌曲缺失封面")
+        return missing
+
+    def batch_update_category(self, song_ids: List[str], new_category: str) -> Dict:
+        """批次更新歌曲分類
+
+        Args:
+            song_ids: 歌曲 ID 列表
+            new_category: 新分類名稱
+
+        Returns:
+            結果 {
+                'success': 成功數量,
+                'failed': 失敗數量,
+                'errors': 錯誤訊息列表
+            }
+        """
+        success_count = 0
+        failed_count = 0
+        errors = []
+
+        for song_id in song_ids:
+            song = self.get_song_by_id(song_id)
+            if not song:
+                errors.append(f"找不到歌曲: {song_id}")
+                failed_count += 1
+                continue
+
+            old_category = song.get('category')
+            if old_category == new_category:
+                continue
+
+            # 更新分類
+            if self.update_song_category(song, new_category):
+                success_count += 1
+            else:
+                errors.append(f"更新失敗: {song.get('title')}")
+                failed_count += 1
+
+        logger.info(f"批次更新分類完成: 成功 {success_count}, 失敗 {failed_count}")
+
+        return {
+            'success': success_count,
+            'failed': failed_count,
+            'errors': errors
+        }
+
+    def _delete_song_files(self, song: Dict) -> None:
+        """刪除歌曲相關檔案（輔助方法）
+
+        Args:
+            song: 歌曲資訊
+
+        Raises:
+            Exception: 刪除失敗時拋出異常
+        """
+        # 刪除音訊檔案
+        audio_path = song.get('audio_path')
+        if audio_path and os.path.exists(audio_path):
+            os.remove(audio_path)
+
+        # 刪除 JSON 檔案
+        json_path = song.get('json_path')
+        if json_path and os.path.exists(json_path):
+            os.remove(json_path)
+
+        # 刪除封面（如果是本地檔案）
+        thumbnail = song.get('thumbnail')
+        if thumbnail and os.path.exists(thumbnail):
+            os.remove(thumbnail)
+
+    def batch_delete_songs(self, song_ids: List[str], delete_files: bool = False) -> Dict:
+        """批次刪除歌曲
+
+        Args:
+            song_ids: 歌曲 ID 列表
+            delete_files: 是否同時刪除檔案
+
+        Returns:
+            結果 {
+                'success': 成功數量,
+                'failed': 失敗數量,
+                'errors': 錯誤訊息列表
+            }
+        """
+        success_count = 0
+        failed_count = 0
+        errors = []
+
+        for song_id in song_ids:
+            song = self.get_song_by_id(song_id)
+            if not song:
+                errors.append(f"找不到歌曲: {song_id}")
+                failed_count += 1
+                continue
+
+            # 刪除檔案
+            if delete_files:
+                try:
+                    self._delete_song_files(song)
+                except Exception as e:
+                    errors.append(f"刪除檔案失敗 ({song.get('title')}): {e}")
+                    failed_count += 1
+                    continue
+
+            # 從音樂庫移除
+            if self.remove_song(song):
+                success_count += 1
+            else:
+                errors.append(f"移除失敗: {song.get('title')}")
+                failed_count += 1
+
+        logger.info(f"批次刪除完成: 成功 {success_count}, 失敗 {failed_count}")
+
+        return {
+            'success': success_count,
+            'failed': failed_count,
+            'errors': errors
+        }
+
+    def suggest_category_by_uploader(self) -> Dict[str, str]:
+        """根據上傳者建議分類
+
+        Returns:
+            建議對應表 {song_id: suggested_category}
+        """
+        from collections import Counter
+
+        # 統計每個上傳者最常出現的分類
+        uploader_categories = defaultdict(list)
+
+        for song in self.all_songs:
+            uploader = song.get('uploader', '未知')
+            category = song.get('category', '未分類')
+            if uploader != '未知':
+                uploader_categories[uploader].append(category)
+
+        # 計算每個上傳者的主要分類
+        uploader_main_category = {}
+        for uploader, categories in uploader_categories.items():
+            if categories:
+                # 取最常出現的分類
+                most_common = Counter(categories).most_common(1)[0][0]
+                uploader_main_category[uploader] = most_common
+
+        # 建議分類
+        suggestions = {}
+        for song in self.all_songs:
+            uploader = song.get('uploader', '未知')
+            current_category = song.get('category', '未分類')
+
+            if uploader in uploader_main_category:
+                suggested = uploader_main_category[uploader]
+                if suggested != current_category:
+                    suggestions[song['id']] = suggested
+
+        logger.info(f"建議 {len(suggestions)} 首歌曲更改分類")
+        return suggestions
+
+    def auto_categorize_by_uploader(self) -> Dict:
+        """根據上傳者自動分類
+
+        Returns:
+            結果統計
+        """
+        suggestions = self.suggest_category_by_uploader()
+
+        if not suggestions:
+            return {
+                'updated': 0,
+                'message': '沒有需要更新的歌曲'
+            }
+
+        # 批次更新
+        for song_id, new_category in suggestions.items():
+            song = self.get_song_by_id(song_id)
+            if song:
+                self.update_song_category(song, new_category)
+
+        logger.info(f"自動分類完成，更新了 {len(suggestions)} 首歌曲")
+
+        return {
+            'updated': len(suggestions),
+            'message': f'成功自動分類 {len(suggestions)} 首歌曲'
+        }

@@ -10,6 +10,122 @@
 ## [未發布]
 
 ### 新增 (Added)
+- **🎵 音訊播放高級功能** (2025-10-22)
+  - **淡入淡出效果**：歌曲開始和結束時音量平滑過渡
+    - 可自訂淡入/淡出時長（預設各 1 秒）
+    - 支援啟用/停用淡入淡出效果
+    - API: `set_fade_enabled()`, `set_fade_duration()`
+  - **播放速度調整**：支援 0.5x 到 2.0x 的播放速度
+    - 使用 librosa 的時間拉伸技術，不改變音高
+    - API: `set_playback_speed()`, `enable_speed_adjustment()`
+  - **睡眠定時器**：設定時間後自動停止播放
+    - 支援以分鐘為單位設定倒數時間
+    - 可查詢剩餘時間和取消定時器
+    - API: `set_sleep_timer()`, `cancel_sleep_timer()`, `get_sleep_timer_remaining()`
+  - 修改檔案：`src/audio/audio_player.py`
+  - 新增測試：`tests/test_audio_player_advanced.py` (15 個測試全部通過)
+
+- **⌨️ 媒體鍵支援** (2025-10-22)
+  - 使用 pynput 監聽鍵盤媒體鍵事件
+  - 支援的媒體鍵：
+    - 播放/暫停 (Play/Pause)
+    - 上一首 (Previous Track)
+    - 下一首 (Next Track)
+    - 音量增加/減少 (Volume Up/Down)
+    - 靜音 (Mute)
+  - 提供回調接口讓外部註冊處理函數
+  - 新增檔案：`src/media/media_keys.py`
+
+- **📝 播放佇列編輯功能** (2025-10-22)
+  - **交換歌曲位置**：`swap_songs()` - 交換兩首歌曲的順序
+  - **批次移動**：`move_songs_batch()` - 一次移動多首歌曲到指定位置
+  - **隨機排序**：`shuffle_playlist()` - 隨機打亂播放列表
+  - **條件排序**：`sort_playlist()` - 按標題、時長、上傳者等排序
+  - **反轉順序**：`reverse_playlist()` - 反轉播放列表順序
+  - 修改檔案：`src/music/managers/playlist_manager.py`
+
+- **🔍 強化搜尋功能** (2025-10-22)
+  - **多條件篩選**：同時支援關鍵字、分類、時長範圍、上傳者等多重條件
+  - **智慧搜尋**：模糊匹配演算法，允許少量字元差異
+  - **搜尋歷史**：自動記錄搜尋記錄（最多 50 筆）
+    - 顯示搜尋關鍵字、篩選條件、結果數量、搜尋時間
+    - 支援清除歷史和移除特定記錄
+  - API 方法：
+    - `search_songs()` - 增強版搜尋
+    - `get_search_history()` - 取得搜尋歷史
+    - `clear_search_history()` - 清除歷史
+  - 新增檔案：`src/music/managers/search_manager.py`
+  - 新增測試：`tests/test_search_manager.py` (10 個測試全部通過)
+
+- **📊 播放統計儀表板** (2025-10-22)
+  - **時段熱力圖**：顯示一週七天、每天 24 小時的播放分布
+  - **每日播放趨勢**：最近 N 天的每日播放次數統計
+  - **分類統計**：各分類的播放次數統計
+  - **時長統計**：總播放時長、平均歌曲時長、時長分布
+  - **藝術家排行**：最常播放的藝術家 Top N
+  - **時段聆聽統計**：早上/下午/晚上/深夜的聆聽時間分布
+  - **統計總覽**：
+    - 總播放次數、不同歌曲數量
+    - 總播放時長（秒/小時）
+    - 最愛歌曲、最愛分類
+    - 平均每首歌播放次數
+  - 新增檔案：`src/music/managers/statistics_manager.py`
+
+- **🎤 歌詞功能改進** (2025-10-22)
+  - **LRC 格式解析**：完整支援 LRC 同步歌詞格式
+    - 解析時間標記 `[mm:ss.xx]`
+    - 支援重複時間標記（同一行歌詞出現多次）
+    - 自動過濾元數據標記
+  - **同步歌詞滾動**：
+    - `get_current_lyric_line()` - 取得當前播放位置的歌詞行
+    - `get_surrounding_lyrics()` - 取得當前行及前後 N 行
+  - **歌詞載入與儲存**：
+    - `load_lyrics()` - 從 .lrc 檔案載入歌詞
+    - `save_lyrics()` - 儲存歌詞到 .lrc 檔案
+    - `has_lyrics()` - 檢查歌曲是否有歌詞
+  - 新增檔案：`src/music/managers/lyrics_manager.py`
+  - 新增測試：`tests/test_lyrics_manager_new.py` (7 個測試全部通過)
+
+- **🪟 Windows 媒體通知整合** (2025-10-22)
+  - 整合 Windows 系統媒體傳輸控制 (SMTC)
+  - 在 Windows 通知中心顯示：
+    - 歌曲封面圖片
+    - 歌曲標題、藝術家、專輯
+    - 播放狀態（播放中/暫停/停止）
+  - 支援媒體控制按鈕：
+    - 播放/暫停
+    - 上一首/下一首
+  - 提供回調接口處理按鈕事件
+  - 使用 winrt-Windows.Media API
+  - 新增檔案：`src/media/windows_media.py`
+
+- **🗂️ 音樂庫管理改進** (2025-10-22)
+  - **重複檢測**：
+    - `find_duplicates()` - 按標題或標題+時長檢測重複歌曲
+    - 返回重複歌曲群組列表
+  - **缺失封面檢測**：
+    - `find_missing_thumbnails()` - 檢測沒有封面或封面檔案不存在的歌曲
+  - **批次操作**：
+    - `batch_update_category()` - 批次更新歌曲分類
+    - `batch_delete_songs()` - 批次刪除歌曲（可選擇是否刪除檔案）
+  - **智慧分類**：
+    - `suggest_category_by_uploader()` - 根據上傳者建議分類
+    - `auto_categorize_by_uploader()` - 自動按上傳者分類歌曲
+  - 修改檔案：`src/music/managers/music_manager.py`
+
+### 依賴套件 (Dependencies)
+- 新增 `pynput>=1.7.6` - 用於媒體鍵支援
+- 新增 `winrt-Windows.Media>=2.0.0` - 用於 Windows 媒體通知整合
+- 新增 `mutagen>=1.47.0` - 用於音訊檔案元數據編輯
+
+### 測試 (Testing)
+- 新增 32 個測試案例，覆蓋所有新功能
+- 測試檔案：
+  - `test_audio_player_advanced.py` - 15 個測試
+  - `test_search_manager.py` - 10 個測試
+  - `test_lyrics_manager_new.py` - 7 個測試
+- 所有測試 100% 通過 ✅
+
 - **系統托盤重新啟動功能** (2025-10-20)
   - 在系統托盤右鍵選單中新增「🔄 重新啟動」選項
   - 支援一鍵重新啟動應用程式，無需手動關閉再開啟

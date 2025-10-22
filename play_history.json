@@ -1,6 +1,34 @@
 {
   "recent_plays": [
     {
+      "song_id": "-LwBbLa_Vhc",
+      "title": "If I could be a constellation",
+      "artist": "未知",
+      "category": "Instrumental",
+      "played_at": "2025-10-20T12:18:53.143040"
+    },
+    {
+      "song_id": "BryspbM6s3E",
+      "title": "UNDEAD",
+      "artist": "未知",
+      "category": "Electronic",
+      "played_at": "2025-10-16T16:41:23.668596"
+    },
+    {
+      "song_id": "02V9-wSwVqw",
+      "title": "CHAMPION GIRL",
+      "artist": "未知",
+      "category": "華語流行音樂",
+      "played_at": "2025-10-16T16:39:01.216487"
+    },
+    {
+      "song_id": "BryspbM6s3E",
+      "title": "UNDEAD",
+      "artist": "未知",
+      "category": "Electronic",
+      "played_at": "2025-10-16T16:38:55.337370"
+    },
+    {
       "song_id": "UOg50f9W58I",
       "title": "九九八十一",
       "artist": "未知",
@@ -275,7 +303,7 @@
     }
   ],
   "play_counts": {
-    "BryspbM6s3E": 6,
+    "BryspbM6s3E": 8,
     "DiTd771WumE": 4,
     "bYWR9Ms1FSM": 1,
     "Z7mCrxjivB0": 1,
@@ -284,14 +312,15 @@
     "BXO1Ne4bJmE": 3,
     "vqsdUXUxdq8": 2,
     "eVLxJqxbv1k": 4,
-    "-LwBbLa_Vhc": 1,
+    "-LwBbLa_Vhc": 2,
     "U8BlNEKq0r8": 1,
     "8Nt9YPnYyjs": 3,
     "1F2GKe8hcGs": 2,
     "MTXs3LIAE24": 1,
     "U-bXx_4Nwx8": 1,
     "9B0yX0UIN9M": 1,
-    "UOg50f9W58I": 1
+    "UOg50f9W58I": 1,
+    "02V9-wSwVqw": 1
   },
-  "total_plays": 39
+  "total_plays": 43
 }

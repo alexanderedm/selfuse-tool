@@ -25,3 +25,9 @@ python-dotenv>=1.0.0
 pypresence>=4.2.0
 # YouTube Music API
 ytmusicapi>=1.0.0
+# 媒體鍵支持
+pynput>=1.7.6
+# Windows 媒體通知整合
+winrt-Windows.Media>=2.0.0
+# 音頻文件元數據編輯
+mutagen>=1.47.0

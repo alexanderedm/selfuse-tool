@@ -52,6 +52,22 @@ class AudioPlayer:
         self._is_paused = False
         self.volume = 1.0
 
+        # 淡入淡出設定
+        self.fade_in_duration = 1.0  # 秒
+        self.fade_out_duration = 1.0  # 秒
+        self.fade_enabled = True
+        self._fade_in_frames = 0
+        self._fade_out_start_frame = 0
+
+        # 播放速度設定
+        self.playback_speed = 1.0  # 1.0 = 正常速度
+        self._speed_adjustment_enabled = False
+
+        # 睡眠定時器
+        self._sleep_timer = None
+        self._sleep_timer_thread = None
+        self._sleep_timer_active = False
+
         # 線程鎖 (保護共享狀態)
         self._lock = threading.Lock()
 
@@ -174,6 +190,10 @@ class AudioPlayer:
             if abs(self.volume - 1.0) > 1e-6:
                 chunk = chunk * self.volume
 
+            # 應用淡入淡出
+            if self.fade_enabled:
+                chunk = self._apply_fade(chunk, start)
+
             # 防止削波
             chunk = np.clip(chunk, -1.0, 1.0)
 
@@ -191,6 +211,91 @@ class AudioPlayer:
             except Exception as e:
                 logger.error(f"播放結束回調執行失敗: {e}")
 
+    def _apply_fade(self, chunk, start_frame):
+        """應用淡入淡出效果
+
+        Args:
+            chunk: 音訊數據塊
+            start_frame: 當前塊的起始幀位置
+
+        Returns:
+            np.ndarray: 應用淡入淡出後的音訊數據
+        """
+        frames = len(chunk)
+        end_frame = start_frame + frames
+        fade_chunk = chunk.copy()
+
+        # 淡入效果
+        if start_frame < self._fade_in_frames:
+            fade_in_end = min(end_frame, self._fade_in_frames)
+            fade_in_length = fade_in_end - start_frame
+
+            if fade_in_length > 0:
+                # 線性淡入曲線
+                fade_in_curve = np.linspace(
+                    start_frame / self._fade_in_frames,
+                    fade_in_end / self._fade_in_frames,
+                    fade_in_length
+                ).reshape(-1, 1)
+
+                # 應用淡入
+                fade_chunk[:fade_in_length] *= fade_in_curve
+
+        # 淡出效果
+        if end_frame > self._fade_out_start_frame:
+            fade_out_start = max(start_frame, self._fade_out_start_frame)
+            fade_out_length = end_frame - fade_out_start
+            fade_out_offset = fade_out_start - start_frame
+
+            if fade_out_length > 0:
+                total_frames = len(self.audio_data)
+                fade_out_total = total_frames - self._fade_out_start_frame
+
+                # 線性淡出曲線
+                fade_out_curve = np.linspace(
+                    1.0 - (fade_out_start - self._fade_out_start_frame) / fade_out_total,
+                    1.0 - (end_frame - self._fade_out_start_frame) / fade_out_total,
+                    fade_out_length
+                ).reshape(-1, 1)
+
+                # 應用淡出
+                fade_chunk[fade_out_offset:fade_out_offset + fade_out_length] *= fade_out_curve
+
+        return fade_chunk
+
+    def _adjust_speed(self, audio_data, speed):
+        """調整播放速度
+
+        Args:
+            audio_data: 音訊數據 (frames, channels)
+            speed: 播放速度 (0.5 = 慢速, 1.0 = 正常, 2.0 = 快速)
+
+        Returns:
+            np.ndarray: 速度調整後的音訊數據
+        """
+        try:
+            # 分離立體聲通道
+            if audio_data.shape[1] == 2:
+                left = audio_data[:, 0]
+                right = audio_data[:, 1]
+
+                # 使用 librosa 進行時間拉伸（不改變音高）
+                left_stretched = librosa.effects.time_stretch(left, rate=speed)
+                right_stretched = librosa.effects.time_stretch(right, rate=speed)
+
+                # 合併通道
+                stretched = np.column_stack((left_stretched, right_stretched))
+            else:
+                # 單聲道
+                stretched = librosa.effects.time_stretch(audio_data[:, 0], rate=speed)
+                stretched = stretched.reshape(-1, 1)
+
+            return stretched.astype(np.float32)
+
+        except Exception as e:
+            logger.error(f"播放速度調整失敗: {e}")
+            return audio_data
+
     def play(self, file_path: str) -> bool:
         """載入並播放音訊檔案
 
@@ -206,7 +311,18 @@ class AudioPlayer:
 
             # 載入音訊
             self.audio_data, self.sample_rate = self._load_audio(file_path)
+
+            # 應用播放速度調整
+            if self._speed_adjustment_enabled and abs(self.playback_speed - 1.0) > 0.01:
+                self.audio_data = self._adjust_speed(self.audio_data, self.playback_speed)
+
             self.current_frame = 0
+
+            # 計算淡入淡出幀位置
+            self._fade_in_frames = int(self.fade_in_duration * self.sample_rate)
+            total_frames = len(self.audio_data)
+            fade_out_frames = int(self.fade_out_duration * self.sample_rate)
+            self._fade_out_start_frame = max(0, total_frames - fade_out_frames)
 
             # 建立 sounddevice 串流
             self.stream = sd.OutputStream(
@@ -338,3 +454,150 @@ class AudioPlayer:
             if self.audio_data is None or self.sample_rate == 0:
                 return 0.0
             return len(self.audio_data) / self.sample_rate
+
+    def set_fade_enabled(self, enabled: bool):
+        """設定是否啟用淡入淡出效果
+
+        Args:
+            enabled: True 為啟用，False 為停用
+        """
+        self.fade_enabled = enabled
+        logger.info(f"淡入淡出效果: {'啟用' if enabled else '停用'}")
+
+    def set_fade_duration(self, fade_in: float = None, fade_out: float = None):
+        """設定淡入淡出時長
+
+        Args:
+            fade_in: 淡入時長（秒），None 則不改變
+            fade_out: 淡出時長（秒），None 則不改變
+        """
+        if fade_in is not None:
+            self.fade_in_duration = max(0.0, float(fade_in))
+            logger.info(f"淡入時長設為: {self.fade_in_duration} 秒")
+
+        if fade_out is not None:
+            self.fade_out_duration = max(0.0, float(fade_out))
+            logger.info(f"淡出時長設為: {self.fade_out_duration} 秒")
+
+    def set_playback_speed(self, speed: float):
+        """設定播放速度
+
+        Args:
+            speed: 播放速度 (0.5 - 2.0)
+                   0.5 = 半速, 1.0 = 正常, 2.0 = 雙速
+        """
+        speed = max(0.5, min(2.0, float(speed)))
+        self.playback_speed = speed
+        logger.info(f"播放速度設為: {speed}x")
+
+    def enable_speed_adjustment(self, enabled: bool):
+        """啟用/停用播放速度調整功能
+
+        Args:
+            enabled: True 為啟用，False 為停用
+
+        注意: 速度調整會在載入音訊時進行處理，
+              啟用此功能可能會增加載入時間
+        """
+        self._speed_adjustment_enabled = enabled
+        logger.info(f"播放速度調整: {'啟用' if enabled else '停用'}")
+
+    def get_playback_speed(self) -> float:
+        """取得當前播放速度
+
+        Returns:
+            float: 播放速度
+        """
+        return self.playback_speed
+
+    def _sleep_timer_worker(self, duration_seconds: float):
+        """睡眠定時器工作線程
+
+        Args:
+            duration_seconds: 倒數時間（秒）
+        """
+        try:
+            self._sleep_timer_active = True
+            start_time = time.time()
+            target_time = start_time + duration_seconds
+
+            while self._sleep_timer_active:
+                remaining = target_time - time.time()
+
+                if remaining <= 0:
+                    # 時間到，停止播放
+                    logger.info("睡眠定時器時間到，停止播放")
+                    self.stop()
+                    break
+
+                # 每 0.1 秒檢查一次
+                time.sleep(0.1)
+
+        except Exception as e:
+            logger.error(f"睡眠定時器執行失敗: {e}")
+        finally:
+            self._sleep_timer_active = False
+            self._sleep_timer = None
+
+    def set_sleep_timer(self, minutes: float) -> bool:
+        """設定睡眠定時器
+
+        Args:
+            minutes: 倒數時間（分鐘）
+
+        Returns:
+            bool: 設定成功返回 True
+        """
+        try:
+            # 取消現有的定時器
+            self.cancel_sleep_timer()
+
+            if minutes <= 0:
+                logger.warning("睡眠定時器時間必須大於 0")
+                return False
+
+            duration_seconds = minutes * 60
+            self._sleep_timer = time.time() + duration_seconds
+
+            # 啟動定時器線程
+            self._sleep_timer_thread = threading.Thread(
+                target=self._sleep_timer_worker,
+                args=(duration_seconds,),
+                daemon=True,
+                name="SleepTimer"
+            )
+            self._sleep_timer_thread.start()
+
+            logger.info(f"睡眠定時器已設定: {minutes} 分鐘")
+            return True
+
+        except Exception as e:
+            logger.error(f"設定睡眠定時器失敗: {e}")
+            return False
+
+    def cancel_sleep_timer(self):
+        """取消睡眠定時器"""
+        if self._sleep_timer_active:
+            self._sleep_timer_active = False
+            self._sleep_timer = None
+            logger.info("睡眠定時器已取消")
+
+    def get_sleep_timer_remaining(self) -> float:
+        """取得睡眠定時器剩餘時間
+
+        Returns:
+            float: 剩餘時間（分鐘），0 表示未設定或已過期
+        """
+        if not self._sleep_timer_active or self._sleep_timer is None:
+            return 0.0
+
+        remaining_seconds = max(0, self._sleep_timer - time.time())
+        return remaining_seconds / 60.0
+
+    def has_sleep_timer(self) -> bool:
+        """檢查是否有啟用的睡眠定時器
+
+        Returns:
+            bool: 有啟用的定時器返回 True
+        """
+        return self._sleep_timer_active

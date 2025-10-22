@@ -284,3 +284,156 @@ class PlaylistManager:
         self.playlists[playlist_name]["description"] = description
         logger.info(f"更新播放列表描述: {playlist_name}")
         return self._save_playlists()
+
+    def swap_songs(self, playlist_name: str, index1: int, index2: int) -> bool:
+        """
+        交換播放列表中兩首歌曲的位置
+
+        Args:
+            playlist_name: 播放列表名稱
+            index1: 第一首歌曲的索引
+            index2: 第二首歌曲的索引
+
+        Returns:
+            是否交換成功
+        """
+        if playlist_name not in self.playlists:
+            logger.warning(f"播放列表不存在: {playlist_name}")
+            return False
+
+        playlist = self.playlists[playlist_name]
+        songs = playlist["songs"]
+
+        if index1 < 0 or index1 >= len(songs) or index2 < 0 or index2 >= len(songs):
+            logger.warning(f"索引超出範圍: {index1}, {index2}")
+            return False
+
+        # 交換位置
+        songs[index1], songs[index2] = songs[index2], songs[index1]
+
+        logger.info(f"交換歌曲位置: {index1} <-> {index2}")
+        return self._save_playlists()
+
+    def move_songs_batch(self, playlist_name: str, song_ids: List[str], target_position: int) -> bool:
+        """
+        批次移動多首歌曲到指定位置
+
+        Args:
+            playlist_name: 播放列表名稱
+            song_ids: 要移動的歌曲 ID 列表
+            target_position: 目標位置
+
+        Returns:
+            是否移動成功
+        """
+        if playlist_name not in self.playlists:
+            logger.warning(f"播放列表不存在: {playlist_name}")
+            return False
+
+        playlist = self.playlists[playlist_name]
+        songs = playlist["songs"]
+
+        # 驗證所有歌曲都在播放列表中
+        for song_id in song_ids:
+            if song_id not in songs:
+                logger.warning(f"歌曲不在播放列表中: {song_id}")
+                return False
+
+        if target_position < 0 or target_position > len(songs):
+            logger.warning(f"目標位置超出範圍: {target_position}")
+            return False
+
+        # 移除所有要移動的歌曲
+        for song_id in song_ids:
+            songs.remove(song_id)
+
+        # 調整目標位置（因為移除了歌曲）
+        adjusted_position = min(target_position, len(songs))
+
+        # 在目標位置插入歌曲
+        for i, song_id in enumerate(song_ids):
+            songs.insert(adjusted_position + i, song_id)
+
+        logger.info(f"批次移動 {len(song_ids)} 首歌曲到位置 {target_position}")
+        return self._save_playlists()
+
+    def shuffle_playlist(self, playlist_name: str) -> bool:
+        """
+        隨機排序播放列表
+
+        Args:
+            playlist_name: 播放列表名稱
+
+        Returns:
+            是否排序成功
+        """
+        import random
+
+        if playlist_name not in self.playlists:
+            logger.warning(f"播放列表不存在: {playlist_name}")
+            return False
+
+        playlist = self.playlists[playlist_name]
+        random.shuffle(playlist["songs"])
+
+        logger.info(f"隨機排序播放列表: {playlist_name}")
+        return self._save_playlists()
+
+    def sort_playlist(self, playlist_name: str, song_info_getter, key: str, reverse: bool = False) -> bool:
+        """
+        依照指定條件排序播放列表
+
+        Args:
+            playlist_name: 播放列表名稱
+            song_info_getter: 取得歌曲資訊的函數 (song_id -> song_dict)
+            key: 排序鍵 ('title', 'duration', 'uploader', 等)
+            reverse: 是否反向排序
+
+        Returns:
+            是否排序成功
+        """
+        if playlist_name not in self.playlists:
+            logger.warning(f"播放列表不存在: {playlist_name}")
+            return False
+
+        playlist = self.playlists[playlist_name]
+        songs = playlist["songs"]
+
+        # 取得所有歌曲資訊
+        song_info_list = []
+        for song_id in songs:
+            song_info = song_info_getter(song_id)
+            if song_info:
+                song_info_list.append(song_info)
+
+        # 依照指定鍵排序
+        try:
+            song_info_list.sort(key=lambda s: s.get(key, ''), reverse=reverse)
+            playlist["songs"] = [s['id'] for s in song_info_list]
+
+            logger.info(f"排序播放列表 {playlist_name} (key={key}, reverse={reverse})")
+            return self._save_playlists()
+
+        except Exception as e:
+            logger.error(f"排序播放列表失敗: {e}", exc_info=True)
+            return False
+
+    def reverse_playlist(self, playlist_name: str) -> bool:
+        """
+        反轉播放列表順序
+
+        Args:
+            playlist_name: 播放列表名稱
+
+        Returns:
+            是否反轉成功
+        """
+        if playlist_name not in self.playlists:
+            logger.warning(f"播放列表不存在: {playlist_name}")
+            return False
+
+        playlist = self.playlists[playlist_name]
+        playlist["songs"].reverse()
+
+        logger.info(f"反轉播放列表: {playlist_name}")
+        return self._save_playlists()
