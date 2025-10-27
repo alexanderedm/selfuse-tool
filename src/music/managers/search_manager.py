@@ -164,31 +164,46 @@ class SearchManager:
 
         return pattern_idx == len(pattern)
 
+    def _song_matches_query(self, song: Dict, query_lower: str, fuzzy: bool) -> bool:
+        """檢查歌曲是否符合搜尋條件（輔助方法）"""
+        title = song.get('title', '').lower()
+        category = song.get('category', '').lower()
+        uploader = song.get('uploader', '').lower()
+
+        if fuzzy:
+            return (self.fuzzy_match(title, query_lower) or
+                    self.fuzzy_match(category, query_lower) or
+                    self.fuzzy_match(uploader, query_lower))
+        else:
+            return (query_lower in title or
+                    query_lower in category or
+                    query_lower in uploader)
+
     def _filter_by_query(self, songs: List[Dict], query: str, fuzzy: bool) -> List[Dict]:
         """按關鍵字篩選歌曲（輔助方法）"""
         if not query or not query.strip():
             return songs
 
         query_lower = query.lower().strip()
-        filtered = []
+        return [song for song in songs if self._song_matches_query(song, query_lower, fuzzy)]
 
-        for song in songs:
-            title = song.get('title', '').lower()
-            category = song.get('category', '').lower()
-            uploader = song.get('uploader', '').lower()
+    def _filter_by_categories(self, songs: List[Dict], categories: List[str]) -> List[Dict]:
+        """按分類篩選歌曲（輔助方法）"""
+        return [s for s in songs if s.get('category') in categories]
 
-            if fuzzy:
-                if (self.fuzzy_match(title, query_lower) or
-                    self.fuzzy_match(category, query_lower) or
-                    self.fuzzy_match(uploader, query_lower)):
-                    filtered.append(song)
-            else:
-                if (query_lower in title or
-                    query_lower in category or
-                    query_lower in uploader):
-                    filtered.append(song)
+    def _filter_by_duration(self, songs: List[Dict], duration_min: Optional[int],
+                            duration_max: Optional[int]) -> List[Dict]:
+        """按時長篩選歌曲（輔助方法）"""
+        results = songs
+        if duration_min is not None:
+            results = [s for s in results if s.get('duration', 0) >= duration_min]
+        if duration_max is not None:
+            results = [s for s in results if s.get('duration', 0) <= duration_max]
+        return results
 
-        return filtered
+    def _filter_by_uploaders(self, songs: List[Dict], uploaders: List[str]) -> List[Dict]:
+        """按上傳者篩選歌曲（輔助方法）"""
+        return [s for s in songs if s.get('uploader') in uploaders]
 
     def _apply_filters(
         self,
@@ -201,20 +216,13 @@ class SearchManager:
         """應用多種篩選條件（輔助方法）"""
         results = songs
 
-        # 分類篩選
         if categories:
-            results = [s for s in results if s.get('category') in categories]
+            results = self._filter_by_categories(results, categories)
 
-        # 時長篩選
-        if duration_min is not None:
-            results = [s for s in results if s.get('duration', 0) >= duration_min]
+        results = self._filter_by_duration(results, duration_min, duration_max)
 
-        if duration_max is not None:
-            results = [s for s in results if s.get('duration', 0) <= duration_max]
-
-        # 上傳者篩選
         if uploaders:
-            results = [s for s in results if s.get('uploader') in uploaders]
+            results = self._filter_by_uploaders(results, uploaders)
 
         return results
 
