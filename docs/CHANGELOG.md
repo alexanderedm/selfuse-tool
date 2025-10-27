@@ -10,6 +10,75 @@
 ## [未發布]
 
 ### 新增 (Added)
+- **🔌 插件系統框架** (2025-10-27)
+  - 新增插件基礎架構，支援動態載入和管理插件
+  - 新增檔案：
+    - `src/plugins/plugin_base.py` - 插件基礎類別（34 行）
+    - `src/plugins/plugin_loader.py` - 插件載入器（76 行）
+    - `src/plugins/__init__.py` - 插件模組初始化（11 行）
+  - 功能特色：
+    - 🔄 動態載入插件，無需重啟應用程式
+    - 📦 插件生命週期管理（載入、啟用、停用、卸載）
+    - 🛡️ 錯誤隔離，插件崩潰不影響主程式
+    - 📋 插件資訊查詢（名稱、版本、描述）
+  - 合併來源：plugin-system 分支
+
+- **🐾 桌面寵物插件** (2025-10-27)
+  - 實作互動式桌面寵物功能
+  - 新增檔案：
+    - `src/plugins/desktop_pet/desktop_pet.py` - 桌面寵物主程式（181 行）
+    - `src/plugins/desktop_pet/__init__.py` - 插件初始化（15 行）
+  - 新增圖片資源（共 5 個狀態）：
+    - `idle1.png`, `idle2.png`, `idle3.png` - 閒置動畫（3 幀）
+    - `hover.png` - 滑鼠懸停狀態
+    - `click.png` - 點擊狀態
+    - `drag.png` - 拖動狀態
+  - 功能特色：
+    - 🎭 多種互動狀態（閒置、懸停、點擊、拖動）
+    - 🖱️ 可拖動到桌面任意位置
+    - 🎨 透明背景，無邊框視窗
+    - 🔄 閒置動畫自動循環播放
+  - 合併來源：plugin-system 分支
+- **🎧 藍牙耳機電量顯示** (2025-10-22)
+  - 在系統托盤右鍵選單中顯示藍牙耳機電量
+  - 使用 Windows PowerShell PnP Device Property API 獲取電池資訊
+  - 支援自動偵測常見的耳機裝置（headset、headphone、earbud 等）
+  - 每次打開右鍵選單時自動刷新電量（無需手動刷新按鈕）
+  - 新增模組：
+    - `src/battery/__init__.py` - 電池監控模組初始化
+    - `src/battery/bluetooth_battery.py` - 藍牙裝置電池監控實作
+  - 修改檔案：
+    - `src/main.py` - 整合電池監控到托盤選單
+  - 功能特色：
+    - 🔋 動態顯示電池百分比和 emoji 圖示
+    - 🔄 每次打開選單自動更新，無需手動操作
+    - ⚠️ 智能處理未連接或不支援的裝置
+    - 📱 支援標準藍牙耳機（如 AirPods、Sony、Bose 等）
+  - **羅技裝置整合** (2025-10-22 後續更新):
+    - ✅ **新增 LGSTray HTTP API 整合支援**
+    - 新增模組 `src/battery/logitech_battery.py` (129 行)
+    - 支援 XML 格式 API 解析
+    - 自動偵測 LGSTray 並切換查詢方式
+    - 提供 `start_logitech.bat` 一鍵啟動腳本
+    - 提供 `test_lgstray.bat` 診斷工具
+    - 完整設定指南: `docs/LOGITECH_BATTERY_SETUP.md`
+    - **實測成功**: G535 Gaming Headset 電量顯示正常 (80%)
+  - **限制**:
+    - 僅支援 Windows 10/11 系統
+    - 標準藍牙裝置必須支援 Windows 電池屬性查詢
+    - 羅技 USB 無線裝置需要額外安裝 LGSTrayBattery（已整合，一鍵啟動）
+
+- **🔋 羅技裝置電池監控可行性研究** (2025-10-22)
+  - 使用 `hidapi` 成功掃描系統中的 HID 裝置
+  - 識別出 12 個羅技裝置（包括 G535 無線耳機和 Unifying 接收器）
+  - 驗證可透過 HID++ 協議與裝置雙向通訊
+  - 成功從 G535 耳機和 USB Receiver 收到協議回應
+  - 完成詳細的整合可行性分析報告
+  - 新增檔案：
+    - `scan_hid_devices.py` - HID 裝置掃描工具
+    - `docs/reports/logitech_battery_integration_feasibility.md` - 可行性分析報告
+  - **結論**: 技術上可行，建議優先實作通用電池監控（psutil），或透過 LGSTrayBattery HTTP API 整合
+
 - **🎵 音訊播放高級功能** (2025-10-22)
   - **淡入淡出效果**：歌曲開始和結束時音量平滑過渡
     - 可自訂淡入/淡出時長（預設各 1 秒）

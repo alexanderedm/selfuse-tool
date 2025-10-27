@@ -29,6 +29,8 @@ from src.utils.clipboard_monitor import ClipboardMonitor
 from src.music.managers.music_manager import MusicManager
 from src.music.windows.music_window import MusicWindow
 from src.windows.changelog_window import ChangelogWindow
+from src.battery.bluetooth_battery import BluetoothBatteryMonitor
+from src.battery.logitech_battery import LogitechBatteryMonitor
 from src.core.logger import logger
 import threading
 from tkinter import messagebox
@@ -58,6 +60,22 @@ class AudioSwitcherApp:
             self.music_manager = MusicManager(self.config_manager)
             self.music_window = None
             self.changelog_window = None
+
+            # 初始化電池監控（錯誤隔離，避免崩潰）
+            try:
+                self.battery_monitor = BluetoothBatteryMonitor()
+                logger.info("藍牙電池監控初始化成功")
+            except Exception as e:
+                logger.warning(f"藍牙電池監控初始化失敗: {e}")
+                self.battery_monitor = None
+
+            try:
+                self.logitech_battery_monitor = LogitechBatteryMonitor()
+                logger.info("羅技電池監控初始化成功")
+            except Exception as e:
+                logger.warning(f"羅技電池監控初始化失敗: {e}")
+                self.logitech_battery_monitor = None
+
             logger.info("應用程式初始化完成")
         except Exception as e:
             logger.exception("初始化應用程式時發生錯誤")
@@ -142,6 +160,8 @@ class AudioSwitcherApp:
             self.show_notification(f"已切換到: {target_device['name']}", "音訊切換")
             # 更新圖示
             self.update_icon()
+            # 自動刷新電量資訊
+            self.refresh_battery_info()
         else:
             self.show_notification("切換失敗", "錯誤")
 
@@ -297,8 +317,15 @@ class AudioSwitcherApp:
                 # 如果是打包後的 exe
                 current_exe = sys.executable
             else:
-                # 如果是 Python 腳本
-                current_exe = sys.executable
+                # 如果是 Python 腳本，使用 pythonw.exe 來啟動（無控制台視窗）
+                python_dir = os.path.dirname(sys.executable)
+                pythonw_exe = os.path.join(python_dir, 'pythonw.exe')
+
+                # 如果找不到 pythonw.exe，退回使用 python.exe
+                if not os.path.exists(pythonw_exe):
+                    pythonw_exe = sys.executable
+
+                current_exe = pythonw_exe
                 script_path = os.path.abspath(__file__)
 
             # 儲存當前狀態
@@ -310,14 +337,14 @@ class AudioSwitcherApp:
                 # exe 模式
                 subprocess.Popen(
                     [current_exe],
-                    creationflags=subprocess.DETACHED_PROCESS,
+                    creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NO_WINDOW,
                     close_fds=True
                 )
             else:
-                # Python 腳本模式
+                # Python 腳本模式 - 使用 pythonw 啟動
                 subprocess.Popen(
                     [current_exe, script_path],
-                    creationflags=subprocess.DETACHED_PROCESS,
+                    creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NO_WINDOW,
                     close_fds=True
                 )
 
@@ -491,16 +518,57 @@ class AudioSwitcherApp:
         else:
             self.show_notification("沒有正在播放的音樂", "音樂播放器")
 
+    def get_headset_battery_text(self):
+        """獲取耳機電量顯示文字
+
+        Returns:
+            str: 電量顯示文字
+        """
+        try:
+            # 優先使用 LGSTrayBattery（支援羅技裝置）
+            if self.logitech_battery_monitor is not None:
+                if self.logitech_battery_monitor.is_lgstraybattery_running():
+                    battery_info = self.logitech_battery_monitor.get_headset_battery()
+                    if battery_info:
+                        return self.logitech_battery_monitor.format_battery_display(battery_info)
+
+            # 退回到標準藍牙查詢
+            if self.battery_monitor is not None:
+                battery_info = self.battery_monitor.get_headset_battery()
+                if battery_info:
+                    return self.battery_monitor.format_battery_display(battery_info)
+
+            return "🎧 耳機: 不支援或未連接"
+        except Exception as e:
+            logger.error(f"獲取耳機電量時發生錯誤: {e}")
+            return "🎧 耳機: 查詢失敗"
+
+    def refresh_battery_info(self):
+        """重新整理電池資訊並更新選單"""
+        try:
+            # 強制重新建立選單以更新電量顯示
+            if self.icon:
+                self.icon.menu = self.create_menu()
+                logger.debug("已自動更新電池資訊")
+        except Exception as e:
+            logger.error(f"重新整理電池資訊時發生錯誤: {e}")
+
     def create_menu(self):
         """建立右鍵選單
 
         Returns:
             pystray.Menu: 選單物件
         """
+        # 動態獲取耳機電量文字
+        headset_battery_text = self.get_headset_battery_text()
+
         return pystray.Menu(
             item("切換輸出裝置", self.switch_device),
             item("設定", self.open_settings),
             item("使用統計", self.open_stats),
+            pystray.Menu.SEPARATOR,
+            # 耳機電量顯示（每次打開選單時自動更新）
+            item(headset_battery_text, None, enabled=False),
             pystray.Menu.SEPARATOR,
             item("RSS 訂閱管理", self.open_rss_viewer),
             item("本地音樂播放器", self.open_music_player),

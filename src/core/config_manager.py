@@ -3,6 +3,7 @@ import json
 import os
 import threading
 from src.core.constants import DEFAULT_MUSIC_VOLUME, DEFAULT_MUSIC_ROOT_PATH
+from src.core.logger import logger
 
 
 class ConfigManager:
@@ -163,10 +164,18 @@ class ConfigManager:
                 # 取得執行檔路徑
                 if getattr(sys, 'frozen', False):
                     # 打包後的 exe
-                    app_path = sys.executable
+                    app_path = f'"{sys.executable}"'
                 else:
-                    # 開發環境
-                    app_path = f'pythonw "{os.path.abspath(sys.argv[0])}"'
+                    # 開發環境 - 使用 pythonw.exe 避免控制台視窗
+                    python_dir = os.path.dirname(sys.executable)
+                    pythonw_exe = os.path.join(python_dir, 'pythonw.exe')
+
+                    # 如果找不到 pythonw.exe，使用 python.exe
+                    if not os.path.exists(pythonw_exe):
+                        pythonw_exe = sys.executable
+
+                    script_path = os.path.abspath(sys.argv[0])
+                    app_path = f'"{pythonw_exe}" "{script_path}"'
 
                 winreg.SetValueEx(key, app_name, 0, winreg.REG_SZ, app_path)
             else:
@@ -177,7 +186,9 @@ class ConfigManager:
                     pass
 
             winreg.CloseKey(key)
+            logger.info(f"開機自啟動已{'啟用' if enabled else '停用'}: {app_path if enabled else 'N/A'}")
         except Exception as e:
+            logger.error(f"設定開機自啟動失敗: {e}")
             print(f"設定開機自啟動失敗: {e}")
 
     def record_device_usage(self, device_info):
