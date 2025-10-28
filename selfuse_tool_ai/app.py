@@ -27,7 +27,15 @@ def run_app():
     """Initialise and start the tray icon and event loop."""
     # Load a simple placeholder icon. Replace `icon.png` with your own logo.
     icon_path = os.path.join(os.path.dirname(__file__), "assets", "icon.png")
-    image = Image.open(icon_path)
+
+    # 如果找不到圖示，創建一個簡單的臨時圖示
+    if not os.path.exists(icon_path):
+        from PIL import ImageDraw
+        image = Image.new('RGB', (64, 64), color='blue')
+        draw = ImageDraw.Draw(image)
+        draw.text((10, 20), 'AI', fill='white')
+    else:
+        image = Image.open(icon_path)
 
     # Create instances of core components.
     mcp_client = ChromeMCP()

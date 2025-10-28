@@ -510,6 +510,40 @@ class AudioSwitcherApp:
         else:
             self.show_notification("沒有正在播放的音樂", "音樂播放器")
 
+    def open_ai_browser(self):
+        """開啟 AI 瀏覽器助手"""
+        try:
+            logger.info("啟動 AI 瀏覽器助手...")
+            import subprocess
+
+            # 取得專案根目錄
+            project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            ai_browser_script = os.path.join(project_root, "selfuse_tool_ai", "app.py")
+
+            # 檢查檔案是否存在
+            if not os.path.exists(ai_browser_script):
+                self.show_notification("找不到 AI 瀏覽器助手程式", "錯誤")
+                logger.error(f"AI 瀏覽器助手程式不存在: {ai_browser_script}")
+                return
+
+            # 使用 pythonw.exe 在背景啟動（無控制台視窗）
+            python_dir = os.path.dirname(sys.executable)
+            pythonw_exe = os.path.join(python_dir, 'pythonw.exe')
+
+            # 如果找不到 pythonw.exe，使用 python.exe
+            if not os.path.exists(pythonw_exe):
+                pythonw_exe = sys.executable
+
+            # 啟動 AI 瀏覽器助手（獨立程序）
+            subprocess.Popen([pythonw_exe, ai_browser_script],
+                           creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0)
+
+            self.show_notification("AI 瀏覽器助手已啟動", "成功")
+            logger.info("AI 瀏覽器助手已成功啟動")
+        except Exception as e:
+            logger.exception("啟動 AI 瀏覽器助手時發生錯誤")
+            self.show_notification(f"啟動失敗: {str(e)}", "錯誤")
+
     def get_headset_battery_text(self):
         """獲取耳機電量顯示文字
 
@@ -562,8 +596,9 @@ class AudioSwitcherApp:
             # 耳機電量顯示（每次打開選單時自動更新）
             item(headset_battery_text, None, enabled=False),
             pystray.Menu.SEPARATOR,
-            item("RSS 訂閱管理", self.open_rss_viewer),
-            item("本地音樂播放器", self.open_music_player),
+            item("🤖 AI 瀏覽器助手", self.open_ai_browser),
+            item("📰 RSS 訂閱管理", self.open_rss_viewer),
+            item("🎵 本地音樂播放器", self.open_music_player),
             pystray.Menu.SEPARATOR,
             item(
                 "🎵 音樂控制",
