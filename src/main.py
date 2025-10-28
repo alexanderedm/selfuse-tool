@@ -297,14 +297,6 @@ class AudioSwitcherApp:
         thread = threading.Thread(target=ask_in_thread, daemon=True)
         thread.start()
 
-    def toggle_auto_start(self, icon, item):
-        """切換開機自啟動"""
-        current = self.config_manager.get_auto_start()
-        self.config_manager.set_auto_start(not current)
-        self.show_notification(
-            f"開機自啟動已{'啟用' if not current else '停用'}", "設定"
-        )
-
     def restart_app(self):
         """重新啟動應用程式"""
         import subprocess
@@ -585,11 +577,6 @@ class AudioSwitcherApp:
             pystray.Menu.SEPARATOR,
             item("查看日誌", self.open_log_viewer),
             item("📝 更新日誌", self.open_changelog),
-            item(
-                "開機自動啟動",
-                self.toggle_auto_start,
-                checked=lambda item: self.config_manager.get_auto_start(),
-            ),
             pystray.Menu.SEPARATOR,
             item("🔄 重新啟動", self.restart_app),
             item("結束", self.quit_app),

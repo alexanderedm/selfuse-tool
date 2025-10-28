@@ -44,7 +44,6 @@ class ConfigManager:
             'device_a': None,
             'device_b': None,
             'current_device': None,
-            'auto_start': False,
             'usage_stats': {},  # 格式: {'device_id': {'name': 'xxx', 'total_seconds': 0, 'switch_count': 0}}
             'last_switch_time': None,
             'rss_feeds': {},  # 格式: {'url': {'title': 'xxx', 'added_time': timestamp}}
@@ -128,68 +127,6 @@ class ConfigManager:
         """
         self.config['current_device'] = device_info
         self._schedule_save()
-
-    def get_auto_start(self):
-        """取得開機自啟動設定"""
-        return self.config.get('auto_start', False)
-
-    def set_auto_start(self, enabled):
-        """設定開機自啟動
-
-        Args:
-            enabled (bool): 是否啟用
-        """
-        self.config['auto_start'] = enabled
-        self._schedule_save()
-
-        # 實際設定 Windows 註冊表
-        self._set_windows_auto_start(enabled)
-
-    def _set_windows_auto_start(self, enabled):
-        """設定 Windows 開機自啟動
-
-        Args:
-            enabled (bool): 是否啟用
-        """
-        import winreg
-        import sys
-
-        key_path = r"Software\Microsoft\Windows\CurrentVersion\Run"
-        app_name = "AudioSwitcher"
-
-        try:
-            key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, key_path, 0, winreg.KEY_SET_VALUE)
-
-            if enabled:
-                # 取得執行檔路徑
-                if getattr(sys, 'frozen', False):
-                    # 打包後的 exe
-                    app_path = f'"{sys.executable}"'
-                else:
-                    # 開發環境 - 使用 pythonw.exe 避免控制台視窗
-                    python_dir = os.path.dirname(sys.executable)
-                    pythonw_exe = os.path.join(python_dir, 'pythonw.exe')
-
-                    # 如果找不到 pythonw.exe，使用 python.exe
-                    if not os.path.exists(pythonw_exe):
-                        pythonw_exe = sys.executable
-
-                    script_path = os.path.abspath(sys.argv[0])
-                    app_path = f'"{pythonw_exe}" "{script_path}"'
-
-                winreg.SetValueEx(key, app_name, 0, winreg.REG_SZ, app_path)
-            else:
-                # 移除自啟動
-                try:
-                    winreg.DeleteValue(key, app_name)
-                except FileNotFoundError:
-                    pass
-
-            winreg.CloseKey(key)
-            logger.info(f"開機自啟動已{'啟用' if enabled else '停用'}: {app_path if enabled else 'N/A'}")
-        except Exception as e:
-            logger.error(f"設定開機自啟動失敗: {e}")
-            print(f"設定開機自啟動失敗: {e}")
 
     def record_device_usage(self, device_info):
         """記錄裝置使用統計
