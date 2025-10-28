@@ -1,0 +1,7 @@
+pystray
+customtkinter
+chromadb
+openai
+httpx
+asyncio
+Pillow
