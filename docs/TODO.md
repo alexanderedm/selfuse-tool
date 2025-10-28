@@ -362,6 +362,25 @@
   - **注意事項**: 音訊效果應用功能待未來整合音訊處理庫實現
 
 ## ✅ 最近完成 (Recently Completed)
+- [x] **GitHub 分支整理與合併** (完成於 2025-10-28) 🔀
+  - **目標**: 清理過時分支，合併新功能到主分支
+  - **執行動作**:
+    - ✅ 合併 `feature/ai-browser-assistant` 分支到 main
+      - 新增 selfuse_tool_ai/ 模組（AI 瀏覽器助手功能）
+      - 包含 LLM 核心、MCP 客戶端、記憶體儲存、RAG 檢索等功能
+    - ✅ 刪除過時的 `plugin-system` 分支（內容已在 main 中）
+    - ✅ 刪除過時的 `test-feature` 分支（早期測試分支）
+    - ✅ 新增 LICENSE 檔案（MIT License）
+    - ✅ 更新 .gitignore 以忽略臨時修復腳本
+  - **清理結果**:
+    - 本地分支: feature/ai-browser-assistant (已刪除)
+    - 遠程分支: plugin-system, feature/ai-browser-assistant (已刪除)
+    - 當前活躍分支: main
+  - **提交記錄**:
+    - `5814a57` - chore: 整理專案檔案並更新測試
+    - `694c63b` - feat: 合併 AI 瀏覽器助手功能
+  - **所有變更已推送至 GitHub** ✅
+
 - [x] **藍牙耳機電量顯示功能** (完成於 2025-10-22) 🔋
   - **功能**: 在系統托盤右鍵選單中顯示藍牙耳機電池百分比
   - **實作方式**:
