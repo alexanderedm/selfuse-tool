@@ -54,11 +54,11 @@ class TestMusicPlaylistDialog(unittest.TestCase):
 
     @patch('music_playlist_dialog.ttk.Style')
     @patch('music_playlist_dialog.ttk.Treeview')
-    @patch('music_playlist_dialog.tk.Scrollbar')
-    @patch('music_playlist_dialog.tk.Button')
-    @patch('music_playlist_dialog.tk.Label')
-    @patch('music_playlist_dialog.tk.Frame')
-    @patch('music_playlist_dialog.tk.Toplevel')
+    @patch('music_playlist_dialog.ctk.CTkScrollbar')
+    @patch('music_playlist_dialog.ctk.CTkButton')
+    @patch('music_playlist_dialog.ctk.CTkLabel')
+    @patch('music_playlist_dialog.ctk.CTkFrame')
+    @patch('music_playlist_dialog.ctk.CTkToplevel')
     def test_show_playlists(self, mock_toplevel, mock_frame, mock_label,
                            mock_button, mock_scrollbar, mock_treeview, mock_style):
         """測試顯示播放列表對話框"""
@@ -247,12 +247,12 @@ class TestMusicPlaylistDialog(unittest.TestCase):
 
         self.mock_playlist_manager.update_description.assert_not_called()
 
-    @patch('music_playlist_dialog.tk.Scrollbar')
-    @patch('music_playlist_dialog.tk.Button')
+    @patch('music_playlist_dialog.ctk.CTkScrollbar')
+    @patch('music_playlist_dialog.ctk.CTkButton')
     @patch('music_playlist_dialog.tk.Listbox')
-    @patch('music_playlist_dialog.tk.Label')
-    @patch('music_playlist_dialog.tk.Frame')
-    @patch('music_playlist_dialog.tk.Toplevel')
+    @patch('music_playlist_dialog.ctk.CTkLabel')
+    @patch('music_playlist_dialog.ctk.CTkFrame')
+    @patch('music_playlist_dialog.ctk.CTkToplevel')
     def test_add_song_to_playlist_success(self, mock_toplevel, mock_frame, mock_label,
                                          mock_listbox, mock_button, mock_scrollbar):
         """測試成功加入歌曲到播放列表"""
@@ -290,11 +290,11 @@ class TestMusicPlaylistDialog(unittest.TestCase):
 
     @patch('music_playlist_dialog.ttk.Style')
     @patch('music_playlist_dialog.ttk.Treeview')
-    @patch('music_playlist_dialog.tk.Scrollbar')
-    @patch('music_playlist_dialog.tk.Button')
-    @patch('music_playlist_dialog.tk.Label')
-    @patch('music_playlist_dialog.tk.Frame')
-    @patch('music_playlist_dialog.tk.Toplevel')
+    @patch('music_playlist_dialog.ctk.CTkScrollbar')
+    @patch('music_playlist_dialog.ctk.CTkButton')
+    @patch('music_playlist_dialog.ctk.CTkLabel')
+    @patch('music_playlist_dialog.ctk.CTkFrame')
+    @patch('music_playlist_dialog.ctk.CTkToplevel')
     def test_show_playlist_detail(self, mock_toplevel, mock_frame, mock_label,
                                   mock_button, mock_scrollbar, mock_treeview, mock_style):
         """測試顯示播放列表詳情"""

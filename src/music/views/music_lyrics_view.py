@@ -1,4 +1,5 @@
 """音樂歌詞視圖模組 - 負責歌詞顯示與同步"""
+import tkinter as tk
 import customtkinter as ctk
 from src.music.utils.lyrics_parser import LyricsParser
 from src.core.logger import logger

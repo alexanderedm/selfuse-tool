@@ -2,6 +2,7 @@
 import unittest
 from unittest.mock import Mock, patch, MagicMock, call
 import tkinter as tk
+import customtkinter as ctk
 from tkinter import ttk
 import sys
 import os

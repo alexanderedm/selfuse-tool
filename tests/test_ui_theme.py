@@ -60,9 +60,9 @@ class TestUITheme(unittest.TestCase):
         """測試取得圓角按鈕樣式"""
         theme = UITheme()
         style = theme.get_rounded_button_style()
-        self.assertIn('borderwidth', style)
+        self.assertIn('border_width', style)
         self.assertIn('relief', style)
-        self.assertEqual(style['borderwidth'], 0)
+        self.assertEqual(style['border_width'], 0)
         self.assertEqual(style['relief'], 'flat')
 
     def test_get_shadow_style(self):

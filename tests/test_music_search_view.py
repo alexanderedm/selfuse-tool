@@ -3,6 +3,7 @@ import unittest
 from unittest.mock import Mock, MagicMock, patch
 import tkinter as tk
 import customtkinter as ctk
+import customtkinter as ctk
 from src.music.views.music_search_view import MusicSearchView
 
 

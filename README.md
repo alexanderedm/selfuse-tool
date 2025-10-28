@@ -12,6 +12,7 @@
 - ⚙️ **簡單設定**: 圖形化設定介面，輕鬆選擇要切換的裝置
 - 🚀 **開機自啟動**: 可選擇隨 Windows 開機啟動
 - 💾 **記憶設定**: 所有設定持久化儲存，重開機後保留
+- 🔋 **耳機電量顯示**: 托盤選單中顯示藍牙耳機的電池狀態 (Windows 10/11)
 
 ## 系統需求
 
@@ -49,6 +50,7 @@ python src/main.py
 ### 日常使用
 
 - **切換裝置**: 右鍵點擊托盤圖示 → 選擇「切換輸出裝置」
+- **查看耳機電量**: 右鍵點擊托盤圖示 → 選單中會顯示藍牙耳機的電池百分比（每次打開選單自動更新）
 - **修改設定**: 右鍵點擊托盤圖示 → 選擇「設定」
 - **開機自啟動**: 右鍵點擊托盤圖示 → 勾選「開機自動啟動」
 - **結束程式**: 右鍵點擊托盤圖示 → 選擇「結束」
@@ -70,6 +72,9 @@ selftool/
 │   │   ├── config_manager.py  # 設定檔管理
 │   │   ├── logger.py          # 日誌系統
 │   │   └── constants.py       # 常數定義
+│   ├── battery/               # 電池監控模組
+│   │   ├── __init__.py        # 模組初始化
+│   │   └── bluetooth_battery.py # 藍牙電池監控
 │   ├── audio/                 # 音訊處理模組
 │   │   ├── audio_player.py    # 音訊播放器（sounddevice）
 │   │   ├── audio_processor.py # 音訊處理管線
@@ -224,6 +229,32 @@ A: 當前版本的等化器僅實現設定管理功能，實際的音訊效果�
 - 設定會自動保存到 config.json
 
 未來版本計畫整合 pydub 或 sounddevice 來實現真正的音訊效果應用。
+
+**Q: 為什麼托盤選單中顯示「耳機: 不支援或未連接」?**
+A: 可能的原因:
+1. 沒有藍牙耳機連接到電腦
+2. 耳機已連接但不支援 Windows 電池狀態查詢（部分裝置不提供電池資訊）
+3. 耳機使用非藍牙連接方式（例如 USB 無線接收器）
+
+電量資訊會在每次打開右鍵選單時自動更新。
+
+**支援的裝置：**
+- ✅ 標準藍牙耳機（如 AirPods、Sony、Bose 等）
+- ✅ 部分支援 Windows 電池屬性的藍牙裝置
+- ❌ **羅技 USB 無線裝置**（如 G535、G733 等）- 需要特殊協議
+
+**羅技裝置解決方案：**
+- ✅ **已整合！** 使用 `start_logitech.bat` 啟動，自動支援羅技裝置
+  1. 下載並解壓縮 [LGSTray](https://github.com/andyvorld/LGSTrayBattery/releases)
+  2. 將所有檔案放在專案根目錄
+  3. 執行 `start_logitech.bat`（一鍵啟動！）
+  4. 使用 `test_lgstray.bat` 驗證設定
+  5. 詳細說明請參考 [`docs/LOGITECH_BATTERY_SETUP.md`](docs/LOGITECH_BATTERY_SETUP.md)
+- 或使用羅技官方的 [G HUB 軟體](https://www.logitechg.com/zh-tw/innovation/g-hub.html)查看電量
+
+**✅ 實測成功裝置：**
+- Logitech G535 Gaming Headset
+- Logitech G903 LIGHTSPEED Wireless Gaming Mouse
 
 **Q: YouTube 下載遇到 403 錯誤怎麼辦?**
 A: 這是 YouTube 的反爬蟲機制。專案已實作以下規避策略:

@@ -1,16 +1,21 @@
 """測試音樂下載對話框模組"""
 import pytest
 import tkinter as tk
+import customtkinter as ctk
 from unittest.mock import Mock, MagicMock, patch, call
 from src.music.dialogs.music_download_dialog import MusicDownloadDialog
 
 
 @pytest.fixture
 def mock_parent():
-    """建立 mock 的父視窗"""
-    parent = Mock()
-    parent.after = Mock(side_effect=lambda delay, func: func())
-    return parent
+    """建立真實的父視窗"""
+    root = tk.Tk()
+    root.withdraw()  # 隱藏窗口以避免顯示
+    yield root
+    try:
+        root.destroy()
+    except:
+        pass
 
 
 @pytest.fixture
@@ -91,13 +96,13 @@ class TestMusicDownloadDialog:
         assert "yt-dlp" in mock_showerror.call_args[0][1]
         assert dialog.dialog is None
 
-    @patch('src.music.dialogs.music_download_dialog.tk.StringVar')
+    @patch('src.music.dialogs.music_download_dialog.ctk.StringVar')
     @patch('src.music.dialogs.music_download_dialog.ttk.Combobox')
-    @patch('src.music.dialogs.music_download_dialog.tk.Entry')
-    @patch('src.music.dialogs.music_download_dialog.tk.Button')
-    @patch('src.music.dialogs.music_download_dialog.tk.Label')
-    @patch('src.music.dialogs.music_download_dialog.tk.Frame')
-    @patch('src.music.dialogs.music_download_dialog.tk.Toplevel')
+    @patch('src.music.dialogs.music_download_dialog.ctk.CTkEntry')
+    @patch('src.music.dialogs.music_download_dialog.ctk.CTkButton')
+    @patch('src.music.dialogs.music_download_dialog.ctk.CTkLabel')
+    @patch('src.music.dialogs.music_download_dialog.ctk.CTkFrame')
+    @patch('src.music.dialogs.music_download_dialog.ctk.CTkToplevel')
     def test_show_download_dialog_creates_dialog(self, mock_toplevel, mock_frame, mock_label,
                                                   mock_button, mock_entry, mock_combo, mock_stringvar, dialog):
         """測試顯示下載對話框建立"""
@@ -112,13 +117,13 @@ class TestMusicDownloadDialog:
         mock_dialog.title.assert_called_once_with("📥 下載 YouTube 音樂")
         mock_dialog.geometry.assert_called_once_with("600x400")
 
-    @patch('src.music.dialogs.music_download_dialog.tk.StringVar')
+    @patch('src.music.dialogs.music_download_dialog.ctk.StringVar')
     @patch('src.music.dialogs.music_download_dialog.ttk.Combobox')
-    @patch('src.music.dialogs.music_download_dialog.tk.Entry')
-    @patch('src.music.dialogs.music_download_dialog.tk.Button')
-    @patch('src.music.dialogs.music_download_dialog.tk.Label')
-    @patch('src.music.dialogs.music_download_dialog.tk.Frame')
-    @patch('src.music.dialogs.music_download_dialog.tk.Toplevel')
+    @patch('src.music.dialogs.music_download_dialog.ctk.CTkEntry')
+    @patch('src.music.dialogs.music_download_dialog.ctk.CTkButton')
+    @patch('src.music.dialogs.music_download_dialog.ctk.CTkLabel')
+    @patch('src.music.dialogs.music_download_dialog.ctk.CTkFrame')
+    @patch('src.music.dialogs.music_download_dialog.ctk.CTkToplevel')
     def test_show_download_dialog_loads_categories(self, mock_toplevel, mock_frame, mock_label,
                                                     mock_button, mock_entry, mock_combo, mock_stringvar,
                                                     dialog, mock_music_manager):
@@ -205,15 +210,17 @@ class TestMusicDownloadDialog:
         mock_thread.assert_called_once()
 
     @patch('src.music.dialogs.music_download_dialog.tk.Listbox')
-    @patch('src.music.dialogs.music_download_dialog.tk.Button')
-    @patch('src.music.dialogs.music_download_dialog.tk.Label')
-    @patch('src.music.dialogs.music_download_dialog.tk.Frame')
-    @patch('src.music.dialogs.music_download_dialog.tk.Scrollbar')
-    @patch('src.music.dialogs.music_download_dialog.tk.Toplevel')
+    @patch('src.music.dialogs.music_download_dialog.ctk.CTkButton')
+    @patch('src.music.dialogs.music_download_dialog.ctk.CTkLabel')
+    @patch('src.music.dialogs.music_download_dialog.ctk.CTkFrame')
+    @patch('src.music.dialogs.music_download_dialog.ctk.CTkScrollbar')
+    @patch('src.music.dialogs.music_download_dialog.ctk.CTkToplevel')
     def test_show_search_results_creates_dialog(self, mock_toplevel, mock_scrollbar, mock_frame,
                                                  mock_label, mock_button, mock_listbox, dialog):
         """測試顯示搜尋結果對話框"""
-        dialog.dialog = Mock()
+        # 使用真實的 Toplevel 作為 parent
+        dialog.dialog = ctk.CTkToplevel(dialog.parent)
+        dialog.dialog.withdraw()  # 隱藏窗口
         mock_result_dialog = Mock()
         mock_toplevel.return_value = mock_result_dialog
 
@@ -227,6 +234,9 @@ class TestMusicDownloadDialog:
         # 驗證對話框被建立
         mock_toplevel.assert_called_once_with(dialog.dialog)
         mock_result_dialog.title.assert_called_once_with("🔍 搜尋結果")
+
+        # 清理
+        dialog.dialog.destroy()
 
     @patch('src.music.dialogs.music_download_dialog.messagebox.showwarning')
     def test_start_download_empty_url(self, mock_showwarning, dialog):
@@ -251,9 +261,9 @@ class TestMusicDownloadDialog:
         mock_thread.assert_called_once()
 
     @patch('src.music.dialogs.music_download_dialog.ttk.Progressbar')
-    @patch('src.music.dialogs.music_download_dialog.tk.Label')
-    @patch('src.music.dialogs.music_download_dialog.tk.Frame')
-    @patch('src.music.dialogs.music_download_dialog.tk.Toplevel')
+    @patch('src.music.dialogs.music_download_dialog.ctk.CTkLabel')
+    @patch('src.music.dialogs.music_download_dialog.ctk.CTkFrame')
+    @patch('src.music.dialogs.music_download_dialog.ctk.CTkToplevel')
     def test_show_progress_creates_dialog(self, mock_toplevel, mock_frame, mock_label, mock_progressbar, dialog):
         """測試顯示進度對話框"""
         mock_progress_dialog = Mock()

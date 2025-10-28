@@ -2,6 +2,8 @@
 import unittest
 from unittest.mock import Mock, MagicMock, patch
 import tkinter as tk
+import customtkinter as ctk
+import customtkinter as ctk
 from src.music.views.music_header_view import MusicHeaderView
 
 
@@ -11,7 +13,11 @@ class TestMusicHeaderView(unittest.TestCase):
     def setUp(self):
         """設定測試環境"""
         self.root = tk.Tk()
+        self.root.withdraw()  # 隱藏窗口
         self.parent = tk.Frame(self.root)
+
+        # Mock parent.after to execute immediately
+        self.parent.after = lambda delay, func: func()
         self.on_download_click = Mock()
         self.on_playlist_click = Mock()
         self.on_history_click = Mock()
@@ -46,7 +52,7 @@ class TestMusicHeaderView(unittest.TestCase):
             on_most_played_click=self.on_most_played_click
         )
         self.assertIsNotNone(view.header_frame)
-        self.assertIsInstance(view.header_frame, tk.Frame)
+        self.assertIsInstance(view.header_frame, ctk.CTkFrame)
 
     def test_creates_title_label(self):
         """測試建立標題標籤"""
@@ -58,7 +64,7 @@ class TestMusicHeaderView(unittest.TestCase):
             on_most_played_click=self.on_most_played_click
         )
         self.assertIsNotNone(view.title_label)
-        self.assertIsInstance(view.title_label, tk.Label)
+        self.assertIsInstance(view.title_label, ctk.CTkLabel)
         self.assertIn("音樂播放器", view.title_label.cget("text"))
 
     def test_creates_download_button(self):
@@ -71,7 +77,7 @@ class TestMusicHeaderView(unittest.TestCase):
             on_most_played_click=self.on_most_played_click
         )
         self.assertIsNotNone(view.download_button)
-        self.assertIsInstance(view.download_button, tk.Button)
+        self.assertIsInstance(view.download_button, ctk.CTkButton)
         self.assertIn("下載", view.download_button.cget("text"))
 
     def test_creates_most_played_button(self):
@@ -84,8 +90,8 @@ class TestMusicHeaderView(unittest.TestCase):
             on_most_played_click=self.on_most_played_click
         )
         self.assertIsNotNone(view.most_played_button)
-        self.assertIsInstance(view.most_played_button, tk.Button)
-        self.assertIn("最常播放", view.most_played_button.cget("text"))
+        self.assertIsInstance(view.most_played_button, ctk.CTkButton)
+        self.assertIn("統計資訊", view.most_played_button.cget("text"))
 
     def test_creates_playlist_button(self):
         """測試建立播放列表按鈕"""
@@ -97,7 +103,7 @@ class TestMusicHeaderView(unittest.TestCase):
             on_most_played_click=self.on_most_played_click
         )
         self.assertIsNotNone(view.playlist_button)
-        self.assertIsInstance(view.playlist_button, tk.Button)
+        self.assertIsInstance(view.playlist_button, ctk.CTkButton)
         self.assertIn("播放列表", view.playlist_button.cget("text"))
 
     def test_creates_history_button(self):
@@ -110,7 +116,7 @@ class TestMusicHeaderView(unittest.TestCase):
             on_most_played_click=self.on_most_played_click
         )
         self.assertIsNotNone(view.history_button)
-        self.assertIsInstance(view.history_button, tk.Button)
+        self.assertIsInstance(view.history_button, ctk.CTkButton)
         self.assertIn("播放歷史", view.history_button.cget("text"))
 
     def test_download_button_triggers_callback(self):
@@ -225,11 +231,11 @@ class TestMusicHeaderView(unittest.TestCase):
             on_history_click=self.on_history_click,
             on_most_played_click=self.on_most_played_click
         )
-        # 檢查所有按鈕都有 borderwidth=0
-        self.assertEqual(view.download_button.cget("borderwidth"), 0)
-        self.assertEqual(view.most_played_button.cget("borderwidth"), 0)
-        self.assertEqual(view.playlist_button.cget("borderwidth"), 0)
-        self.assertEqual(view.history_button.cget("borderwidth"), 0)
+        # 檢查所有按鈕都有 border_width=0
+        self.assertEqual(view.download_button.cget("border_width"), 0)
+        self.assertEqual(view.most_played_button.cget("border_width"), 0)
+        self.assertEqual(view.playlist_button.cget("border_width"), 0)
+        self.assertEqual(view.history_button.cget("border_width"), 0)
 
 
 if __name__ == '__main__':

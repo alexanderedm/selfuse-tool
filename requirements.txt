@@ -31,3 +31,4 @@ pynput>=1.7.6
 winrt-Windows.Media>=2.0.0
 # 音頻文件元數據編輯
 mutagen>=1.47.0
+requests# HTTP requests library

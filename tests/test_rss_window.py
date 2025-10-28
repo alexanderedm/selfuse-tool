@@ -2,17 +2,18 @@
 import unittest
 from unittest.mock import Mock, MagicMock, patch, call
 import tkinter as tk
+import customtkinter as ctk
 from tkinter import ttk
 import threading
 
 
 def mock_tk_components(func):
     """裝飾器：Mock 所有 tkinter 元件"""
-    @patch('src.rss.rss_window.tk.Label')
-    @patch('src.rss.rss_window.tk.Frame')
+    @patch('src.rss.rss_window.ctk.CTkLabel')
+    @patch('src.rss.rss_window.ctk.CTkFrame')
     @patch('src.rss.rss_window.ttk.Style')
     @patch('src.rss.rss_window.ttk.Button')
-    @patch('src.rss.rss_window.tk.Toplevel')
+    @patch('src.rss.rss_window.ctk.CTkToplevel')
     @patch('src.rss.rss_window.RSSFeedListView')
     @patch('src.rss.rss_window.RSSFilterManager')
     @patch('src.rss.rss_window.RSSEntryListView')
@@ -189,8 +190,8 @@ class TestRSSWindow(unittest.TestCase):
         # 驗證重新建立視窗
         self.assertEqual(mock_toplevel.call_count, 1)
 
-    @patch('src.rss.rss_window.tk.Label')
-    @patch('src.rss.rss_window.tk.Frame')
+    @patch('src.rss.rss_window.ctk.CTkLabel')
+    @patch('src.rss.rss_window.ctk.CTkFrame')
     @patch('src.rss.rss_window.ttk.Style')
     @patch('src.rss.rss_window.ttk.Button')
     @patch('src.rss.rss_window.tk.Tk')

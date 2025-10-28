@@ -2,6 +2,7 @@
 import unittest
 from unittest.mock import Mock, patch
 import tkinter as tk
+import customtkinter as ctk
 from tkinter import scrolledtext
 
 

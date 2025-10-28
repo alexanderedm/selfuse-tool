@@ -2,6 +2,7 @@
 import unittest
 from unittest.mock import Mock, MagicMock, patch, call
 import tkinter as tk
+import customtkinter as ctk
 from src.music.actions.music_song_actions import MusicSongActions
 
 
@@ -229,7 +230,7 @@ class TestMusicSongActions(unittest.TestCase):
         mock_messagebox.showinfo.assert_called_once()
 
     @patch('music_song_actions.messagebox')
-    @patch('music_song_actions.tk.Toplevel')
+    @patch('music_song_actions.ctk.CTkToplevel')
     def test_move_song_to_category_shows_dialog(self, mock_toplevel, mock_messagebox):
         """測試移動歌曲 - 顯示對話框"""
         actions = MusicSongActions(
