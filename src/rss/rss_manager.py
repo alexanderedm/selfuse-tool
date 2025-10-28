@@ -4,7 +4,9 @@ import time
 import re
 from datetime import datetime
 from urllib.parse import urlparse
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from src.core.constants import RSS_CACHE_TIMEOUT, RSS_MAX_ENTRIES
+from src.core.logger import logger
 
 
 class RSSManager:
@@ -14,6 +16,7 @@ class RSSManager:
         self.config_manager = config_manager
         self.cache = {}  # 快取 RSS 內容 {url: {'entries': [], 'last_update': timestamp}}
         self.cache_timeout = RSS_CACHE_TIMEOUT  # 快取有效期
+        self.executor = ThreadPoolExecutor(max_workers=5, thread_name_prefix="RSS-Fetcher")
 
     def is_valid_rss_url(self, url):
         """檢查 URL 是否可能是 RSS 連結
@@ -332,7 +335,7 @@ class RSSManager:
             return []
 
     def fetch_all_feeds(self, force_refresh=False):
-        """抓取所有訂閱的 RSS feeds
+        """抓取所有訂閱的 RSS feeds（同步版本，保留向後相容）
 
         Args:
             force_refresh (bool): 是否強制重新抓取
@@ -360,9 +363,105 @@ class RSSManager:
 
         return result
 
+    def _fetch_single_feed_with_info(self, url, feed_info, force_refresh):
+        """抓取單一 RSS feed（內部方法，用於多執行緒）
+
+        Args:
+            url (str): RSS feed URL
+            feed_info (dict): feed 資訊 {'title': str, 'added_time': float}
+            force_refresh (bool): 是否強制重新抓取
+
+        Returns:
+            tuple: (url, result_dict)
+        """
+        try:
+            entries = self.fetch_feed_entries(url, force_refresh)
+            result = {
+                'title': feed_info['title'],
+                'entries': entries,
+                'error': None if entries else '無法抓取內容'
+            }
+            logger.info(f"成功抓取 RSS: {feed_info['title']} ({len(entries)} 篇文章)")
+            return (url, result)
+        except Exception as e:
+            logger.error(f"抓取 RSS 失敗: {feed_info['title']} - {str(e)}")
+            result = {
+                'title': feed_info['title'],
+                'entries': [],
+                'error': str(e)
+            }
+            return (url, result)
+
+    def fetch_all_feeds_async(self, force_refresh=False, progress_callback=None):
+        """並行抓取所有訂閱的 RSS feeds（優化版本）
+
+        Args:
+            force_refresh (bool): 是否強制重新抓取
+            progress_callback (callable): 進度回調函數 callback(url, title, current, total)
+
+        Returns:
+            dict: {url: {'title': str, 'entries': list, 'error': str}}
+        """
+        feeds = self.get_all_feeds()
+        total = len(feeds)
+
+        if total == 0:
+            logger.info("沒有訂閱的 RSS feeds")
+            return {}
+
+        logger.info(f"開始並行抓取 {total} 個 RSS feeds")
+        result = {}
+
+        # 提交所有任務到執行緒池
+        futures = {
+            self.executor.submit(
+                self._fetch_single_feed_with_info,
+                url,
+                feed_info,
+                force_refresh
+            ): (url, feed_info)
+            for url, feed_info in feeds.items()
+        }
+
+        # 收集結果
+        current = 0
+        for future in as_completed(futures, timeout=60):
+            url, feed_info = futures[future]
+            current += 1
+
+            try:
+                url_result, feed_result = future.result(timeout=30)
+                result[url_result] = feed_result
+
+                # 呼叫進度回調
+                if progress_callback:
+                    progress_callback(
+                        url=url,
+                        title=feed_info['title'],
+                        current=current,
+                        total=total
+                    )
+
+            except Exception as e:
+                logger.error(f"處理 RSS future 時發生錯誤: {feed_info['title']} - {str(e)}")
+                result[url] = {
+                    'title': feed_info['title'],
+                    'entries': [],
+                    'error': f'執行緒錯誤: {str(e)}'
+                }
+
+        logger.info(f"完成抓取 {len(result)}/{total} 個 RSS feeds")
+        return result
+
     def clear_cache(self):
         """清除所有快取"""
         self.cache = {}
+
+    def shutdown(self):
+        """關閉執行緒池，釋放資源"""
+        logger.info("正在關閉 RSS Manager 執行緒池...")
+        self.executor.shutdown(wait=True)
+        logger.info("RSS Manager 執行緒池已關閉")
 
     # ==================== 文章狀態管理 ====================
 

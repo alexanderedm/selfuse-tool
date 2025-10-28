@@ -1,0 +1,135 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # 觸發條件：推送 v1.0.0 格式的標籤
+
+permissions:
+  contents: write  # 需要寫入權限以建立 Release
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # 獲取完整歷史以便提取 changelog
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+
+    - name: Build executable with PyInstaller
+      run: |
+        pyinstaller selftool.spec
+
+    - name: Verify build output
+      run: |
+        if (Test-Path "dist\selftool.exe") {
+          Write-Host "✅ Build successful: selftool.exe created"
+          Get-Item "dist\selftool.exe" | Format-List
+        } else {
+          Write-Error "❌ Build failed: selftool.exe not found"
+          exit 1
+        }
+      shell: pwsh
+
+    - name: Create distribution archive
+      run: |
+        $version = "${{ github.ref_name }}"
+        $archiveName = "selftool-$version-windows-x64.zip"
+
+        # 建立臨時目錄
+        New-Item -ItemType Directory -Force -Path "release-temp"
+
+        # 複製檔案到臨時目錄
+        Copy-Item "dist\selftool.exe" "release-temp\"
+        Copy-Item "README.md" "release-temp\"
+        Copy-Item "LICENSE" "release-temp\"
+        Copy-Item "CHANGELOG.md" "release-temp\"
+
+        # 建立說明文件
+        @"
+        Selftool - 音訊設備切換工具
+        ================================
+
+        版本: $version
+        建置日期: $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")
+
+        ## 安裝說明
+
+        1. 解壓縮此檔案
+        2. 執行 selftool.exe
+        3. 右鍵點擊系統托盤圖示進行設定
+
+        ## 系統需求
+
+        - Windows 10/11
+        - .NET Framework 4.7.2 或更高版本（通常已內建）
+
+        ## 更多資訊
+
+        請參閱 README.md 和 CHANGELOG.md
+
+        專案網址: https://github.com/${{ github.repository }}
+        "@ | Out-File -FilePath "release-temp\安裝說明.txt" -Encoding UTF8
+
+        # 建立壓縮檔
+        Compress-Archive -Path "release-temp\*" -DestinationPath $archiveName -Force
+
+        Write-Host "✅ Created archive: $archiveName"
+        Get-Item $archiveName | Format-List
+      shell: pwsh
+
+    - name: Extract changelog for this version
+      id: changelog
+      run: |
+        python scripts/extract_changelog.py "${{ github.ref_name }}" > release_notes.md
+
+        # 檢查是否成功產生 release notes
+        if (Test-Path "release_notes.md") {
+          $content = Get-Content "release_notes.md" -Raw
+          Write-Host "✅ Release notes generated:"
+          Write-Host $content
+        } else {
+          Write-Host "⚠️ No release notes found, using default message"
+          @"
+          ## ${{ github.ref_name }}
+
+          請參閱 [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) 查看完整更新內容。
+          "@ | Out-File -FilePath "release_notes.md" -Encoding UTF8
+        }
+      shell: pwsh
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          selftool-${{ github.ref_name }}-windows-x64.zip
+          dist/selftool.exe
+        body_path: release_notes.md
+        draft: false
+        prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') || contains(github.ref_name, 'rc') }}
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: selftool-${{ github.ref_name }}
+        path: |
+          dist/selftool.exe
+          selftool-${{ github.ref_name }}-windows-x64.zip
+        retention-days: 90

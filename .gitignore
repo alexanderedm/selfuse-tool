@@ -23,6 +23,13 @@ wheels/
 .installed.cfg
 *.egg
 
+# PyInstaller
+*.spec.backup
+build/
+dist/
+*.manifest
+*.spec~
+
 # IDE
 .vscode/
 .idea/
@@ -89,3 +96,20 @@ Release_*.zip
 # Windows
 Thumbs.db
 desktop.ini
+
+# MkDocs
+site/
+.cache/
+
+# GitHub Actions artifacts
+release-temp/
+release_notes.md
+*.zip
+
+# AI Browser Assistant data
+selfuse_tool_ai/data/
+data/
+
+# Environment files
+.env
+.env.local

@@ -1,5 +1,28 @@
 # 專案待辦清單 (Todo List)
 
+## 最近完成 (2025-10-28)
+
+- [x] **專案自動化與文檔系統完整建立** ✅
+  - [x] 建立 CHANGELOG.md（語意化版本記錄）
+  - [x] 建立 GitHub Actions 自動發布系統
+    - 自動打包 EXE
+    - 自動建立 GitHub Release
+    - 自動上傳發布檔案
+  - [x] 建立 MkDocs 文檔系統
+    - Material 主題配置
+    - 完整的文檔結構（getting-started, features, development）
+    - GitHub Pages 自動部署
+  - [x] RSS 多執行緒抓取優化
+    - 使用 `concurrent.futures.ThreadPoolExecutor`
+    - 並行抓取多個 RSS 源
+    - 進度回調支援
+  - [x] 安全的 API Key 配置系統
+    - 使用 Windows DPAPI 加密
+    - 支援配置文件 + 環境變數
+    - 全域單例設計
+  - [x] 更新 .gitignore（排除建置產物）
+  - [x] 建立 PyInstaller 打包配置
+
 ## 我的個人希望新增功能或改進修正方面建議
 - [x] **優化體驗** (完成於 2025-10-16) ✅
   - [x] 所有頁面都不應該有關閉按鈕 並且任何儲存設定方面功能應該改為即時儲存而非點擊按鈕儲存

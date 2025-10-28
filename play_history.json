@@ -1,6 +1,20 @@
 {
   "recent_plays": [
     {
+      "song_id": "BXO1Ne4bJmE",
+      "title": "美秀集團 Amazing Show－物語 Tales【Official Music Video】",
+      "artist": "美秀集團 Amazing Show",
+      "category": "華語流行音樂",
+      "played_at": "2025-10-22T03:27:46.259186"
+    },
+    {
+      "song_id": "UOg50f9W58I",
+      "title": "九九八十一",
+      "artist": "未知",
+      "category": "華語流行音樂",
+      "played_at": "2025-10-22T03:27:38.055335"
+    },
+    {
       "song_id": "-LwBbLa_Vhc",
       "title": "If I could be a constellation",
       "artist": "未知",
@@ -309,7 +323,7 @@
     "Z7mCrxjivB0": 1,
     "fxHjlCBHuzA": 6,
     "mRma6NkHwWU": 1,
-    "BXO1Ne4bJmE": 3,
+    "BXO1Ne4bJmE": 4,
     "vqsdUXUxdq8": 2,
     "eVLxJqxbv1k": 4,
     "-LwBbLa_Vhc": 2,
@@ -319,8 +333,8 @@
     "MTXs3LIAE24": 1,
     "U-bXx_4Nwx8": 1,
     "9B0yX0UIN9M": 1,
-    "UOg50f9W58I": 1,
+    "UOg50f9W58I": 2,
     "02V9-wSwVqw": 1
   },
-  "total_plays": 43
+  "total_plays": 45
 }

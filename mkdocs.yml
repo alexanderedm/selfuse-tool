@@ -1,0 +1,174 @@
+site_name: Selftool - 音訊設備切換工具
+site_description: Windows 音訊設備快速切換、音樂播放器、RSS 閱讀器與 AI 瀏覽器助手
+site_author: Edmund
+site_url: https://your-username.github.io/selfuse-tool
+repo_url: https://github.com/your-username/selfuse-tool
+repo_name: your-username/selfuse-tool
+
+# 版權資訊
+copyright: Copyright &copy; 2024-2025 Edmund
+
+# 主題配置
+theme:
+  name: material
+  language: zh-TW
+
+  # 調色板
+  palette:
+    # 亮色模式
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: blue
+      toggle:
+        icon: material/brightness-7
+        name: 切換至深色模式
+
+    # 深色模式
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: blue
+      toggle:
+        icon: material/brightness-4
+        name: 切換至亮色模式
+
+  # 字體
+  font:
+    text: Noto Sans TC
+    code: JetBrains Mono
+
+  # 功能特性
+  features:
+    - announce.dismiss
+    - content.action.edit
+    - content.action.view
+    - content.code.annotate
+    - content.code.copy
+    - content.tabs.link
+    - content.tooltips
+    - header.autohide
+    - navigation.expand
+    - navigation.footer
+    - navigation.indexes
+    - navigation.instant
+    - navigation.instant.prefetch
+    - navigation.instant.progress
+    - navigation.prune
+    - navigation.sections
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.top
+    - navigation.tracking
+    - search.highlight
+    - search.share
+    - search.suggest
+    - toc.follow
+
+  # 圖示
+  icon:
+    repo: fontawesome/brands/github
+    edit: material/pencil
+    view: material/eye
+
+# 導航結構
+nav:
+  - 首頁: index.md
+  - 快速開始:
+      - 安裝指南: getting-started/installation.md
+      - 基本使用: getting-started/basic-usage.md
+      - 常見問題: getting-started/faq.md
+  - 功能介紹:
+      - 音訊切換: features/audio-switching.md
+      - 音樂播放器: features/music-player.md
+      - RSS 閱讀器: features/rss-reader.md
+      - AI 瀏覽器助手: features/ai-browser.md
+      - 統計功能: features/statistics.md
+  - 開發文檔:
+      - 專案結構: development/structure.md
+      - 程式碼品質: development/code-quality.md
+      - 貢獻指南: development/contributing.md
+      - API 參考: development/api-reference.md
+  - 更新日誌: changelog.md
+
+# 外掛
+plugins:
+  - search:
+      separator: '[\s\u200b\-]'
+      lang:
+        - zh
+        - en
+  - git-revision-date-localized:
+      enable_creation_date: true
+      type: datetime
+      timezone: Asia/Taipei
+  - minify:
+      minify_html: true
+
+# Markdown 擴展
+markdown_extensions:
+  # Python Markdown
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - toc:
+      permalink: true
+      permalink_title: 錨點連結
+      toc_depth: 4
+
+  # Python Markdown Extensions
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+# 額外設定
+extra:
+  # 社群連結
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/your-username/selfuse-tool
+      name: GitHub Repository
+
+  # 版本號
+  version:
+    provider: mike
+
+  # 分析（可選）
+  # analytics:
+  #   provider: google
+  #   property: G-XXXXXXXXXX
+
+# CSS 自訂
+extra_css:
+  - stylesheets/extra.css
+
+# JavaScript 自訂
+extra_javascript:
+  - javascripts/extra.js
