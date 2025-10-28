@@ -1,6 +1,13 @@
 from openai import OpenAI
 
-client = OpenAI()
+_client = None
+
+def get_client():
+    """Get or create OpenAI client."""
+    global _client
+    if _client is None:
+        _client = OpenAI()
+    return _client
 
 async def chat_structured(system: str, messages: list, schema: dict, extra_context=None):
     """Send a chat completion request with a JSON schema tool and return the parsed arguments."""
@@ -11,6 +18,8 @@ async def chat_structured(system: str, messages: list, schema: dict, extra_conte
     if extra_context:
         msgs.append({"role": "system", "content": f"\u88dc\u5145\u8cc7\u6599\uff1a{extra_context}"})
     msgs.extend(messages)
+
+    client = get_client()
     response = client.chat.completions.create(
         model="gpt-4o",
         messages=msgs,

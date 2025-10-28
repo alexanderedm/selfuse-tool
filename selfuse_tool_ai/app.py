@@ -10,6 +10,8 @@ import asyncio
 import threading
 import sys
 import os
+import tkinter as tk
+from tkinter import messagebox
 
 import pystray
 from PIL import Image
@@ -18,13 +20,27 @@ import customtkinter as ctk
 from selfuse_tool_ai.ui.main_window import MainWindow
 from selfuse_tool_ai.core.mcp_client import ChromeMCP
 from selfuse_tool_ai.core.orchestrator import Orchestrator
-from selfuse_tool_ai.core.memory import Memory
+from selfuse_tool_ai.core.memory import MemoryStore
 from selfuse_tool_ai.core.rag import Rag
-from selfuse_tool_ai.core.llm import ChatLLM
 
 
 def run_app():
     """Initialise and start the tray icon and event loop."""
+    # Check for OpenAI API key
+    if not os.environ.get("OPENAI_API_KEY"):
+        root = tk.Tk()
+        root.withdraw()
+        messagebox.showerror(
+            "配置錯誤",
+            "未設定 OpenAI API 金鑰！\n\n"
+            "請設定環境變數 OPENAI_API_KEY 或在系統環境變數中新增。\n\n"
+            "範例：\n"
+            "set OPENAI_API_KEY=sk-your-api-key-here\n\n"
+            "或在 Windows 系統設定中新增環境變數。"
+        )
+        root.destroy()
+        sys.exit(1)
+
     # Load a simple placeholder icon. Replace `icon.png` with your own logo.
     icon_path = os.path.join(os.path.dirname(__file__), "assets", "icon.png")
 
@@ -39,10 +55,9 @@ def run_app():
 
     # Create instances of core components.
     mcp_client = ChromeMCP()
-    memory = Memory(db_path="./data/memory.sqlite")
+    memory = MemoryStore(db_path="./data/memory.sqlite")
     rag = Rag(index_path="./data/chroma")
-    llm = ChatLLM()
-    orchestrator = Orchestrator(mcp_client=mcp_client, memory=memory, rag=rag, llm=llm)
+    orchestrator = Orchestrator(mcp=mcp_client, memory=memory, rag=rag)
 
     # Start MCP client in a background thread so it can run asynchronously.
     async def start_mcp():
@@ -51,12 +66,17 @@ def run_app():
     threading.Thread(target=asyncio.run, args=(start_mcp(),), daemon=True).start()
 
     # Setup CTk UI main window.
-    app_window = MainWindow(orchestrator)
+    app_window = None
 
     # Define tray menu actions.
     def on_open(icon, item):
         # Show or focus the main window.
-        app_window.show()
+        global app_window
+        if app_window is None:
+            app_window = MainWindow()
+        else:
+            app_window.deiconify()
+            app_window.lift()
 
     def on_quit(icon, item):
         icon.stop()
