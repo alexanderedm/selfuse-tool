@@ -13,6 +13,12 @@ import os
 import tkinter as tk
 from tkinter import messagebox
 
+# 確保可以導入 selfuse_tool_ai 模組
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(current_dir)
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 import pystray
 from PIL import Image
 import customtkinter as ctk
@@ -27,34 +33,44 @@ from selfuse_tool_ai.core.rag import Rag
 def run_app():
     """Initialise and start the tray icon and event loop."""
     # 嘗試從安全配置或環境變數取得 OpenAI API key
-    try:
-        # 動態導入以避免循環依賴
-        import sys
-        sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-        from src.core.secure_config import get_openai_api_key
+    api_key = None
 
+    # 方法 1: 嘗試從安全配置載入
+    try:
+        from src.core.secure_config import get_openai_api_key
         api_key = get_openai_api_key()
         if api_key:
             os.environ["OPENAI_API_KEY"] = api_key
-        else:
-            raise ValueError("No API key found")
-    except Exception:
-        # 檢查環境變數
-        if not os.environ.get("OPENAI_API_KEY"):
-            root = tk.Tk()
-            root.withdraw()
-            messagebox.showerror(
-                "配置錯誤",
-                "未設定 OpenAI API 金鑰！\n\n"
-                "請使用以下任一方式設定：\n\n"
-                "方式 1（推薦）：在主程式的設定視窗中設定\n"
-                "方式 2：設定環境變數 OPENAI_API_KEY\n\n"
-                "範例：\n"
-                "set OPENAI_API_KEY=sk-your-api-key-here\n\n"
-                "或在 Windows 系統設定中新增環境變數。"
-            )
-            root.destroy()
-            sys.exit(1)
+            print("✅ 從安全配置載入 OpenAI API Key")
+    except Exception as e:
+        print(f"⚠️ 無法從安全配置載入 API Key: {e}")
+
+    # 方法 2: 檢查環境變數
+    if not api_key:
+        api_key = os.environ.get("OPENAI_API_KEY")
+        if api_key:
+            print("✅ 從環境變數載入 OpenAI API Key")
+
+    # 如果兩種方法都失敗，顯示錯誤並退出
+    if not api_key:
+        root = tk.Tk()
+        root.withdraw()
+        root.lift()  # 將視窗提到最前面
+        root.attributes('-topmost', True)  # 保持在最上層
+        messagebox.showerror(
+            "配置錯誤",
+            "未設定 OpenAI API 金鑰！\n\n"
+            "請使用以下任一方式設定：\n\n"
+            "方式 1（推薦）：在主程式的設定視窗中設定\n"
+            "方式 2：設定環境變數 OPENAI_API_KEY\n\n"
+            "範例：\n"
+            "set OPENAI_API_KEY=sk-your-api-key-here\n\n"
+            "或在 Windows 系統設定中新增環境變數。"
+        )
+        root.destroy()
+        sys.exit(1)
+
+    print("✅ OpenAI API Key 已設定")
 
     # Load a simple placeholder icon. Replace `icon.png` with your own logo.
     icon_path = os.path.join(os.path.dirname(__file__), "assets", "icon.png")
