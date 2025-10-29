@@ -24,9 +24,9 @@ class SettingsWindow:
             window = ctk.CTk()
 
         window.title("⚙ 音訊切換工具 - 設定")
-        window.geometry("700x850+100+100")  # 添加位置參數，確保視窗在可見區域
+        window.geometry("700x950+100+100")  # 增加高度以容納 API Key 區塊
         window.resizable(True, True)
-        window.minsize(600, 750)  # 設定最小尺寸以確保內容可見
+        window.minsize(600, 850)  # 設定最小尺寸以確保內容可見
 
         # 確保視窗顯示在最上層
         window.attributes('-topmost', True)
@@ -377,6 +377,9 @@ class SettingsWindow:
             logger.info("[設定視窗] 建立元數據設定")
             self._create_metadata_section(main_frame, card_bg, text_color, text_secondary)
 
+            logger.info("[設定視窗] 建立 API Key 設定")
+            self._create_api_key_section(main_frame, card_bg, text_color, text_secondary)
+
             # 儲存裝置列表的參考（用於即時儲存）
             self.devices = devices
             self.device_a_combo = device_a_combo
@@ -632,6 +635,210 @@ class SettingsWindow:
 
         except Exception as e:
             logger.error(f"[設定視窗] 自動儲存元數據設定失敗: {e}")
+
+    def _create_api_key_section(self, main_frame, card_bg, text_color, text_secondary):
+        """建立 API Key 設定區塊"""
+        api_key_frame = ctk.CTkFrame(main_frame, corner_radius=12, fg_color=card_bg)
+        api_key_frame.pack(fill="x", pady=(0, 20))
+
+        api_key_inner = ctk.CTkFrame(api_key_frame, fg_color="transparent")
+        api_key_inner.pack(padx=20, pady=20)
+
+        # 標題
+        api_key_title_frame = ctk.CTkFrame(api_key_inner, fg_color="transparent")
+        api_key_title_frame.pack(fill="x", pady=(0, 10))
+
+        api_key_icon = ctk.CTkLabel(
+            api_key_title_frame,
+            text="🔑",
+            font=("Segoe UI Emoji", 16)
+        )
+        api_key_icon.pack(side="left", padx=(0, 10))
+
+        api_key_label = ctk.CTkLabel(
+            api_key_title_frame,
+            text="AI 瀏覽器助手 API Key",
+            font=("Microsoft JhengHei UI", 12, "bold"),
+            text_color=text_color,
+            anchor="w"
+        )
+        api_key_label.pack(side="left")
+
+        # OpenAI API Key 輸入
+        openai_label = ctk.CTkLabel(
+            api_key_inner,
+            text="OpenAI API Key:",
+            font=("Microsoft JhengHei UI", 10, "bold"),
+            text_color=text_color,
+            anchor="w"
+        )
+        openai_label.pack(fill="x", pady=(10, 5))
+
+        # API Key 輸入框和按鈕容器
+        input_frame = ctk.CTkFrame(api_key_inner, fg_color="transparent")
+        input_frame.pack(fill="x", pady=(0, 5))
+
+        # 取得當前的 API Key（如果有）
+        try:
+            from src.core.secure_config import get_secure_config
+            secure_config = get_secure_config()
+            current_api_key = secure_config.get_api_key("openai")
+            if current_api_key:
+                display_text = "sk-..." + current_api_key[-4:]  # 只顯示最後4個字元
+            else:
+                display_text = ""
+        except Exception:
+            display_text = ""
+
+        self.api_key_var = tk.StringVar(value=display_text)
+        self.api_key_entry = ctk.CTkEntry(
+            input_frame,
+            textvariable=self.api_key_var,
+            placeholder_text="sk-...",
+            font=("Consolas", 10),
+            corner_radius=8,
+            height=38,
+            show="*"  # 預設隱藏密碼
+        )
+        self.api_key_entry.pack(side="left", fill="x", expand=True, padx=(0, 10))
+
+        # 顯示/隱藏密碼按鈕
+        self.show_password_var = tk.BooleanVar(value=False)
+        show_password_btn = ctk.CTkButton(
+            input_frame,
+            text="👁",
+            font=("Segoe UI Emoji", 12),
+            corner_radius=8,
+            width=50,
+            height=38,
+            command=self._toggle_password_visibility
+        )
+        show_password_btn.pack(side="left", padx=(0, 10))
+
+        # 儲存按鈕
+        save_api_key_btn = ctk.CTkButton(
+            input_frame,
+            text="💾 儲存",
+            font=("Microsoft JhengHei UI", 10),
+            corner_radius=8,
+            width=100,
+            height=38,
+            command=self._save_api_key
+        )
+        save_api_key_btn.pack(side="left", padx=(0, 10))
+
+        # 清除按鈕
+        clear_api_key_btn = ctk.CTkButton(
+            input_frame,
+            text="🗑️ 清除",
+            font=("Microsoft JhengHei UI", 10),
+            corner_radius=8,
+            width=100,
+            height=38,
+            fg_color="#8B0000",
+            hover_color="#A52A2A",
+            command=self._clear_api_key
+        )
+        clear_api_key_btn.pack(side="left")
+
+        # 說明文字
+        hints = [
+            ("API Key 將使用 Windows DPAPI 加密儲存，僅限當前用戶和機器可解密", 9, text_secondary),
+            ("儲存後 AI 瀏覽器助手即可使用，無需設定環境變數", 9, text_secondary),
+            ("如何取得 API Key: 前往 https://platform.openai.com/api-keys", 8, "#4a90e2")
+        ]
+
+        for hint_text, font_size, color in hints:
+            hint_label = ctk.CTkLabel(
+                api_key_inner,
+                text=hint_text,
+                font=("Microsoft JhengHei UI", font_size),
+                text_color=color,
+                anchor="w"
+            )
+            hint_label.pack(fill="x", pady=(5 if font_size == 9 else 2, 0))
+
+    def _toggle_password_visibility(self):
+        """切換密碼顯示/隱藏"""
+        self.show_password_var.set(not self.show_password_var.get())
+        if self.show_password_var.get():
+            self.api_key_entry.configure(show="")  # 顯示明文
+        else:
+            self.api_key_entry.configure(show="*")  # 隱藏密碼
+
+    def _save_api_key(self):
+        """儲存 API Key"""
+        from src.core.logger import logger
+
+        api_key = self.api_key_var.get().strip()
+
+        if not api_key:
+            messagebox.showwarning("提示", "請輸入 API Key")
+            return
+
+        # 檢查格式（OpenAI API Key 通常以 sk- 開頭）
+        if not api_key.startswith("sk-"):
+            result = messagebox.askyesno(
+                "確認",
+                "API Key 格式似乎不正確（通常以 sk- 開頭）\n\n是否仍要儲存？"
+            )
+            if not result:
+                return
+
+        try:
+            from src.core.secure_config import get_secure_config
+            secure_config = get_secure_config()
+
+            success = secure_config.set_api_key("openai", api_key)
+
+            if success:
+                # 更新顯示為隱藏版本
+                masked_key = "sk-..." + api_key[-4:]
+                self.api_key_var.set(masked_key)
+                self.api_key_entry.configure(show="*")
+                self.show_password_var.set(False)
+
+                messagebox.showinfo(
+                    "成功",
+                    "API Key 已加密儲存！\n\nAI 瀏覽器助手現在可以使用了。"
+                )
+                logger.info("[設定視窗] OpenAI API Key 已儲存")
+            else:
+                messagebox.showerror("錯誤", "儲存 API Key 失敗")
+                logger.error("[設定視窗] 儲存 OpenAI API Key 失敗")
+
+        except Exception as e:
+            logger.exception("[設定視窗] 儲存 API Key 時發生錯誤")
+            messagebox.showerror("錯誤", f"儲存失敗:\n{str(e)}")
+
+    def _clear_api_key(self):
+        """清除 API Key"""
+        from src.core.logger import logger
+
+        result = messagebox.askyesno(
+            "確認清除",
+            "確定要清除已儲存的 API Key 嗎？\n\n清除後 AI 瀏覽器助手將無法使用。"
+        )
+
+        if not result:
+            return
+
+        try:
+            from src.core.secure_config import get_secure_config
+            secure_config = get_secure_config()
+
+            success = secure_config.remove_api_key("openai")
+
+            if success:
+                self.api_key_var.set("")
+                messagebox.showinfo("成功", "API Key 已清除")
+                logger.info("[設定視窗] OpenAI API Key 已清除")
+            else:
+                messagebox.showinfo("提示", "沒有已儲存的 API Key")
+
+        except Exception as e:
+            logger.exception("[設定視窗] 清除 API Key 時發生錯誤")
+            messagebox.showerror("錯誤", f"清除失敗:\n{str(e)}")
 
     def _close_window(self):
         """關閉視窗（隱藏而非銷毀）"""
