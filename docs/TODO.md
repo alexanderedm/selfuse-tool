@@ -2,6 +2,18 @@
 
 ## 最近完成 (2025-10-30)
 
+- [x] **AI 瀏覽器助手調試增強** ✅
+  - [x] 修改伺服器日誌輸出方式
+    - 從 `subprocess.DEVNULL` 改為輸出到文件 `ai_browser_server.log`
+    - 方便調試和追蹤實際的伺服器錯誤
+  - [x] 建立診斷腳本
+    - `diagnose_rag.py` - 獨立測試 RAG 模組初始化（測試結果：✅ 成功）
+    - `check_server.py` - 測試運行中的伺服器 API（測試結果：任務提交成功，但執行時失敗）
+  - **待完成步驟**：
+    - [ ] 用戶重啟應用程式
+    - [ ] 查看生成的 `ai_browser_server.log` 文件
+    - [ ] 根據日誌內容修復真正的問題
+
 - [x] **AI 瀏覽器助手完全修復** ✅
   - [x] **找到並修復真正的根本原因**：RAG 模組的 API key 傳遞問題
     - `selfuse_tool_ai/core/rag.py` - `OpenAIEmbeddingFunction` 沒有明確傳遞 API key

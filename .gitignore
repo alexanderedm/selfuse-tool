@@ -64,6 +64,7 @@ thumbnails/
 debug_*.py
 scan_*.py
 check_*.py
+diagnose_*.py
 test_*.py
 
 # Temporary fix scripts
@@ -114,6 +115,7 @@ release_notes.md
 # AI Browser Assistant data
 selfuse_tool_ai/data/
 data/
+test_chroma_data/
 
 # Environment files
 .env

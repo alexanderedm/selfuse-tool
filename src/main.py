@@ -570,7 +570,11 @@ class AudioSwitcherApp:
             env = os.environ.copy()
             env["OPENAI_API_KEY"] = api_key  # 明確設置 API key
 
-            # 啟動 FastAPI 伺服器（獨立程序，隱藏控制台）
+            # 準備日誌文件
+            log_file_path = os.path.join(project_root, "ai_browser_server.log")
+            log_file = open(log_file_path, 'w', encoding='utf-8')
+
+            # 啟動 FastAPI 伺服器（獨立程序，隱藏控制台，日誌輸出到文件）
             self.ai_browser_server = subprocess.Popen(
                 [pythonw_exe, "-m", "uvicorn",
                  "selfuse_tool_ai_web.server:app",
@@ -579,8 +583,8 @@ class AudioSwitcherApp:
                 cwd=project_root,
                 env=env,  # 傳遞環境變數
                 creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL
+                stdout=log_file,
+                stderr=subprocess.STDOUT  # 將 stderr 也重定向到 stdout（即日誌文件）
             )
 
             logger.info("FastAPI 伺服器已啟動，等待伺服器就緒...")
