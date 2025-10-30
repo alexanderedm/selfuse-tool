@@ -21,7 +21,21 @@ class Orchestrator:
         plan = await chat_structured(
             system="You are a safe browser agent. Only perform sensitive actions with user confirmation.",
             messages=[*history, {"role": "user", "content": user_goal}],
-            schema={"steps": [{"action": "string", "selector": "string?", "text": "string?", "url": "string?"}]},
+            schema={
+                "steps": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "action": {"type": "string"},
+                            "selector": {"type": "string"},
+                            "text": {"type": "string"},
+                            "url": {"type": "string"}
+                        },
+                        "required": ["action"]
+                    }
+                }
+            },
             extra_context=context,
         )
         for i, step in enumerate(plan.get("steps", []), 1):

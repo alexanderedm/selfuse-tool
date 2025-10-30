@@ -64,6 +64,7 @@ thumbnails/
 debug_*.py
 scan_*.py
 check_*.py
+test_*.py
 
 # Temporary fix scripts
 fix_*.py
@@ -76,6 +77,10 @@ comprehensive_ui_test_fix.py
 *.log
 nul
 hid_scan_result.txt
+server_log.txt
+
+# Sensitive configuration
+secure_config.json
 
 # Logitech battery tools
 LGSTray.exe

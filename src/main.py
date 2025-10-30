@@ -60,6 +60,7 @@ class AudioSwitcherApp:
             self.music_manager = MusicManager(self.config_manager)
             self.music_window = None
             self.changelog_window = None
+            self.ai_browser_server = None  # 網頁版 AI 瀏覽器助手伺服器程序
 
             # 初始化電池監控（錯誤隔離，避免崩潰）
             try:
@@ -511,34 +512,97 @@ class AudioSwitcherApp:
             self.show_notification("沒有正在播放的音樂", "音樂播放器")
 
     def open_ai_browser(self):
-        """開啟 AI 瀏覽器助手"""
+        """開啟 AI 瀏覽器助手（網頁版）"""
         try:
-            logger.info("啟動 AI 瀏覽器助手...")
             import subprocess
+            import webbrowser
+            import time
+
+            # 檢查伺服器是否已經在運行
+            if self.ai_browser_server is not None and self.ai_browser_server.poll() is None:
+                # 伺服器已在運行，直接開啟瀏覽器
+                logger.info("AI 瀏覽器助手伺服器已在運行，開啟瀏覽器...")
+                webbrowser.open("http://127.0.0.1:8000")
+                self.show_notification("已開啟 AI 瀏覽器助手", "成功")
+                return
+
+            logger.info("啟動 AI 瀏覽器助手網頁伺服器...")
 
             # 取得專案根目錄
             project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            ai_browser_script = os.path.join(project_root, "selfuse_tool_ai", "app.py")
+            server_script = os.path.join(project_root, "selfuse_tool_ai_web", "server.py")
 
             # 檢查檔案是否存在
-            if not os.path.exists(ai_browser_script):
-                self.show_notification("找不到 AI 瀏覽器助手程式", "錯誤")
-                logger.error(f"AI 瀏覽器助手程式不存在: {ai_browser_script}")
+            if not os.path.exists(server_script):
+                self.show_notification("找不到 AI 瀏覽器助手伺服器", "錯誤")
+                logger.error(f"伺服器檔案不存在: {server_script}")
                 return
 
-            # 使用 python.exe 啟動（顯示控制台視窗以便調試）
-            # TODO: 調試完成後改回 pythonw.exe
-            python_exe = sys.executable
+            # 檢查並設置 API Key（伺服器啟動前設置環境變數）
+            api_key = os.environ.get("OPENAI_API_KEY")
+            if not api_key:
+                try:
+                    from src.core.secure_config import get_openai_api_key
+                    api_key = get_openai_api_key()
+                    if api_key:
+                        os.environ["OPENAI_API_KEY"] = api_key
+                        logger.info(f"已從設定載入 API key (前10字: {api_key[:10]}...)")
+                except Exception as e:
+                    logger.error(f"載入 API key 失敗: {e}")
 
-            # 啟動 AI 瀏覽器助手（獨立程序）
-            # 暫時移除 CREATE_NO_WINDOW 以便看到錯誤訊息
-            subprocess.Popen(
-                [python_exe, ai_browser_script],
-                creationflags=subprocess.CREATE_NEW_CONSOLE if sys.platform == 'win32' else 0
+            if not api_key:
+                self.show_notification(
+                    "未設定 OpenAI API 金鑰，請先在設定中設定",
+                    "配置錯誤"
+                )
+                logger.error("未設定 OpenAI API 金鑰")
+                return
+            else:
+                logger.info("OpenAI API 金鑰已配置")
+
+            # 使用 pythonw.exe 啟動（無控制台視窗）
+            python_dir = os.path.dirname(sys.executable)
+            pythonw_exe = os.path.join(python_dir, 'pythonw.exe')
+            if not os.path.exists(pythonw_exe):
+                pythonw_exe = sys.executable
+
+            # 準備環境變數（確保 API key 被傳遞給子進程）
+            env = os.environ.copy()
+            env["OPENAI_API_KEY"] = api_key  # 明確設置 API key
+
+            # 啟動 FastAPI 伺服器（獨立程序，隱藏控制台）
+            self.ai_browser_server = subprocess.Popen(
+                [pythonw_exe, "-m", "uvicorn",
+                 "selfuse_tool_ai_web.server:app",
+                 "--host", "127.0.0.1",
+                 "--port", "8000"],
+                cwd=project_root,
+                env=env,  # 傳遞環境變數
+                creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
             )
 
+            logger.info("FastAPI 伺服器已啟動，等待伺服器就緒...")
+
+            # 等待伺服器啟動（最多 5 秒）
+            for i in range(10):
+                time.sleep(0.5)
+                try:
+                    import urllib.request
+                    urllib.request.urlopen("http://127.0.0.1:8000/api/health", timeout=1)
+                    logger.info("伺服器已就緒")
+                    break
+                except Exception:
+                    continue
+            else:
+                logger.warning("伺服器可能尚未完全啟動，但仍嘗試開啟瀏覽器")
+
+            # 開啟瀏覽器
+            webbrowser.open("http://127.0.0.1:8000")
+
             self.show_notification("AI 瀏覽器助手已啟動", "成功")
-            logger.info("AI 瀏覽器助手已成功啟動")
+            logger.info("AI 瀏覽器助手網頁版已成功啟動")
         except Exception as e:
             logger.exception("啟動 AI 瀏覽器助手時發生錯誤")
             self.show_notification(f"啟動失敗: {str(e)}", "錯誤")

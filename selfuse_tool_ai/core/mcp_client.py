@@ -12,15 +12,25 @@ class ChromeMCP:
 
     async def start(self):
         """Start the chrome-devtools-mcp server via npx."""
+        import sys
+
+        # 在 Windows 上使用 npx.cmd
+        npx_command = "npx.cmd" if sys.platform == "win32" else "npx"
+
         self.proc = await asyncio.create_subprocess_exec(
-            "npx", "-y", "chrome-devtools-mcp@latest",
+            npx_command, "-y", "chrome-devtools-mcp@latest",
             stdin=PIPE, stdout=PIPE, stderr=PIPE
         )
 
     async def stop(self):
         """Stop the MCP server cleanly."""
+        import sys
         if self.proc and self.proc.returncode is None:
-            self.proc.send_signal(signal.SIGINT)
+            # Windows 不支援 SIGINT，使用 terminate()
+            if sys.platform == "win32":
+                self.proc.terminate()
+            else:
+                self.proc.send_signal(signal.SIGINT)
             try:
                 await asyncio.wait_for(self.proc.wait(), timeout=5)
             except asyncio.TimeoutError:

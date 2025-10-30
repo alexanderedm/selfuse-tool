@@ -1,5 +1,24 @@
 # 專案待辦清單 (Todo List)
 
+## 最近完成 (2025-10-30)
+
+- [x] **AI 瀏覽器助手重大修復** ✅
+  - [x] 修復 OpenAI API 呼叫格式錯誤（`json_schema` → `function`）
+    - 這是導致「Please provide an OpenAI API key」誤導性錯誤的根本原因
+    - 修改 `selfuse_tool_ai/core/llm.py` 中的 `chat_structured` 函數
+    - 更新工具呼叫格式和回應解析邏輯
+  - [x] 修正所有 JSON Schema 格式
+    - `web_orchestrator.py` - 使用正確的 JSON schema 格式（type, properties, items）
+    - `orchestrator.py` - 同樣修正 schema 格式
+  - [x] 修復 MCP client 在 Windows 上的信號問題
+    - `mcp_client.py` - Windows 不支援 SIGINT，改用 `terminate()`
+    - 避免程序關閉時的 ValueError
+  - **測試結果**：
+    - ✅ API key 正確載入和傳遞
+    - ✅ 任務提交成功
+    - ✅ 無 API key 相關錯誤
+    - ✅ LLM 能正確生成結構化回應
+
 ## 最近完成 (2025-10-28)
 
 - [x] **專案自動化與文檔系統完整建立** ✅
@@ -385,6 +404,44 @@
   - **注意事項**: 音訊效果應用功能待未來整合音訊處理庫實現
 
 ## ✅ 最近完成 (Recently Completed)
+- [x] **AI 瀏覽器助手改版為網頁 UI** (完成於 2025-10-29) 🌐
+  - **問題**: 原有的 CustomTkinter 版本遇到多個啟動問題（參數傳遞、進程管理、視窗顯示）
+  - **解決方案**: 完全改用網頁介面（FastAPI + HTML/JS）
+  - **實作內容**:
+    - 建立 FastAPI 後端伺服器 (`selfuse_tool_ai_web/server.py`)
+    - 建立網頁版 Orchestrator，支援 WebSocket 即時推送 (`web_orchestrator.py`)
+    - 建立現代化前端介面 (HTML/CSS/JS)
+      - 深色主題 UI
+      - WebSocket 即時日誌顯示
+      - 任務輸入與執行
+      - 敏感操作確認對話框
+    - 整合到主程式托盤選單
+      - 自動啟動 FastAPI 伺服器
+      - 自動開啟瀏覽器
+      - 伺服器狀態追蹤
+  - **新增檔案**:
+    - `selfuse_tool_ai_web/server.py` (178 行)
+    - `selfuse_tool_ai_web/web_orchestrator.py` (150 行)
+    - `selfuse_tool_ai_web/static/index.html`
+    - `selfuse_tool_ai_web/static/style.css` (深色主題)
+    - `selfuse_tool_ai_web/static/app.js` (WebSocket 客戶端)
+    - `selfuse_tool_ai_web/requirements.txt`
+  - **修改檔案**:
+    - `src/main.py` - 修改 `open_ai_browser()` 方法啟動網頁版伺服器
+  - **技術特點**:
+    - FastAPI + WebSocket 即時通訊
+    - 優雅的錯誤處理（MCP 可選，無 Node.js 也能運行）
+    - 無需獨立 tkinter 進程
+    - 跨平台相容性更好
+    - 開發和調試更容易
+  - **測試結果**:
+    - ✅ 伺服器成功啟動
+    - ✅ 健康檢查端點正常
+    - ✅ 首頁正常載入
+    - ✅ 無 Node.js/npx 時正常降級
+  - **依賴**: FastAPI, Uvicorn, WebSockets
+  - **訪問方式**: http://127.0.0.1:8000
+
 - [x] **修復 AI 瀏覽器助手啟動失敗問題** (完成於 2025-10-28) 🐛
   - **問題**: 點擊托盤選單中的 AI 瀏覽器助手後沒有視窗出現
   - **根本原因**:

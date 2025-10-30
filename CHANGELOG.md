@@ -8,10 +8,31 @@
 ## [Unreleased]
 
 ### Added
+- 🌐 AI 瀏覽器助手網頁版 UI（FastAPI + HTML/JS）
+  - 現代化深色主題介面
+  - WebSocket 即時日誌推送
+  - 敏感操作確認對話框
+  - 自動啟動伺服器並開啟瀏覽器
 - 建立自動發布系統（GitHub Actions）
 - 建立 MkDocs 文檔系統
 - RSS 多執行緒優化
 - 安全的 API Key 配置系統
+
+### Changed
+- 🔄 AI 瀏覽器助手從 CustomTkinter 改為網頁 UI
+  - 解決啟動問題（參數傳遞、進程管理、視窗顯示）
+  - 更好的跨平台相容性
+  - 更容易開發和調試
+  - 無需獨立 tkinter 進程
+
+### Fixed
+- 🔧 **重大修復**：AI 瀏覽器助手 OpenAI API 呼叫問題
+  - 修復 `json_schema` 工具類型錯誤（應使用 `function`）
+  - 這是導致「Please provide an OpenAI API key」誤導性錯誤的根本原因
+  - 修正所有 JSON Schema 格式（orchestrator, web_orchestrator）
+  - 修復 MCP client 在 Windows 上的 SIGINT 信號問題（改用 `terminate()`）
+- 修復 AI 瀏覽器助手在 Windows 控制台的 Unicode 編碼問題
+- 修復 MCP 客戶端啟動失敗時的錯誤處理
 
 ## [1.0.0] - 2025-10-28
 
