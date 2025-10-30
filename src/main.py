@@ -526,17 +526,16 @@ class AudioSwitcherApp:
                 logger.error(f"AI 瀏覽器助手程式不存在: {ai_browser_script}")
                 return
 
-            # 使用 pythonw.exe 在背景啟動（無控制台視窗）
-            python_dir = os.path.dirname(sys.executable)
-            pythonw_exe = os.path.join(python_dir, 'pythonw.exe')
-
-            # 如果找不到 pythonw.exe，使用 python.exe
-            if not os.path.exists(pythonw_exe):
-                pythonw_exe = sys.executable
+            # 使用 python.exe 啟動（顯示控制台視窗以便調試）
+            # TODO: 調試完成後改回 pythonw.exe
+            python_exe = sys.executable
 
             # 啟動 AI 瀏覽器助手（獨立程序）
-            subprocess.Popen([pythonw_exe, ai_browser_script],
-                           creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0)
+            # 暫時移除 CREATE_NO_WINDOW 以便看到錯誤訊息
+            subprocess.Popen(
+                [python_exe, ai_browser_script],
+                creationflags=subprocess.CREATE_NEW_CONSOLE if sys.platform == 'win32' else 0
+            )
 
             self.show_notification("AI 瀏覽器助手已啟動", "成功")
             logger.info("AI 瀏覽器助手已成功啟動")
