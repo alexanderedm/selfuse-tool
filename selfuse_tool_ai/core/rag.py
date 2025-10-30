@@ -6,6 +6,10 @@ class Rag:
 
     def __init__(self, index_path: str = "./data/chroma"):
         """Initialize the RAG system with delayed initialization."""
+        # 確保索引目錄存在
+        from pathlib import Path
+        Path(index_path).mkdir(parents=True, exist_ok=True)
+
         self.index_path = index_path
         self._emb_fn = None
         self._client = None

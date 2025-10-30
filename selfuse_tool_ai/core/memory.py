@@ -1,7 +1,12 @@
 import sqlite3
+from pathlib import Path
 
 class MemoryStore:
     def __init__(self, db_path: str = "memory.db"):
+        # 確保資料目錄存在
+        db_path_obj = Path(db_path)
+        db_path_obj.parent.mkdir(parents=True, exist_ok=True)
+
         # Initialize SQLite connection and create table if not exists
         self.conn = sqlite3.connect(db_path, check_same_thread=False)
         self._create_table()

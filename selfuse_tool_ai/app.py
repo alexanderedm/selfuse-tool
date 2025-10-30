@@ -41,15 +41,13 @@ def run_app():
         api_key = get_openai_api_key()
         if api_key:
             os.environ["OPENAI_API_KEY"] = api_key
-            print("✅ 從安全配置載入 OpenAI API Key")
+            # 使用 logger 而非 print 避免 Unicode 錯誤
     except Exception as e:
-        print(f"⚠️ 無法從安全配置載入 API Key: {e}")
+        pass  # 靜默失敗，嘗試環境變數
 
     # 方法 2: 檢查環境變數
     if not api_key:
         api_key = os.environ.get("OPENAI_API_KEY")
-        if api_key:
-            print("✅ 從環境變數載入 OpenAI API Key")
 
     # 如果兩種方法都失敗，顯示錯誤並退出
     if not api_key:
@@ -69,8 +67,6 @@ def run_app():
         )
         root.destroy()
         sys.exit(1)
-
-    print("✅ OpenAI API Key 已設定")
 
     # Load a simple placeholder icon. Replace `icon.png` with your own logo.
     icon_path = os.path.join(os.path.dirname(__file__), "assets", "icon.png")
@@ -92,7 +88,13 @@ def run_app():
 
     # Start MCP client in a background thread so it can run asynchronously.
     async def start_mcp():
-        await mcp_client.start()
+        try:
+            await mcp_client.start()
+        except FileNotFoundError:
+            # Node.js/npx not found - MCP features will be unavailable
+            pass
+        except Exception as e:
+            print(f"MCP client failed to start: {e}")
 
     threading.Thread(target=asyncio.run, args=(start_mcp(),), daemon=True).start()
 
