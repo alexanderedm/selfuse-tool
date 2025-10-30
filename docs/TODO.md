@@ -2,9 +2,15 @@
 
 ## 最近完成 (2025-10-30)
 
-- [x] **AI 瀏覽器助手重大修復** ✅
+- [x] **AI 瀏覽器助手完全修復** ✅
+  - [x] **找到並修復真正的根本原因**：RAG 模組的 API key 傳遞問題
+    - `selfuse_tool_ai/core/rag.py` - `OpenAIEmbeddingFunction` 沒有明確傳遞 API key
+    - 這是導致「Please provide an OpenAI API key」錯誤的**真正根本原因**
+    - 修改初始化邏輯明確從環境變數或 secure_config 載入並傳遞 API key
+  - [x] 修復 ChromaDB Collection 命名問題
+    - Collection 名稱從 "kb" (2字符) 改為 "knowledge_base" (14字符)
+    - ChromaDB 要求名稱至少 3 個字符
   - [x] 修復 OpenAI API 呼叫格式錯誤（`json_schema` → `function`）
-    - 這是導致「Please provide an OpenAI API key」誤導性錯誤的根本原因
     - 修改 `selfuse_tool_ai/core/llm.py` 中的 `chat_structured` 函數
     - 更新工具呼叫格式和回應解析邏輯
   - [x] 修正所有 JSON Schema 格式
@@ -13,11 +19,15 @@
   - [x] 修復 MCP client 在 Windows 上的信號問題
     - `mcp_client.py` - Windows 不支援 SIGINT，改用 `terminate()`
     - 避免程序關閉時的 ValueError
-  - **測試結果**：
+  - **完整端到端測試結果**：
     - ✅ API key 正確載入和傳遞
+    - ✅ RAG 模組成功初始化（OpenAI Embeddings）
+    - ✅ ChromaDB collection 成功創建
     - ✅ 任務提交成功
-    - ✅ 無 API key 相關錯誤
-    - ✅ LLM 能正確生成結構化回應
+    - ✅ 收集上下文資訊成功
+    - ✅ LLM 正確規劃執行步驟
+    - ✅ 確認對話框正常顯示和運作
+    - ✅ 整個工作流程完全正常運行
 
 ## 最近完成 (2025-10-28)
 

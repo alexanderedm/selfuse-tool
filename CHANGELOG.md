@@ -26,9 +26,14 @@
   - 無需獨立 tkinter 進程
 
 ### Fixed
-- 🔧 **重大修復**：AI 瀏覽器助手 OpenAI API 呼叫問題
-  - 修復 `json_schema` 工具類型錯誤（應使用 `function`）
-  - 這是導致「Please provide an OpenAI API key」誤導性錯誤的根本原因
+- 🔧 **重大修復**：AI 瀏覽器助手 API Key 和配置問題
+  - **RAG 模組 API Key 傳遞**：修復 `OpenAIEmbeddingFunction` 沒有明確傳遞 API key
+    - 這是導致「Please provide an OpenAI API key」錯誤的**真正根本原因**
+    - 修改 `selfuse_tool_ai/core/rag.py` 明確傳遞 API key 給 embedding function
+  - **ChromaDB Collection 命名**：修復 collection 名稱驗證錯誤
+    - 從 "kb" (2字符) 改為 "knowledge_base" (14字符)
+    - ChromaDB 要求名稱至少 3 個字符
+  - 修復 OpenAI API `json_schema` 工具類型錯誤（應使用 `function`）
   - 修正所有 JSON Schema 格式（orchestrator, web_orchestrator）
   - 修復 MCP client 在 Windows 上的 SIGINT 信號問題（改用 `terminate()`）
 - 修復 AI 瀏覽器助手在 Windows 控制台的 Unicode 編碼問題

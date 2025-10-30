@@ -18,10 +18,28 @@ class Rag:
     def _initialize(self):
         """Lazy initialization of Chroma components."""
         if self._collection is None:
-            self._emb_fn = OpenAIEmbeddingFunction(model_name="text-embedding-3-large")
+            # 從環境變數獲取 API key
+            import os
+            api_key = os.environ.get("OPENAI_API_KEY")
+
+            # 如果環境變數中沒有，嘗試從 secure_config 載入
+            if not api_key:
+                try:
+                    from src.core.secure_config import get_openai_api_key
+                    api_key = get_openai_api_key()
+                    if api_key:
+                        os.environ["OPENAI_API_KEY"] = api_key
+                except Exception:
+                    pass
+
+            # 明確傳遞 API key 給 OpenAIEmbeddingFunction
+            self._emb_fn = OpenAIEmbeddingFunction(
+                api_key=api_key,
+                model_name="text-embedding-3-large"
+            )
             self._client = chromadb.PersistentClient(path=self.index_path)
             self._collection = self._client.get_or_create_collection(
-                "kb",
+                "knowledge_base",
                 embedding_function=self._emb_fn,
             )
 
