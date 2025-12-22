@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 瀏覽器助手</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 AI 瀏覽器助手</h1>
+            <div class="status">
+                <span id="connection-status" class="status-disconnected">⚫ 未連接</span>
+            </div>
+        </header>
+
+        <main>
+            <div class="task-input-section">
+                <h2>任務輸入</h2>
+                <div class="input-group">
+                    <textarea
+                        id="task-input"
+                        placeholder="請輸入您想要 AI 執行的任務...&#10;&#10;範例：&#10;- 打開 Google 並搜尋「Python 教學」&#10;- 前往 GitHub 並登入&#10;- 截取目前頁面的螢幕截圖"
+                        rows="4"
+                    ></textarea>
+                    <button id="submit-btn" class="btn-primary">
+                        <span class="btn-text">▶️ 執行任務</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="output-section">
+                <div class="logs-panel">
+                    <h2>執行日誌</h2>
+                    <div id="logs" class="logs-content"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 確認對話框 -->
+    <div id="confirm-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3>⚠️ 需要確認</h3>
+            <p id="confirm-message"></p>
+            <div class="confirm-details">
+                <pre id="confirm-step"></pre>
+            </div>
+            <div class="modal-actions">
+                <button id="confirm-yes" class="btn-success">✅ 允許</button>
+                <button id="confirm-no" class="btn-danger">🛑 拒絕</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

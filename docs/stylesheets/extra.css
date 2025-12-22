@@ -1,0 +1,47 @@
+/* 自訂 CSS 樣式 */
+
+/* 改善中文字體渲染 */
+:root {
+  --md-text-font: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+  --md-code-font: "JetBrains Mono", "Consolas", monospace;
+}
+
+/* 調整標題間距 */
+.md-typeset h1 {
+  margin-bottom: 1rem;
+}
+
+.md-typeset h2 {
+  margin-top: 2rem;
+  margin-bottom: 0.8rem;
+}
+
+/* 改善程式碼區塊 */
+.md-typeset code {
+  padding: 0.2em 0.4em;
+  font-size: 0.9em;
+}
+
+/* 改善表格樣式 */
+.md-typeset table {
+  font-size: 0.9em;
+}
+
+.md-typeset table th {
+  font-weight: 600;
+}
+
+/* 改善 Admonition 樣式 */
+.md-typeset .admonition {
+  margin: 1.5em 0;
+}
+
+/* 改善按鈕樣式 */
+.md-button {
+  margin: 0.2em;
+}
+
+/* 卡片式佈局 */
+.md-typeset .grid.cards {
+  margin-top: 1.5em;
+}

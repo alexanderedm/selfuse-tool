@@ -1,0 +1,122 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# PyInstaller
+*.spec.backup
+build/
+dist/
+*.manifest
+*.spec~
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Claude Code
+.claude/
+
+# Application specific
+logs/
+config.json
+play_history.json
+
+# Compiled binaries
+*.exe
+*.pdb
+*.dll
+*.dylib
+
+# Archives
+*.zip
+*.tar.gz
+*.rar
+
+# Images (thumbnails)
+thumbnails/
+
+# Test and debug scripts
+*.bat
+
+scan_*.py
+check_*.py
+diagnose_*.py
+
+
+# Temporary fix scripts
+fix_*.py
+*_fix_*.py
+*_test_fixer.py
+comprehensive_ui_test_fix.py
+
+# Temporary files
+*.tmp
+*.log
+nul
+hid_scan_result.txt
+server_log.txt
+
+# Sensitive configuration
+secure_config.json
+
+# Logitech battery tools
+LGSTray.exe
+LGSTray.pdb
+LGSTrayCore.pdb
+LGSTrayHID.exe
+LGSTrayHID.pdb
+LGSTrayPrimitives.pdb
+hidapi.dll
+appsettings.toml
+
+# Release archives
+Release_*.zip
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# MkDocs
+site/
+.cache/
+
+# GitHub Actions artifacts
+release-temp/
+release_notes.md
+*.zip
+
+# AI Browser Assistant data
+selfuse_tool_ai/data/
+data/
+test_chroma_data/
+
+# Environment files
+.env
+.env.local
