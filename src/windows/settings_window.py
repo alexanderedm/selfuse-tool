@@ -7,7 +7,7 @@ from tkinter import messagebox, filedialog
 class SettingsWindow:
     """設定視窗類別"""
 
-    def __init__(self, audio_manager, config_manager, tk_root=None, on_save_callback=None, plugin_manager=None):
+    def __init__(self, config_manager, audio_manager=None, tk_root=None, on_save_callback=None, plugin_manager=None):
         self.audio_manager = audio_manager
         self.config_manager = config_manager
         self.plugin_manager = plugin_manager
@@ -343,7 +343,7 @@ class SettingsWindow:
             bg_color = "#1e1e1e"
             card_bg = "#2d2d2d"
             text_color = "#e0e0e0"
-            text_secondary = "#a0a0a0"
+            text_secondary = "#cccccc" # Brightened from #a0a0a0 for better contrast on dark bg
             accent_bg = "#1a3a52"
 
             logger.info("[設定視窗] 建立 Tabview")
@@ -356,7 +356,7 @@ class SettingsWindow:
             self.tabview.add("插件管理")
             self.tabview.add("API 設定")
             
-            # === 一般設定 Tab ===
+            # === 一般設定 Tab (現在主要顯示音訊設定，如果有的話) ===
             general_tab = self.tabview.tab("一般設定")
             # 建立可滾動框架
             main_frame = ctk.CTkScrollableFrame(
@@ -367,20 +367,36 @@ class SettingsWindow:
             main_frame.pack(fill="both", expand=True)
 
             logger.info("[設定視窗] 建立一般設定內容")
-            # 取得所有裝置
-            devices = self.audio_manager.get_all_output_devices()
-
-            # 建立各個區塊
+            
+            # 建立標題
             self._create_title_section(main_frame, bg_color, text_color, text_secondary)
-            
-            device_a_combo, device_b_combo = self._create_device_section(
-                main_frame, devices, card_bg, text_color, text_secondary
-            )
-            
-            self._create_current_device_info(main_frame, accent_bg)
-            self._create_music_path_section(main_frame, card_bg, text_color, text_secondary)
-            self._create_metadata_section(main_frame, card_bg, text_color, text_secondary)
-            self._create_button_section(main_frame, devices, device_a_combo, device_b_combo, bg_color)
+
+            # 音訊設定區塊 (只有在有 audio_manager 時才顯示)
+            if self.audio_manager:
+                # 取得所有裝置
+                devices = self.audio_manager.get_all_output_devices()
+
+                device_a_combo, device_b_combo = self._create_device_section(
+                    main_frame, devices, card_bg, text_color, text_secondary
+                )
+                
+                self._create_current_device_info(main_frame, accent_bg)
+                self._create_music_path_section(main_frame, card_bg, text_color, text_secondary)
+                self._create_metadata_section(main_frame, card_bg, text_color, text_secondary)
+                self._create_button_section(main_frame, devices, device_a_combo, device_b_combo, bg_color)
+                
+                # 儲存參考
+                self.devices = devices
+                self.device_a_combo = device_a_combo
+                self.device_b_combo = device_b_combo
+            else:
+                 no_audio_label = ctk.CTkLabel(
+                    main_frame,
+                    text="音訊切換插件未啟用",
+                    font=("Microsoft JhengHei UI", 12),
+                    text_color=text_secondary
+                )
+                 no_audio_label.pack(pady=20)
 
             # === 插件管理 Tab ===
             plugins_tab = self.tabview.tab("插件管理")
@@ -610,14 +626,14 @@ class SettingsWindow:
         # 儲存音樂路徑和自動補全設定
         settings_saved, _, _ = self._save_music_path_and_metadata()
 
-        # 取得裝置索引
-        device_a_index = device_a_combo.current()
-        device_b_index = device_b_combo.current()
+        # 驗證並儲存裝置設定 (如果有)
+        if hasattr(self, 'device_a_combo') and self.device_a_combo:
+            device_a_index = device_a_combo.current()
+            device_b_index = device_b_combo.current()
 
-        # 驗證並儲存裝置設定
-        settings_saved = self._validate_and_save_devices(
-            devices, device_a_index, device_b_index, settings_saved
-        )
+            settings_saved = self._validate_and_save_devices(
+                devices, device_a_index, device_b_index, settings_saved
+            )
 
         # 顯示結果
         if settings_saved:
@@ -631,6 +647,9 @@ class SettingsWindow:
 
         try:
             # 取得裝置索引
+            if not hasattr(self, 'device_a_combo') or not self.device_a_combo:
+                return
+
             device_a_index = self.device_a_combo.current()
             device_b_index = self.device_b_combo.current()
 
@@ -744,6 +763,7 @@ class SettingsWindow:
                 text=name.replace("_", " ").title(),
                 variable=var,
                 font=("Microsoft JhengHei UI", 11, "bold"),
+                text_color=text_color, # Explicitly set text color
                 command=lambda n=name: self._toggle_plugin(n)
             )
             switch.pack(side="left", anchor="n")

@@ -1,4 +1,4 @@
-"""音訊切換工具主程式"""
+"""系統工具箱主程式"""
 
 import sys
 import os
@@ -13,7 +13,6 @@ if __name__ == "__main__":
 from PIL import Image, ImageDraw
 import pystray
 from pystray import MenuItem as item
-from src.core.audio_manager import AudioManager
 from src.core.config_manager import ConfigManager
 from src.windows.settings_window import SettingsWindow
 from src.windows.stats_window import StatsWindow
@@ -24,17 +23,18 @@ import threading
 from tkinter import messagebox
 import tkinter as tk
 
-class AudioSwitcherApp:
-    """音訊切換工具應用程式"""
+class ToolboxApp:
+    """系統工具箱應用程式"""
 
     def __init__(self):
-        logger.info("初始化應用程式...")
+        logger.info("初始化工具箱應用程式...")
         try:
             # 建立隱藏的 Tk 根視窗供所有子視窗使用
             self.tk_root = tk.Tk()
             self.tk_root.withdraw()
 
-            self.audio_manager = AudioManager()
+            # Remove direct AudioManager dependency
+            # self.audio_manager = AudioManager() 
             self.config_manager = ConfigManager()
             self.icon = None
             self.settings_window = None
@@ -50,94 +50,32 @@ class AudioSwitcherApp:
         except Exception as e:
             logger.exception("初始化應用程式時發生錯誤")
 
-    def create_icon_image(self, color="blue"):
-        """建立托盤圖示圖片"""
+    def create_default_icon(self):
+        """建立預設工具箱圖示"""
         width = 64
         height = 64
         image = Image.new("RGB", (width, height), "white")
         draw = ImageDraw.Draw(image)
 
-        # 根據當前裝置繪製不同顏色
-        fill_color = color
-        draw.ellipse([8, 8, 56, 56], fill=fill_color, outline="black", width=2)
-
-        # 繪製音訊圖示
-        draw.polygon(
-            [20, 28, 28, 28, 28, 20, 36, 20, 36, 44, 28, 44, 28, 36, 20, 36],
-            fill="white",
-        )
-        draw.arc([38, 24, 46, 32], 270, 90, fill="white", width=2)
-        draw.arc([38, 32, 46, 40], 0, 90, fill="white", width=2)
+        # 繪製一個簡單的工具箱樣式圖示 (灰色圓形 + 矩形)
+        draw.ellipse([8, 8, 56, 56], fill="#404040", outline="black", width=2)
+        # Toolbox handle
+        draw.rectangle([26, 16, 38, 22], fill="white")
+        # Toolbox body
+        draw.rectangle([18, 22, 46, 44], fill="#606060", outline="white")
 
         return image
 
-    def get_icon_color(self):
-        """根據當前裝置取得圖示顏色"""
-        current = self.audio_manager.get_default_device()
-        if not current:
-            return "gray"
+    def reset_icon(self):
+        """重置為預設圖示"""
+        if self.icon:
+            self.icon.icon = self.create_default_icon()
+            self.icon.title = "系統工具箱"
 
-        device_a = self.config_manager.get_device_a()
-        device_b = self.config_manager.get_device_b()
-
-        if device_a and current["id"] == device_a["id"]:
-            return "blue"
-        elif device_b and current["id"] == device_b["id"]:
-            return "green"
-        else:
-            return "gray"
-
-    def switch_device(self):
-        """切換音訊裝置"""
-        device_a = self.config_manager.get_device_a()
-        device_b = self.config_manager.get_device_b()
-
-        if not device_a or not device_b:
-            self.show_notification("請先在設定中選擇兩個裝置", "錯誤")
-            return
-
-        current = self.audio_manager.get_default_device()
-        if not current:
-            self.show_notification("無法取得當前裝置", "錯誤")
-            return
-
-        # 決定要切換到哪個裝置
-        target_device = None
-        if current["id"] == device_a["id"]:
-            target_device = device_b
-        else:
-            target_device = device_a
-
-        # 執行切換
-        success = self.audio_manager.set_default_device(target_device["id"])
-
-        if success:
-            self.config_manager.set_current_device(target_device)
-            # 記錄使用統計
-            self.config_manager.record_device_usage(target_device)
-            self.show_notification(f"已切換到: {target_device['name']}", "音訊切換")
-            # 更新圖示
-            self.update_icon()
-            # 更新選單（雖然裝置切換可能不影響菜單，但有些插件可能需要刷新狀態）
-            self.update_menu()
-        else:
-            self.show_notification("切換失敗", "錯誤")
-
-    def show_notification(self, message, title="音訊切換工具"):
+    def show_notification(self, message, title="系統工具箱"):
         """顯示系統通知"""
         if self.icon:
             self.icon.notify(message, title)
-
-    def update_icon(self):
-        """更新托盤圖示"""
-        if self.icon:
-            color = self.get_icon_color()
-            self.icon.icon = self.create_icon_image(color)
-            current = self.audio_manager.get_default_device()
-            if current:
-                self.icon.title = f"音訊切換工具 - 當前: {current['name']}"
-            else:
-                self.icon.title = "音訊切換工具"
 
     def update_menu(self):
         """更新托盤選單"""
@@ -149,11 +87,18 @@ class AudioSwitcherApp:
         try:
             logger.log_window_event("設定視窗", "嘗試開啟")
             if self.settings_window is None or self.settings_window.window is None:
+                # 判斷是否需要傳入 audio_manager (如果 AudioPlugin 存在)
+                audio_mgr = None
+                audio_plugin = self.plugin_manager.get_plugin("audio_switcher")
+                if audio_plugin and hasattr(audio_plugin, 'audio_manager'):
+                    audio_mgr = audio_plugin.audio_manager
+
                 self.settings_window = SettingsWindow(
-                    self.audio_manager,
                     self.config_manager,
+                    audio_manager=audio_mgr,
                     tk_root=self.tk_root,
-                    on_save_callback=self.update_icon,
+                    # Callback update icon? Maybe generic update
+                    on_save_callback=lambda: self.plugin_manager.get_plugin("audio_switcher").update_app_icon() if self.plugin_manager.get_plugin("audio_switcher") else None,
                     plugin_manager=self.plugin_manager
                 )
                 self.settings_window.show()
@@ -261,23 +206,13 @@ class AudioSwitcherApp:
     def create_menu(self):
         """建立右鍵選單"""
         
-        # 核心選單項目
-        menu_items = [
-            item("切換輸出裝置", self.switch_device),
-            item("設定", self.open_settings),
-            item("使用統計", self.open_stats),
-            pystray.Menu.SEPARATOR
-        ]
+        menu_items = []
 
-        # 插件選單項目
+        # 1. 插件項目
         plugin_items = []
-        # 按順序添加，這裡簡單遍歷
-        # 可以定義優先級，但暫時依賴字典順序或載入順序
-        # 為了更好的體驗，可以指定一些順序 (e.g. Battery -> AI -> RSS -> Music)
-        # 或者在 PluginManager 提供 sorted_plugins
         
-        # 我們希望 Battery 在上方
-        priority_order = ["battery_monitor", "ai_web_assistant", "rss_reader", "music_player"]
+        # 優先級: 倒數計時 -> 音訊切換 -> Battery -> AI -> RSS -> Music
+        priority_order = ["countdown_timer", "audio_switcher", "battery_monitor", "ai_web_assistant", "rss_reader", "music_player"]
         
         # 先加入有優先級的
         for name in priority_order:
@@ -298,8 +233,11 @@ class AudioSwitcherApp:
 
         menu_items.extend(plugin_items)
 
-        # 系統項目
+        # 2. 核心選單項目 (Settings always available)
         menu_items.extend([
+            item("設定", self.open_settings),
+            item("使用統計", self.open_stats),
+            pystray.Menu.SEPARATOR,
             item("查看日誌", self.open_log_viewer),
             item("📝 更新日誌", self.open_changelog),
             pystray.Menu.SEPARATOR,
@@ -312,13 +250,16 @@ class AudioSwitcherApp:
     def run(self):
         """執行應用程式"""
         
-        icon_image = self.create_icon_image(self.get_icon_color())
-        menu = self.create_menu()
+        # 初始圖示 (會被插件覆蓋，如果有載入的話)
+        image = self.create_default_icon()
+        tooltip = "系統工具箱"
 
-        current = self.audio_manager.get_default_device()
-        tooltip = f"音訊切換工具 - 當前: {current['name']}" if current else "音訊切換工具"
+        self.icon = pystray.Icon("toolbox", image, tooltip, self.create_menu())
 
-        self.icon = pystray.Icon("audio_switcher", icon_image, tooltip, menu)
+        # 如果 Audio Plugin 已經載入，嘗試更新圖示
+        audio_plugin = self.plugin_manager.get_plugin("audio_switcher")
+        if audio_plugin and getattr(audio_plugin, "_enabled", False):
+            audio_plugin.update_app_icon()
 
         icon_thread = threading.Thread(target=self.icon.run, daemon=False)
         icon_thread.start()
@@ -328,7 +269,7 @@ class AudioSwitcherApp:
 
 def main():
     """主程式進入點"""
-    app = AudioSwitcherApp()
+    app = ToolboxApp()
     app.run()
 
 if __name__ == "__main__":
